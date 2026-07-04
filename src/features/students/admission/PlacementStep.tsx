@@ -1,22 +1,54 @@
-import { useFormContext } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+
+import { useAuth } from "../../auth/hooks/useAuth";
+import { useLevels, useStreams } from "../../academic/hooks/streamQueries";
+import { StreamCapacityService } from "../../../domain/academic/StreamCapacityService";
 
 import type { AdmissionFormValues } from "./AdmissionFormValues";
 
-// Matches the levels created by AcademicLevelProvisioner. When school
-// provisioning branches on schoolType, load these from the school's
-// academicLevels collection instead of hardcoding.
-const ACADEMIC_LEVELS = [
-  { code: "F1", name: "Form 1" },
-  { code: "F2", name: "Form 2" },
-  { code: "F3", name: "Form 3" },
-  { code: "F4", name: "Form 4" },
+// Fallback if academic levels haven't loaded (they are provisioned per school).
+const FALLBACK_LEVELS = [
+  { levelCode: "F1", name: "Form 1" },
+  { levelCode: "F2", name: "Form 2" },
+  { levelCode: "F3", name: "Form 3" },
+  { levelCode: "F4", name: "Form 4" },
 ];
 
 export default function PlacementStep() {
   const {
     register,
+    setValue,
     formState: { errors },
   } = useFormContext<AdmissionFormValues>();
+  const { school } = useAuth();
+  const schoolCode = school?.schoolCode;
+
+  const levels = useLevels(schoolCode);
+  const streams = useStreams(schoolCode);
+
+  const selectedLevel = useWatch<AdmissionFormValues>({
+    name: "enrollment.academicLevelCode",
+  }) as string;
+
+  // Clear a now-invalid stream when the level actually changes (a stale
+  // streamId from another level would otherwise submit silently). The
+  // ref avoids clearing on mount / when revisiting the step.
+  const prevLevel = useRef(selectedLevel);
+  useEffect(() => {
+    if (prevLevel.current !== selectedLevel) {
+      setValue("enrollment.streamId", "", { shouldValidate: false });
+      prevLevel.current = selectedLevel;
+    }
+  }, [selectedLevel, setValue]);
+
+  const levelOptions =
+    levels.data && levels.data.length > 0 ? levels.data : FALLBACK_LEVELS;
+
+  const levelStreams = (streams.data ?? []).filter(
+    (s) => s.academicLevelCode === selectedLevel && s.active
+  );
+  const hasStreams = levelStreams.length > 0;
 
   return (
     <div className="space-y-5">
@@ -42,8 +74,8 @@ export default function PlacementStep() {
             {...register("enrollment.academicLevelCode")}
             className="w-full border rounded p-2"
           >
-            {ACADEMIC_LEVELS.map((level) => (
-              <option key={level.code} value={level.code}>
+            {levelOptions.map((level) => (
+              <option key={level.levelCode} value={level.levelCode}>
                 {level.name}
               </option>
             ))}
@@ -52,16 +84,43 @@ export default function PlacementStep() {
 
         <div>
           <label className="block font-medium">Stream</label>
-          <input
-            {...register("enrollment.streamId", {
-              required: "Stream is required",
-            })}
-            placeholder="e.g. A"
-            className="w-full border rounded p-2"
-          />
+          {hasStreams ? (
+            <select
+              {...register("enrollment.streamId", {
+                required: "Stream is required",
+              })}
+              className="w-full border rounded p-2"
+            >
+              <option value="">Select a stream...</option>
+              {levelStreams.map((s) => {
+                const remaining = StreamCapacityService.remaining(s);
+                const full = StreamCapacityService.isFull(s);
+                return (
+                  <option key={s.streamId} value={s.streamCode} disabled={full}>
+                    {s.name} ({s.occupiedCount}/{s.capacity}
+                    {full ? " — full" : ` — ${remaining} left`})
+                  </option>
+                );
+              })}
+            </select>
+          ) : (
+            <input
+              {...register("enrollment.streamId", {
+                required: "Stream is required",
+              })}
+              placeholder="e.g. A"
+              className="w-full border rounded p-2"
+            />
+          )}
           {errors.enrollment?.streamId && (
             <p className="mt-1 text-sm text-red-600">
               {errors.enrollment.streamId.message}
+            </p>
+          )}
+          {!hasStreams && (
+            <p className="mt-1 text-xs text-gray-500">
+              No streams defined for this level yet — define them in Academic
+              Structure to enforce capacity.
             </p>
           )}
         </div>

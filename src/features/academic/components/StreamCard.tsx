@@ -10,7 +10,8 @@ interface Props {
 export default function StreamCard({ stream, canManage, onEdit }: Props) {
   const remaining = StreamCapacityService.remaining(stream);
   const full = StreamCapacityService.isFull(stream);
-  const pct = stream.capacity > 0 ? (stream.current / stream.capacity) * 100 : 0;
+  const pct =
+    stream.capacity > 0 ? (stream.occupiedCount / stream.capacity) * 100 : 0;
 
   return (
     <div className="rounded-lg border bg-white p-4">
@@ -41,7 +42,7 @@ export default function StreamCard({ stream, canManage, onEdit }: Props) {
       <div className="mt-3">
         <div className="flex justify-between text-sm text-gray-600">
           <span>
-            {stream.current}/{stream.capacity}
+            {stream.occupiedCount}/{stream.capacity}
           </span>
           <span>{remaining} left</span>
         </div>
@@ -55,9 +56,7 @@ export default function StreamCard({ stream, canManage, onEdit }: Props) {
 
       <p className="mt-3 text-sm text-gray-500">
         Class Teacher:{" "}
-        {stream.classTeacherId ?? (
-          <span className="italic">unassigned</span>
-        )}
+        {stream.classTeacherId ?? <span className="italic">unassigned</span>}
       </p>
     </div>
   );

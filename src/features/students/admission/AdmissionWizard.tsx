@@ -36,6 +36,7 @@ const STEP_FIELDS: Path<AdmissionFormValues>[][] = [
   ["guardian.firstName", "guardian.lastName", "guardian.phone"],
   [
     "enrollment.academicYearId",
+    "enrollment.academicLevelCode",
     "enrollment.streamId",
     "enrollment.admissionDate",
   ],

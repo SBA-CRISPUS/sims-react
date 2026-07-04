@@ -63,28 +63,25 @@
         || (belongsToSchool(schoolId) && canManageAcademicStructure());
     }
 
-    // Class streams under a level. Structural fields (code, name,
-    // capacity, class teacher, active) are managed by academic-structure
-    // staff; the admission flow (canManageStudents) may only bump the
-    // `current` occupancy counter - the field guard forbids it touching
-    // anything else.
-    match /schools/{schoolId}/academicLevels/{levelId}/streams/{streamId} {
+    // Class streams, flat under the school and keyed by
+    // "{levelCode}-{streamCode}" (e.g. F1-A). Structural fields
+    // (name/capacity/active/classTeacherId) are managed by academic
+    // staff. occupiedCount and the identity fields (streamId/streamCode/
+    // academicLevelCode) are locked against client writes by the field
+    // guards below; occupiedCount is owned solely by the
+    // onEnrollmentWritten Cloud Function (Admin SDK bypasses rules).
+    match /schools/{schoolId}/streams/{streamId} {
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
-      allow create: if belongsToSchool(schoolId) && canManageAcademicStructure();
-      allow update: if belongsToSchool(schoolId) && (
-        canManageAcademicStructure()
-        || (
-          // Admission may only bump the occupancy counter: no key other
-          // than current/updatedAt may change, and current must stay a
-          // non-negative integer that never decreases.
-          canManageStudents()
-          && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(['current', 'updatedAt'])
-          && request.resource.data.current is int
-          && request.resource.data.current >= 0
-          && request.resource.data.current >= resource.data.current
-        )
-      );
+      allow create: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.streamId == streamId
+        && request.resource.data.occupiedCount == 0;
+      allow update: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.occupiedCount == resource.data.occupiedCount
+        && request.resource.data.streamId == resource.data.streamId
+        && request.resource.data.streamCode == resource.data.streamCode
+        && request.resource.data.academicLevelCode == resource.data.academicLevelCode;
       allow delete: if false;
     }
 

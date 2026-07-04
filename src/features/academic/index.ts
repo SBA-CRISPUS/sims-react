@@ -1,1 +1,1 @@
-export { default as StreamsPage } from "./pages/StreamsPage";
+export { default as AcademicStructurePage } from "./pages/AcademicStructurePage";

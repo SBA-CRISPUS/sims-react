@@ -1,39 +1,49 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { StreamService } from "../../../domain/academic/StreamService";
-import type { AcademicLevel } from "../../../domain/academic/AcademicLevel";
+import { AcademicStructureService } from "../../../domain/academic/AcademicStructureService";
 import type { Stream, StreamInput } from "../../../domain/academic/Stream";
 
-export interface LevelWithStreams {
-  level: AcademicLevel;
-  streams: Stream[];
+export function useLevels(schoolCode?: string) {
+  return useQuery({
+    queryKey: ["academic-levels", schoolCode],
+    enabled: !!schoolCode,
+    queryFn: () => AcademicStructureService.listLevels(schoolCode!),
+  });
 }
 
-export function useAcademicStructure(schoolCode?: string) {
+export function useStreams(schoolCode?: string) {
   return useQuery({
-    queryKey: ["academic-structure", schoolCode],
+    queryKey: ["streams", schoolCode],
     enabled: !!schoolCode,
-    queryFn: async (): Promise<LevelWithStreams[]> => {
-      const levels = await StreamService.listLevels(schoolCode!);
-      return Promise.all(
-        levels.map(async (level) => ({
-          level,
-          streams: await StreamService.listStreams(schoolCode!, level.levelCode),
-        }))
-      );
-    },
+    queryFn: () => StreamService.listStreams(schoolCode!),
+  });
+}
+
+export function useAcademicYears(schoolCode?: string) {
+  return useQuery({
+    queryKey: ["academic-years", schoolCode],
+    enabled: !!schoolCode,
+    queryFn: () => AcademicStructureService.listYears(schoolCode!),
+  });
+}
+
+export function useTerms(schoolCode?: string, academicYearId?: string) {
+  return useQuery({
+    queryKey: ["terms", schoolCode, academicYearId],
+    enabled: !!schoolCode && !!academicYearId,
+    queryFn: () =>
+      AcademicStructureService.listTerms(schoolCode!, academicYearId!),
   });
 }
 
 export function useCreateStream(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { levelCode: string; stream: StreamInput }) =>
-      StreamService.createStream(schoolCode, input.levelCode, input.stream),
+    mutationFn: (input: StreamInput) =>
+      StreamService.createStream(schoolCode, input),
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["academic-structure", schoolCode],
-      }),
+      queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] }),
   });
 }
 
@@ -41,19 +51,10 @@ export function useUpdateStream(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: {
-      levelCode: string;
-      streamCode: string;
+      streamId: string;
       patch: Partial<Pick<Stream, "name" | "capacity" | "active">>;
-    }) =>
-      StreamService.updateStream(
-        schoolCode,
-        input.levelCode,
-        input.streamCode,
-        input.patch
-      ),
+    }) => StreamService.updateStream(schoolCode, input.streamId, input.patch),
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["academic-structure", schoolCode],
-      }),
+      queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] }),
   });
 }

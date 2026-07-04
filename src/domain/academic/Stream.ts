@@ -1,16 +1,20 @@
 /**
- * A real class stream under an academic level (e.g. Form 1 / Stream A).
- * Replaces the free-text stream string carried on enrollments.
+ * A real class stream (e.g. Form 1 / Stream A). Stored FLAT under
+ * schools/{code}/streams keyed by `${academicLevelCode}-${streamCode}`
+ * (e.g. "F1-A"), which keeps "all streams" / "streams in a level" a
+ * single query and gives teaching assignments a stable id to reference.
  *
- * `current` is a transactional occupancy counter maintained by the
- * admission flow; `capacity` bounds it. `classTeacherId` is seeded null
- * and assigned once Teacher Management exists.
+ * occupiedCount is maintained by the onEnrollmentWritten Cloud Function
+ * (Admin SDK), never by clients; capacity bounds it. classTeacherId is
+ * seeded null and assigned once Teacher Management exists.
  */
 export interface Stream {
+  streamId: string;
+  academicLevelCode: string;
   streamCode: string;
   name: string;
   capacity: number;
-  current: number;
+  occupiedCount: number;
   classTeacherId: string | null;
   active: boolean;
   createdAt?: Date;
@@ -18,7 +22,15 @@ export interface Stream {
 }
 
 export interface StreamInput {
+  academicLevelCode: string;
   streamCode: string;
   name: string;
   capacity: number;
+}
+
+export function streamId(
+  academicLevelCode: string,
+  streamCode: string
+): string {
+  return `${academicLevelCode}-${streamCode.toUpperCase()}`;
 }

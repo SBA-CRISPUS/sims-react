@@ -7,30 +7,17 @@ import { db } from "../../firebase";
  *
  * The mechanism lives here now, but the allocation UI (picking a real
  * teacher) waits for Teacher Management in Sprint 5 - until then
- * classTeacherId stays null and this is only wired to a teacher picker
- * once teacher records exist. No teacher-existence validation yet.
+ * classTeacherId stays null. No teacher-existence validation yet.
  */
 export class ClassTeacherAllocationService {
   static async assign(
     schoolCode: string,
-    levelCode: string,
-    streamCode: string,
+    id: string,
     teacherId: string | null
   ): Promise<void> {
-    await updateDoc(
-      doc(
-        db,
-        "schools",
-        schoolCode,
-        "academicLevels",
-        levelCode,
-        "streams",
-        streamCode
-      ),
-      {
-        classTeacherId: teacherId,
-        updatedAt: serverTimestamp(),
-      }
-    );
+    await updateDoc(doc(db, "schools", schoolCode, "streams", id), {
+      classTeacherId: teacherId,
+      updatedAt: serverTimestamp(),
+    });
   }
 }

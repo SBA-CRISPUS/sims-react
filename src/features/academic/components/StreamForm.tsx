@@ -39,8 +39,8 @@ export default function StreamForm({
     const trimmedName = name.trim() || streamCode.trim().toUpperCase();
 
     const validationError = isEdit
-      ? StreamValidator.validateCapacity(capacity, existing.current)
-      : StreamValidator.validate({ streamCode, name, capacity }, existingCodes);
+      ? StreamValidator.validateCapacity(capacity, existing.occupiedCount)
+      : StreamValidator.validate({ streamCode, capacity }, existingCodes);
     if (validationError) {
       setError(validationError);
       return;
