@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { navigation } from "../../config/navigation";
-import type { UserRole } from "../../types/user";
-
-const currentRole: UserRole = "super_admin";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 
 export default function Sidebar() {
-  const visibleItems = navigation.filter((item) =>
-    item.roles.includes(currentRole)
+  const { profile } = useAuth();
+
+  const userRole = profile?.role;
+
+  const visibleItems = navigation.filter(
+    (item) => userRole !== undefined && item.roles.includes(userRole)
   );
 
   return (

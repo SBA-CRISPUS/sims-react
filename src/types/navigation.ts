@@ -1,4 +1,4 @@
-import type { UserRole } from "./user";
+import type { UserRole } from "../features/auth/types/UserProfile";
 
 export interface NavigationItem {
   title: string;
