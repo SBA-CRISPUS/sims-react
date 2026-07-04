@@ -3,7 +3,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppShell from "../app/AppShell";
 import { DashboardPage } from "../features/dashboard";
 import { SchoolsPage, CreateSchoolPage } from "../features/schools";
-import { StudentsPage, AdmissionWizard } from "../features/students";
+import {
+  StudentsPage,
+  StudentProfilePage,
+  GuardianProfilePage,
+  AdmissionWizard,
+} from "../features/students";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -53,6 +58,24 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <AdmissionWizard />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/guardians/:guardianId"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <GuardianProfilePage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/:studentNumber"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <StudentProfilePage />
             </AppShell>
           }
         />
