@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppShell from "../app/AppShell";
 import { DashboardPage } from "../features/dashboard";
 import { SchoolsPage, CreateSchoolPage } from "../features/schools";
+import { StudentsPage, AdmissionWizard } from "../features/students";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -34,6 +35,24 @@ export function AppRouter() {
           element={
             <AppShell roles={["super_admin"]}>
               <CreateSchoolPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <StudentsPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/admit"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <AdmissionWizard />
             </AppShell>
           }
         />
