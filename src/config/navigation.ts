@@ -48,6 +48,16 @@ export const navigation: NavigationItem[] = [
       "teacher",
     ],
   },
+  {
+    title: "Streams",
+    path: "/academic/streams",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "teacher",
+    ],
+  },
 
   {
     title: "Teachers",

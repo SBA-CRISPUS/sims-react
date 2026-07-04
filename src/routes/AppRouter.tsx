@@ -10,6 +10,7 @@ import {
   GuardianProfilePage,
   AdmissionWizard,
 } from "../features/students";
+import { StreamsPage } from "../features/academic";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -68,6 +69,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <AdmissionWizard />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/academic/streams"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <StreamsPage />
             </AppShell>
           }
         />

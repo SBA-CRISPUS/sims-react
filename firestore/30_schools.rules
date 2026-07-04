@@ -63,6 +63,31 @@
         || (belongsToSchool(schoolId) && canManageAcademicStructure());
     }
 
+    // Class streams under a level. Structural fields (code, name,
+    // capacity, class teacher, active) are managed by academic-structure
+    // staff; the admission flow (canManageStudents) may only bump the
+    // `current` occupancy counter - the field guard forbids it touching
+    // anything else.
+    match /schools/{schoolId}/academicLevels/{levelId}/streams/{streamId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageAcademicStructure();
+      allow update: if belongsToSchool(schoolId) && (
+        canManageAcademicStructure()
+        || (
+          // Admission may only bump the occupancy counter: no key other
+          // than current/updatedAt may change, and current must stay a
+          // non-negative integer that never decreases.
+          canManageStudents()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['current', 'updatedAt'])
+          && request.resource.data.current is int
+          && request.resource.data.current >= 0
+          && request.resource.data.current >= resource.data.current
+        )
+      );
+      allow delete: if false;
+    }
+
     match /schools/{schoolId}/academicYears/{yearId} {
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
       allow write: if isSuperAdmin()
