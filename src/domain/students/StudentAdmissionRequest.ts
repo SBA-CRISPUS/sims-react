@@ -12,7 +12,13 @@ import type { Enrollment } from "./Enrollment";
 export interface StudentAdmissionRequest {
   student: Omit<
     Student,
-    "studentNumber" | "status" | "createdAt" | "updatedAt"
+    | "studentNumber"
+    | "status"
+    | "admissionId"
+    | "guardianIds"
+    | "admittedByUid"
+    | "createdAt"
+    | "updatedAt"
   >;
 
   guardian: Omit<Guardian, "guardianId">;

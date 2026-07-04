@@ -38,6 +38,19 @@
       allow delete: if false;
     }
 
+    // School-local sequential counters (students, guardians,
+    // admissions, later teachers/receipts). School-scoped, so a
+    // school_admin/head_teacher reads and increments them inside the
+    // admission transaction - global IDs stay in /system. Access
+    // mirrors canManageStudents for this sprint's counters; tighten
+    // per-counter when teacher/receipt counters arrive.
+    match /schools/{schoolId}/counters/{counterId} {
+      allow read: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageStudents());
+      allow create, update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }
+
     match /schools/{schoolId}/departments/{departmentId} {
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
       allow write: if isSuperAdmin()

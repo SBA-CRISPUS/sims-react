@@ -28,6 +28,10 @@ export interface Student {
   dateOfBirth: Date;
   nationality: string;
   status: StudentStatus;
+  // Service-generated on admission.
+  admissionId: string;
+  guardianIds: string[];
+  admittedByUid: string;
   cbc?: StudentCbc;
   createdAt: Date;
   updatedAt: Date;

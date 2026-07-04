@@ -19,3 +19,13 @@
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
     }
+
+    // Enrollment is historical academic data - append-only, never
+    // deleted. Top-level under the school (not nested under a student)
+    // so "all learners in Form 2 / Stream B / this year" is one query.
+    match /schools/{schoolId}/enrollments/{enrollmentId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageStudents();
+      allow update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }

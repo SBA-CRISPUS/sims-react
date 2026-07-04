@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 
 import { StudentAdmissionService } from "../../../domain/students/StudentAdmissionService";
 import type { StudentAdmissionRequest } from "../../../domain/students/StudentAdmissionRequest";
+import type { AdmissionResult } from "../../../domain/students/StudentAdmissionService";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 import type { AdmissionFormValues } from "./AdmissionFormValues";
 import PersonalStep from "./PersonalStep";
@@ -44,8 +46,11 @@ const today = new Date().toISOString().slice(0, 10);
 const currentYear = new Date().getFullYear();
 
 export default function AdmissionWizard() {
+  const { school, firebaseUser } = useAuth();
+
   const [step, setStep] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<AdmissionResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const methods = useForm<AdmissionFormValues>({
     defaultValues: {
@@ -89,6 +94,13 @@ export default function AdmissionWizard() {
   }
 
   async function onSubmit(values: AdmissionFormValues) {
+    setError(null);
+
+    if (!school || !firebaseUser) {
+      setError("No active school session. Please sign in again.");
+      return;
+    }
+
     const request: StudentAdmissionRequest = {
       student: {
         ...values.student,
@@ -102,28 +114,52 @@ export default function AdmissionWizard() {
       },
     };
 
-    await StudentAdmissionService.admit(request);
-    setSubmitted(true);
+    try {
+      const admission = await StudentAdmissionService.admit(
+        school.schoolCode,
+        firebaseUser.uid,
+        request
+      );
+      setResult(admission);
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Admission failed. This requires an internet connection - check your connection and try again."
+      );
+    }
   }
 
-  if (submitted) {
+  if (result) {
     return (
       <div className="max-w-xl mx-auto p-8">
         <div className="rounded-lg bg-white p-8 shadow">
           <h1 className="text-2xl font-bold text-green-700">
-            Admission Captured
+            Student Admitted
           </h1>
           <p className="mt-4 text-gray-600">
-            The admission workflow ran end to end. Persisting the student,
-            guardian, and enrollment to Firestore is the next sprint - for now
-            the assembled request is logged to the browser console.
+            The learner, guardian, and enrollment were created together in
+            Firestore.
           </p>
+          <div className="mt-6 space-y-1">
+            <p>
+              <span className="font-medium">Student Number:</span>{" "}
+              {result.studentNumber}
+            </p>
+            <p>
+              <span className="font-medium">Admission ID:</span>{" "}
+              {result.admissionId}
+            </p>
+            <p>
+              <span className="font-medium">Guardian ID:</span>{" "}
+              {result.guardianId}
+            </p>
+          </div>
           <div className="mt-6 flex gap-3">
             <button
               onClick={() => {
                 methods.reset();
                 setStep(0);
-                setSubmitted(false);
+                setResult(null);
               }}
               className="rounded bg-blue-700 px-5 py-2 text-white hover:bg-blue-800"
             >
@@ -178,6 +214,10 @@ export default function AdmissionWizard() {
           <div className="rounded-lg bg-white p-6 shadow">
             {STEPS[step].element}
           </div>
+
+          {error && (
+            <p className="mt-4 text-sm text-red-600">{error}</p>
+          )}
 
           <div className="mt-6 flex justify-between">
             <button

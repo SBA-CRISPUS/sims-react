@@ -1,29 +1,99 @@
+import {
+  collection,
+  doc,
+  runTransaction,
+  serverTimestamp,
+} from "firebase/firestore";
+
+import { db } from "../../firebase";
+
 import type { StudentAdmissionRequest } from "./StudentAdmissionRequest";
 
+export interface AdmissionResult {
+  studentNumber: string;
+  guardianId: string;
+  admissionId: string;
+}
+
+function pad(n: number): string {
+  return String(n).padStart(6, "0");
+}
+
 /**
- * Admits a learner into a school. Scaffold for now - the workflow is
- * laid out step by step and each step gets a real implementation next
- * sprint (against schools/{schoolCode}/students | guardians |
- * enrollments, using the same counter + audit-log patterns as school
- * provisioning).
+ * Admits a learner in a single Firestore transaction: guardian,
+ * student, enrollment, and the three school-local counters all commit
+ * together or not at all - no orphaned records if a write fails.
+ *
+ * Number generation reads the counters inside the transaction, so this
+ * flow requires connectivity (runTransaction cannot run offline). The
+ * audit-log entry is written server-side by the onStudentAdmitted
+ * Cloud Function trigger - client writes to auditLogs are denied by the
+ * security rules on purpose.
  */
 export class StudentAdmissionService {
-  static async admit(request: StudentAdmissionRequest) {
-    console.log("Student Admission");
-    console.table(request);
+  static async admit(
+    schoolCode: string,
+    actorUid: string,
+    request: StudentAdmissionRequest
+  ): Promise<AdmissionResult> {
+    const year = new Date().getFullYear();
 
-    // Step 1 - Validate (admission number unique, required fields)
+    const counters = collection(db, "schools", schoolCode, "counters");
+    const studentsCounterRef = doc(counters, "students");
+    const guardiansCounterRef = doc(counters, "guardians");
+    const admissionsCounterRef = doc(counters, `admissions-${year}`);
 
-    // Step 2 - Generate student number (system/counters.nextStudentNumber)
+    return runTransaction(db, async (tx) => {
+      // All reads must precede all writes in a transaction.
+      const studentsSnap = await tx.get(studentsCounterRef);
+      const guardiansSnap = await tx.get(guardiansCounterRef);
+      const admissionsSnap = await tx.get(admissionsCounterRef);
 
-    // Step 3 - Create guardian (or link an existing one)
+      const nextStudent = (studentsSnap.data()?.current ?? 0) + 1;
+      const nextGuardian = (guardiansSnap.data()?.current ?? 0) + 1;
+      const nextAdmission = (admissionsSnap.data()?.current ?? 0) + 1;
 
-    // Step 4 - Create student (schools/{schoolCode}/students/{studentNumber})
+      const studentNumber = `STU-${pad(nextStudent)}`;
+      const guardianId = `GRD-${pad(nextGuardian)}`;
+      const admissionId = `ADM-${year}-${pad(nextAdmission)}`;
 
-    // Step 5 - Create enrollment (schools/{schoolCode}/enrollments)
+      const guardianRef = doc(db, "schools", schoolCode, "guardians", guardianId);
+      const studentRef = doc(db, "schools", schoolCode, "students", studentNumber);
+      const enrollmentRef = doc(collection(db, "schools", schoolCode, "enrollments"));
 
-    // Step 6 - Write audit log
+      tx.set(guardianRef, {
+        guardianId,
+        ...request.guardian,
+        studentNumbers: [studentNumber],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
 
-    return request;
+      tx.set(studentRef, {
+        studentNumber,
+        admissionId,
+        guardianIds: [guardianId],
+        admittedByUid: actorUid,
+        ...request.student,
+        status: "active",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      tx.set(enrollmentRef, {
+        studentId: studentNumber,
+        admissionId,
+        ...request.enrollment,
+        status: "active",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      tx.set(studentsCounterRef, { current: nextStudent }, { merge: true });
+      tx.set(guardiansCounterRef, { current: nextGuardian }, { merge: true });
+      tx.set(admissionsCounterRef, { current: nextAdmission }, { merge: true });
+
+      return { studentNumber, guardianId, admissionId };
+    });
   }
 }

@@ -12,3 +12,4 @@
  */
 export { createSchoolAdministrator } from "./identity/createSchoolAdministrator";
 export { syncMyClaims } from "./identity/syncMyClaims";
+export { onStudentAdmitted } from "./students/onStudentAdmitted";
