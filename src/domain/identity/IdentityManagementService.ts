@@ -10,14 +10,21 @@ export interface CreateAdministratorRequest {
   phone: string;
 }
 
+export interface CreateAdministratorResult {
+  uid: string;
+  email: string;
+  displayName: string;
+  temporaryPassword: string;
+}
+
 export class IdentityManagementService {
   static async createSchoolAdministrator(
     request: CreateAdministratorRequest
-  ) {
-    const callable = httpsCallable(
-      functions,
-      "createSchoolAdministrator"
-    );
+  ): Promise<CreateAdministratorResult> {
+    const callable = httpsCallable<
+      CreateAdministratorRequest,
+      CreateAdministratorResult
+    >(functions, "createSchoolAdministrator");
 
     const result = await callable(request);
 
