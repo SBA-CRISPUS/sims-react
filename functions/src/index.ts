@@ -11,3 +11,4 @@
  *   reports/   - reporting and aggregation
  */
 export { createSchoolAdministrator } from "./identity/createSchoolAdministrator";
+export { syncMyClaims } from "./identity/syncMyClaims";

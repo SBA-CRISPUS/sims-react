@@ -1,0 +1,16 @@
+    //
+    // System master data: grading systems, academic structures,
+    // countries, subscription plans, counters. Super admin only.
+    //
+    // Read is super-admin-only: the counter (nextSchoolNumber) would
+    // otherwise let any signed-in user enumerate every school code.
+    // The only client reader is the super-admin provisioning
+    // transaction. If shared reference data (grading systems,
+    // countries) later needs tenant-wide read, move it to its own
+    // collection rather than widening this rule.
+    //
+
+    match /system/{document=**} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }

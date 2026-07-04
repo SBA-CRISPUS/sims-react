@@ -1,0 +1,27 @@
+    //
+    // Identity profiles. Created by the identity Cloud Functions
+    // (Admin SDK bypasses rules). Never deleted - accounts are
+    // disabled via active: false.
+    //
+
+    match /users/{uid} {
+      allow read: if signedIn()
+        && (request.auth.uid == uid || isSuperAdmin());
+
+      allow create: if isSuperAdmin();
+
+      // Users may edit their own profile, but the security fields
+      // (role, schoolCode, active) only change by super admin or the
+      // Admin SDK - otherwise anyone could grant themselves a role
+      // and have syncMyClaims mint it into their token.
+      allow update: if isSuperAdmin()
+        || (
+          signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.schoolCode == resource.data.schoolCode
+          && request.resource.data.active == resource.data.active
+        );
+
+      allow delete: if false;
+    }

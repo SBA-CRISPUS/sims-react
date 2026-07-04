@@ -1,0 +1,21 @@
+    //
+    // Students and their guardians. Deletion is disabled - students
+    // are deactivated, preserving academic history.
+    //
+    // Note: school-wide read is Phase 1. When the Students module
+    // lands, narrow student/parent roles to their own records.
+    //
+
+    match /schools/{schoolId}/students/{studentId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageStudents();
+      allow update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/guardians/{guardianId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageStudents();
+      allow update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }

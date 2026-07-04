@@ -21,7 +21,23 @@ export interface CreateAdministratorResult {
   };
 }
 
+export interface SyncedClaims {
+  role: string;
+  schoolCode: string;
+}
+
 export class IdentityManagementService {
+  static async syncMyClaims(): Promise<SyncedClaims> {
+    const callable = httpsCallable<void, SyncedClaims>(
+      functions,
+      "syncMyClaims"
+    );
+
+    const result = await callable();
+
+    return result.data;
+  }
+
   static async createSchoolAdministrator(
     request: CreateAdministratorRequest
   ): Promise<CreateAdministratorResult> {

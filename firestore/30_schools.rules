@@ -1,0 +1,63 @@
+    //
+    // School tenants and their provisioned structure.
+    //
+    // Writes allow isSuperAdmin() because school provisioning
+    // currently runs client-side under the super admin account.
+    // When provisioning moves into a Cloud Function, tighten these
+    // to school-admin-only.
+    //
+
+    match /schools/{schoolId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if isSuperAdmin();
+
+      // A school_admin may edit their school's descriptive fields
+      // (name, location, contact) but NOT the fields that represent
+      // entitlement or lifecycle - subscription tier, status,
+      // provisioning state, and identity codes stay super-admin-only,
+      // or a school_admin could self-grant Enterprise / un-suspend.
+      allow update: if isSuperAdmin()
+        || (
+          belongsToSchool(schoolId)
+          && isSchoolAdmin()
+          && request.resource.data.schoolCode == resource.data.schoolCode
+          && request.resource.data.emisCode == resource.data.emisCode
+          && request.resource.data.subscription == resource.data.subscription
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.provisioning == resource.data.provisioning
+        );
+
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/settings/{settingId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && isSchoolAdmin());
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/departments/{departmentId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicLevels/{levelId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicYears/{yearId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicYears/{yearId}/terms/{termId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }

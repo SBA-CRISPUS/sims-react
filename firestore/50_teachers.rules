@@ -1,0 +1,10 @@
+    //
+    // Teachers. Deletion is disabled - staff are deactivated.
+    //
+
+    match /schools/{schoolId}/teachers/{teacherId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageTeachers();
+      allow update: if belongsToSchool(schoolId) && canManageTeachers();
+      allow delete: if false;
+    }

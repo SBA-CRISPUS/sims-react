@@ -1,0 +1,5 @@
+    //
+    // Reports. Rules land with the reports module (canViewReports is
+    // already defined in 00_helpers). Until then the default deny
+    // covers these paths.
+    //

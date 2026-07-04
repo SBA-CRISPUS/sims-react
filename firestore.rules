@@ -1,0 +1,252 @@
+// GENERATED FILE - DO NOT EDIT DIRECTLY.
+// Built from firestore/*.rules - rebuild with: npm run build:rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== 00_helpers.rules =====
+
+    //
+    // Helper Functions
+    //
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function schoolCode() {
+      return request.auth.token.schoolCode;
+    }
+
+    function hasRole(r) {
+      return signedIn() && role() == r;
+    }
+
+    function isSuperAdmin() {
+      return hasRole("super_admin");
+    }
+
+    function isSchoolAdmin() {
+      return hasRole("school_admin");
+    }
+
+    function belongsToSchool(code) {
+      return signedIn() && schoolCode() == code;
+    }
+
+    //
+    // Capability Functions
+    //
+    // Role logic lives here, not in the collection rules. Adding a new
+    // role (registrar, guidance_counselor, ...) means updating one
+    // function, not dozens of match blocks.
+    //
+
+    function canManageStudents() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+
+    function canManageTeachers() {
+      return isSchoolAdmin();
+    }
+
+    function canManageAcademicStructure() {
+      return isSchoolAdmin();
+    }
+
+    function canViewReports() {
+      return isSchoolAdmin()
+        || hasRole("head_teacher")
+        || hasRole("teacher");
+    }
+
+    // ===== 10_system.rules =====
+
+    //
+    // System master data: grading systems, academic structures,
+    // countries, subscription plans, counters. Super admin only.
+    //
+    // Read is super-admin-only: the counter (nextSchoolNumber) would
+    // otherwise let any signed-in user enumerate every school code.
+    // The only client reader is the super-admin provisioning
+    // transaction. If shared reference data (grading systems,
+    // countries) later needs tenant-wide read, move it to its own
+    // collection rather than widening this rule.
+    //
+
+    match /system/{document=**} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // ===== 20_users.rules =====
+
+    //
+    // Identity profiles. Created by the identity Cloud Functions
+    // (Admin SDK bypasses rules). Never deleted - accounts are
+    // disabled via active: false.
+    //
+
+    match /users/{uid} {
+      allow read: if signedIn()
+        && (request.auth.uid == uid || isSuperAdmin());
+
+      allow create: if isSuperAdmin();
+
+      // Users may edit their own profile, but the security fields
+      // (role, schoolCode, active) only change by super admin or the
+      // Admin SDK - otherwise anyone could grant themselves a role
+      // and have syncMyClaims mint it into their token.
+      allow update: if isSuperAdmin()
+        || (
+          signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.schoolCode == resource.data.schoolCode
+          && request.resource.data.active == resource.data.active
+        );
+
+      allow delete: if false;
+    }
+
+    // ===== 30_schools.rules =====
+
+    //
+    // School tenants and their provisioned structure.
+    //
+    // Writes allow isSuperAdmin() because school provisioning
+    // currently runs client-side under the super admin account.
+    // When provisioning moves into a Cloud Function, tighten these
+    // to school-admin-only.
+    //
+
+    match /schools/{schoolId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if isSuperAdmin();
+
+      // A school_admin may edit their school's descriptive fields
+      // (name, location, contact) but NOT the fields that represent
+      // entitlement or lifecycle - subscription tier, status,
+      // provisioning state, and identity codes stay super-admin-only,
+      // or a school_admin could self-grant Enterprise / un-suspend.
+      allow update: if isSuperAdmin()
+        || (
+          belongsToSchool(schoolId)
+          && isSchoolAdmin()
+          && request.resource.data.schoolCode == resource.data.schoolCode
+          && request.resource.data.emisCode == resource.data.emisCode
+          && request.resource.data.subscription == resource.data.subscription
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.provisioning == resource.data.provisioning
+        );
+
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/settings/{settingId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && isSchoolAdmin());
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/departments/{departmentId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicLevels/{levelId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicYears/{yearId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    match /schools/{schoolId}/academicYears/{yearId}/terms/{termId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow write: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    // ===== 40_students.rules =====
+
+    //
+    // Students and their guardians. Deletion is disabled - students
+    // are deactivated, preserving academic history.
+    //
+    // Note: school-wide read is Phase 1. When the Students module
+    // lands, narrow student/parent roles to their own records.
+    //
+
+    match /schools/{schoolId}/students/{studentId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageStudents();
+      allow update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }
+
+    match /schools/{schoolId}/guardians/{guardianId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageStudents();
+      allow update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if false;
+    }
+
+    // ===== 50_teachers.rules =====
+
+    //
+    // Teachers. Deletion is disabled - staff are deactivated.
+    //
+
+    match /schools/{schoolId}/teachers/{teacherId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId) && canManageTeachers();
+      allow update: if belongsToSchool(schoolId) && canManageTeachers();
+      allow delete: if false;
+    }
+
+    // ===== 60_assessments.rules =====
+
+    //
+    // Assessments (SBA, marks). Rules land with the assessments
+    // module. Until then the default deny covers these paths.
+    //
+
+    // ===== 70_reports.rules =====
+
+    //
+    // Reports. Rules land with the reports module (canViewReports is
+    // already defined in 00_helpers). Until then the default deny
+    // covers these paths.
+    //
+
+    // ===== 80_audit.rules =====
+
+    //
+    // Audit logs are written exclusively by Cloud Functions via the
+    // Admin SDK. No client ever writes, updates, or deletes them.
+    //
+
+    match /schools/{schoolId}/auditLogs/{logId} {
+      allow read: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && isSchoolAdmin());
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+  }
+}

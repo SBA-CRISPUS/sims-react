@@ -1,0 +1,57 @@
+    //
+    // Helper Functions
+    //
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function schoolCode() {
+      return request.auth.token.schoolCode;
+    }
+
+    function hasRole(r) {
+      return signedIn() && role() == r;
+    }
+
+    function isSuperAdmin() {
+      return hasRole("super_admin");
+    }
+
+    function isSchoolAdmin() {
+      return hasRole("school_admin");
+    }
+
+    function belongsToSchool(code) {
+      return signedIn() && schoolCode() == code;
+    }
+
+    //
+    // Capability Functions
+    //
+    // Role logic lives here, not in the collection rules. Adding a new
+    // role (registrar, guidance_counselor, ...) means updating one
+    // function, not dozens of match blocks.
+    //
+
+    function canManageStudents() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+
+    function canManageTeachers() {
+      return isSchoolAdmin();
+    }
+
+    function canManageAcademicStructure() {
+      return isSchoolAdmin();
+    }
+
+    function canViewReports() {
+      return isSchoolAdmin()
+        || hasRole("head_teacher")
+        || hasRole("teacher");
+    }
