@@ -10,5 +10,8 @@
     "predeploy": [
       "npm run build:rules"
     ]
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

@@ -1,43 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { StudentService } from "../../../domain/students/StudentService";
+import { StudentRegistryService } from "../../../domain/students/StudentRegistryService";
+import { StudentProfileService } from "../../../domain/students/StudentProfileService";
 import { GuardianService } from "../../../domain/students/GuardianService";
 
-import type { Student } from "../../../domain/students/Student";
-import type { Enrollment } from "../../../domain/students/Enrollment";
+export type { StudentRow } from "../../../domain/students/StudentRegistryService";
 
-export interface StudentRow {
-  student: Student;
-  enrollment?: Enrollment;
-}
-
-/**
- * The enrollment that represents where a learner currently sits: the
- * most recent by admission date. (Every enrollment is currently
- * "active", so recency - not status - is what distinguishes a
- * promoted learner's current placement from their prior years.)
- */
-export function currentEnrollment(
-  enrollments: Enrollment[]
-): Enrollment | undefined {
-  return [...enrollments].sort(
-    (a, b) => (b.admissionDate?.getTime() ?? 0) - (a.admissionDate?.getTime() ?? 0)
-  )[0];
-}
-
-export function useStudents(schoolCode?: string) {
+export function useRegistry(schoolCode?: string) {
   return useQuery({
-    queryKey: ["students", schoolCode],
+    queryKey: ["registry", schoolCode],
     enabled: !!schoolCode,
-    queryFn: () => StudentService.listStudents(schoolCode!),
-  });
-}
-
-export function useEnrollments(schoolCode?: string) {
-  return useQuery({
-    queryKey: ["enrollments", schoolCode],
-    enabled: !!schoolCode,
-    queryFn: () => StudentService.listEnrollments(schoolCode!),
+    queryFn: () => StudentRegistryService.listRegistry(schoolCode!),
   });
 }
 
@@ -45,7 +18,7 @@ export function useStudent(schoolCode?: string, studentNumber?: string) {
   return useQuery({
     queryKey: ["student", schoolCode, studentNumber],
     enabled: !!schoolCode && !!studentNumber,
-    queryFn: () => StudentService.getStudent(schoolCode!, studentNumber!),
+    queryFn: () => StudentProfileService.getStudent(schoolCode!, studentNumber!),
   });
 }
 
@@ -57,7 +30,7 @@ export function useStudentEnrollments(
     queryKey: ["student-enrollments", schoolCode, studentNumber],
     enabled: !!schoolCode && !!studentNumber,
     queryFn: () =>
-      StudentService.listStudentEnrollments(schoolCode!, studentNumber!),
+      StudentProfileService.listStudentEnrollments(schoolCode!, studentNumber!),
   });
 }
 
@@ -65,7 +38,8 @@ export function useStudentAudit(schoolCode?: string, studentNumber?: string) {
   return useQuery({
     queryKey: ["student-audit", schoolCode, studentNumber],
     enabled: !!schoolCode && !!studentNumber,
-    queryFn: () => StudentService.listStudentAudit(schoolCode!, studentNumber!),
+    queryFn: () =>
+      StudentProfileService.listStudentAudit(schoolCode!, studentNumber!),
   });
 }
 

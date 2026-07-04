@@ -4,13 +4,8 @@ import {
   useStudentEnrollments,
   useStudentAudit,
 } from "../../hooks/studentQueries";
+import { StudentTimelineService } from "../../../../domain/students/StudentTimelineService";
 import { formatDate } from "../../format";
-
-interface TimelineEvent {
-  date?: Date;
-  title: string;
-  detail?: string;
-}
 
 export default function TimelineTab({
   schoolCode,
@@ -29,27 +24,11 @@ export default function TimelineTab({
     canReadAudit ? studentNumber : undefined
   );
 
-  const events: TimelineEvent[] = [];
-
-  events.push({
-    date: student.createdAt,
-    title: "Admitted",
-    detail: student.admissionId,
-  });
-
-  for (const e of enrollments.data ?? []) {
-    events.push({
-      date: e.admissionDate,
-      title: `Enrolled ${e.academicLevelCode}${e.streamId}`,
-      detail: e.academicYearId,
-    });
-  }
-
-  for (const a of audit.data ?? []) {
-    events.push({ date: a.at, title: a.action, detail: a.actorUid });
-  }
-
-  events.sort((a, b) => (b.date?.getTime() ?? 0) - (a.date?.getTime() ?? 0));
+  const events = StudentTimelineService.build(
+    student,
+    enrollments.data ?? [],
+    audit.data ?? []
+  );
 
   return (
     <ol className="relative border-l border-slate-200 pl-6">

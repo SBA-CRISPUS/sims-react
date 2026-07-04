@@ -4,7 +4,8 @@ import AppShell from "../app/AppShell";
 import { DashboardPage } from "../features/dashboard";
 import { SchoolsPage, CreateSchoolPage } from "../features/schools";
 import {
-  StudentsPage,
+  StudentDashboardPage,
+  StudentRegistryPage,
   StudentProfilePage,
   GuardianProfilePage,
   AdmissionWizard,
@@ -48,7 +49,16 @@ export function AppRouter() {
           path="/students"
           element={
             <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
-              <StudentsPage />
+              <StudentDashboardPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/registry"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <StudentRegistryPage />
             </AppShell>
           }
         />

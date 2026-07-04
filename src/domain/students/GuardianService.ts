@@ -9,15 +9,9 @@ import {
 
 import { db } from "../../firebase";
 
+import { mapStudent } from "./mappers";
 import type { Guardian } from "./Guardian";
 import type { Student } from "./Student";
-
-function toDate(value: unknown): Date | undefined {
-  if (!value) return undefined;
-  if (value instanceof Date) return value;
-  const maybe = value as { toDate?: () => Date };
-  return typeof maybe.toDate === "function" ? maybe.toDate() : undefined;
-}
 
 export class GuardianService {
   static async getGuardian(
@@ -50,14 +44,6 @@ export class GuardianService {
         where("guardianIds", "array-contains", guardianId)
       )
     );
-    return snapshot.docs.map(
-      (d) =>
-        ({
-          ...d.data(),
-          dateOfBirth: toDate(d.data().dateOfBirth),
-          createdAt: toDate(d.data().createdAt),
-          updatedAt: toDate(d.data().updatedAt),
-        }) as unknown as Student
-    );
+    return snapshot.docs.map((d) => mapStudent(d.data()));
   }
 }

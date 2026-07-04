@@ -1,4 +1,8 @@
 import type { StudentStatus } from "../../../domain/students/StudentStatus";
+import type {
+  RegistryFilter,
+  RegistryOptions,
+} from "../../../domain/students/StudentRegistryService";
 
 const STATUSES: StudentStatus[] = [
   "applicant",
@@ -11,46 +15,28 @@ const STATUSES: StudentStatus[] = [
 ];
 
 interface Props {
-  search: string;
-  onSearch: (value: string) => void;
-  level: string;
-  onLevel: (value: string) => void;
-  stream: string;
-  onStream: (value: string) => void;
-  status: string;
-  onStatus: (value: string) => void;
-  levelOptions: string[];
-  streamOptions: string[];
+  filter: RegistryFilter;
+  onChange: (patch: Partial<RegistryFilter>) => void;
+  options: RegistryOptions;
 }
 
-export default function StudentFilters({
-  search,
-  onSearch,
-  level,
-  onLevel,
-  stream,
-  onStream,
-  status,
-  onStatus,
-  levelOptions,
-  streamOptions,
-}: Props) {
+export default function StudentFilters({ filter, onChange, options }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
       <input
-        value={search}
-        onChange={(e) => onSearch(e.target.value)}
+        value={filter.search}
+        onChange={(e) => onChange({ search: e.target.value })}
         placeholder="Search name or number..."
-        className="border rounded p-2"
+        className="col-span-2 border rounded p-2"
       />
 
       <select
-        value={level}
-        onChange={(e) => onLevel(e.target.value)}
+        value={filter.level}
+        onChange={(e) => onChange({ level: e.target.value })}
         className="border rounded p-2"
       >
         <option value="">All Levels</option>
-        {levelOptions.map((l) => (
+        {options.levels.map((l) => (
           <option key={l} value={l}>
             {l}
           </option>
@@ -58,12 +44,12 @@ export default function StudentFilters({
       </select>
 
       <select
-        value={stream}
-        onChange={(e) => onStream(e.target.value)}
+        value={filter.stream}
+        onChange={(e) => onChange({ stream: e.target.value })}
         className="border rounded p-2"
       >
         <option value="">All Streams</option>
-        {streamOptions.map((s) => (
+        {options.streams.map((s) => (
           <option key={s} value={s}>
             {s}
           </option>
@@ -71,9 +57,32 @@ export default function StudentFilters({
       </select>
 
       <select
-        value={status}
-        onChange={(e) => onStatus(e.target.value)}
-        className="border rounded p-2 capitalize"
+        value={filter.gender}
+        onChange={(e) => onChange({ gender: e.target.value })}
+        className="border rounded p-2"
+      >
+        <option value="">All Genders</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+
+      <select
+        value={filter.admissionYear}
+        onChange={(e) => onChange({ admissionYear: e.target.value })}
+        className="border rounded p-2"
+      >
+        <option value="">All Years</option>
+        {options.admissionYears.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={filter.status}
+        onChange={(e) => onChange({ status: e.target.value })}
+        className="border rounded p-2 capitalize md:col-start-3"
       >
         <option value="">All Statuses</option>
         {STATUSES.map((s) => (

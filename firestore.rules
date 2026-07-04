@@ -228,6 +228,18 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Student document metadata. The files live in Firebase Storage
+    // (see storage.rules); this is only the metadata. Documents hold
+    // sensitive PII, so read is scoped to student-managing staff (not
+    // every school member, and not plain teachers) - matching the
+    // storage rules. Deletable by a school_admin so mistaken uploads
+    // can be removed.
+    match /schools/{schoolId}/students/{studentId}/documents/{documentId} {
+      allow read: if belongsToSchool(schoolId) && canManageStudents();
+      allow create, update: if belongsToSchool(schoolId) && canManageStudents();
+      allow delete: if belongsToSchool(schoolId) && isSchoolAdmin();
+    }
+
     // ===== 50_teachers.rules =====
 
     //

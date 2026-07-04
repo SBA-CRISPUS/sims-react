@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import type { Path } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { StudentAdmissionService } from "../../../domain/students/StudentAdmissionService";
 import type { StudentAdmissionRequest } from "../../../domain/students/StudentAdmissionRequest";
@@ -47,6 +48,7 @@ const currentYear = new Date().getFullYear();
 
 export default function AdmissionWizard() {
   const { school, firebaseUser } = useAuth();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<AdmissionResult | null>(null);
@@ -120,6 +122,11 @@ export default function AdmissionWizard() {
         firebaseUser.uid,
         request
       );
+      // Refresh the registry/dashboard so the new learner appears
+      // immediately instead of after the staleTime window.
+      queryClient.invalidateQueries({
+        queryKey: ["registry", school.schoolCode],
+      });
       setResult(admission);
     } catch (err) {
       console.error(err);
