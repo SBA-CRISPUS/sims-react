@@ -15,10 +15,14 @@ export interface CreateAdministratorRequest {
 }
 
 export interface CreateAdministratorResult {
-  uid: string;
-  email: string;
-  displayName: string;
-  temporaryPassword: string;
+  user: {
+    uid: string;
+    displayName: string;
+    email: string;
+  };
+  credentials: {
+    temporaryPassword: string;
+  };
 }
 
 // No 0/O, 1/l/I: temporary passwords get read aloud and typed from paper.
@@ -54,6 +58,7 @@ async function assertCallerIsSuperAdmin(
     return;
   }
 
+  // TODO: Remove the Firestore role fallback once all users have custom claims.
   const callerSnapshot = await adminDb
     .doc(`users/${request.auth.uid}`)
     .get();
@@ -156,10 +161,14 @@ export const createSchoolAdministrator = onCall(async (request) => {
   }
 
   const result: CreateAdministratorResult = {
-    uid,
-    email: data.email,
-    displayName,
-    temporaryPassword,
+    user: {
+      uid,
+      displayName,
+      email: data.email,
+    },
+    credentials: {
+      temporaryPassword,
+    },
   };
 
   return result;

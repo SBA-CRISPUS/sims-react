@@ -11,10 +11,14 @@ export interface CreateAdministratorRequest {
 }
 
 export interface CreateAdministratorResult {
-  uid: string;
-  email: string;
-  displayName: string;
-  temporaryPassword: string;
+  user: {
+    uid: string;
+    displayName: string;
+    email: string;
+  };
+  credentials: {
+    temporaryPassword: string;
+  };
 }
 
 export class IdentityManagementService {
