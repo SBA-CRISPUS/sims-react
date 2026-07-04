@@ -1,12 +1,20 @@
-import {doc, serverTimestamp, setDoc,} from "firebase/firestore";
+import {
+  doc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+
 import { db } from "../../../firebase";
+
 import type { School } from "../types";
+
 import { SchoolCodeGenerator } from "./SchoolCodeGenerator";
-import { SchoolSettingsProvisioner }
-from "./provisioners/SchoolSettingsProvisioner";
+import { SchoolSettingsProvisioner } from "./provisioners/SchoolSettingsProvisioner";
 import { AcademicYearProvisioner } from "./provisioners/AcademicYearProvisioner";
-import { TermProvisioner }
-from "./provisioners/TermProvisioner";
+import { TermProvisioner } from "./provisioners/TermProvisioner";
+import { AcademicLevelProvisioner } from "./provisioners/AcademicLevelProvisioner";
+import { DepartmentProvisioner } from "./provisioners/DepartmentProvisioner";
 
 export class SchoolProvisioningService {
   static async provision(school: School) {
@@ -17,65 +25,54 @@ export class SchoolProvisioningService {
     const schoolCode = await SchoolCodeGenerator.generate();
 
     console.log("Generated School Code:", schoolCode);
-   const schoolRef = doc(
-  db,
-  "schools",
-  schoolCode
-);
 
-await SchoolSettingsProvisioner.provision(schoolCode);
+    const schoolRef = doc(db, "schools", schoolCode);
 
-const academicYearId =
-  await AcademicYearProvisioner.provision(
-    schoolCode
-  );
+    // 1. Create school document
+    await setDoc(schoolRef, {
+      schoolCode,
+      emisCode: school.emisCode,
+      name: school.name,
+      schoolType: school.schoolType,
+      ownership: school.ownership,
+      location: school.location,
+      contact: school.contact,
+      subscription: school.subscription,
+      status: school.status,
 
-await TermProvisioner.provision(
-  schoolCode,
-  academicYearId
-);
+      provisioning: {
+        status: "in_progress",
+        startedAt: serverTimestamp(),
+      },
 
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
 
+    console.log("✅ School Created");
 
-await setDoc(schoolRef, {
-  schoolCode,
-
-  emisCode: school.emisCode,
-
-  name: school.name,
-
-  schoolType: school.schoolType,
-
-  ownership: school.ownership,
-
-  location: school.location,
-
-  contact: school.contact,
-
-  subscription: school.subscription,
-
-  status: school.status,
-
-  provisioning: {
-    status: "in_progress",
-    startedAt: serverTimestamp(),
-  },
-
-  createdAt: serverTimestamp(),
-
-  updatedAt: serverTimestamp(),
-});
-
-console.log("✅ School Created");
+    // 2. Default settings
     await SchoolSettingsProvisioner.provision(schoolCode);
-    console.log("Creating Academic Year...");
-    console.log("Creating Terms...");
-    console.log("Creating Streams...");
-    console.log("Creating Departments...");
-    console.log("Creating Roles...");
-    console.log("Creating Administrator...");
-    console.log("Creating Audit Log...");
-    console.log("Provisioning Completed.");
+
+    // 3. Academic Year
+    const academicYearId = await AcademicYearProvisioner.provision(schoolCode);
+
+    // 4. Terms
+    await TermProvisioner.provision(schoolCode, academicYearId);
+
+    // 5. Academic Levels
+    await AcademicLevelProvisioner.provision(schoolCode);
+
+    // 6. Departments
+    await DepartmentProvisioner.provision(schoolCode);
+
+    await updateDoc(schoolRef, {
+      "provisioning.status": "completed",
+      "provisioning.completedAt": serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    console.log("✅ School Provisioning Completed");
 
     return {
       ...school,
