@@ -37,6 +37,17 @@ export function useSbaSubmissions(schoolCode?: string) {
   });
 }
 
+export function useSbaSubmissionEvents(
+  schoolCode?: string,
+  submissionId?: string
+) {
+  return useQuery({
+    queryKey: ["sba-events", schoolCode, submissionId],
+    enabled: !!schoolCode && !!submissionId,
+    queryFn: () => SbaSubmissionService.listEvents(schoolCode!, submissionId!),
+  });
+}
+
 export function useSbaMarks(schoolCode?: string, submissionId?: string) {
   return useQuery({
     queryKey: ["sba-marks", schoolCode, submissionId],
@@ -100,7 +111,12 @@ export type SbaSubmissionActionType =
 
 const ACTION_FNS: Record<
   SbaSubmissionActionType,
-  (schoolCode: string, actorUid: string, submissionId: string) => Promise<void>
+  (
+    schoolCode: string,
+    actorUid: string,
+    submissionId: string,
+    comment?: string
+  ) => Promise<void>
 > = {
   submit: SbaSubmissionService.submit.bind(SbaSubmissionService),
   withdraw: SbaSubmissionService.withdraw.bind(SbaSubmissionService),
@@ -116,7 +132,14 @@ export function useSubmissionAction(schoolCode: string) {
       actorUid: string;
       submissionId: string;
       action: SbaSubmissionActionType;
-    }) => ACTION_FNS[input.action](schoolCode, input.actorUid, input.submissionId),
+      comment?: string;
+    }) =>
+      ACTION_FNS[input.action](
+        schoolCode,
+        input.actorUid,
+        input.submissionId,
+        input.comment
+      ),
     onSuccess: (_data, input) => {
       queryClient.invalidateQueries({
         queryKey: ["sba-submission", schoolCode, input.submissionId],
@@ -126,6 +149,9 @@ export function useSubmissionAction(schoolCode: string) {
       });
       queryClient.invalidateQueries({
         queryKey: ["sba-submissions", schoolCode],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sba-events", schoolCode, input.submissionId],
       });
     },
   });

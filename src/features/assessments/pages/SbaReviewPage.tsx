@@ -7,7 +7,11 @@ import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useStreams } from "../../academic/hooks/streamQueries";
 import { useTeachers } from "../../teachers/hooks/teacherQueries";
 import { teacherName } from "../../teachers/format";
-import { useSbaSubmissions, useSubmissionAction } from "../hooks/sbaMarksQueries";
+import {
+  useSbaSubmissions,
+  useSbaSubmissionEvents,
+  useSubmissionAction,
+} from "../hooks/sbaMarksQueries";
 import type { SbaSubmissionActionType } from "../hooks/sbaMarksQueries";
 import type {
   SbaClassSubmission,
@@ -33,6 +37,8 @@ interface ActionSpec {
   className: string;
 }
 
+const COLSPAN = 6;
+
 export default function SbaReviewPage() {
   const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
@@ -48,6 +54,13 @@ export default function SbaReviewPage() {
   const action = useSubmissionAction(schoolCode ?? "");
 
   const [filter, setFilter] = useState<StatusFilter>("review");
+  const [pending, setPending] = useState<{
+    submissionId: string;
+    action: SbaSubmissionActionType;
+    label: string;
+  } | null>(null);
+  const [comment, setComment] = useState("");
+  const [historyId, setHistoryId] = useState<string | null>(null);
 
   const subjectName = (code: string) =>
     subjects.data?.find((s) => s.subjectCode === code)?.name ?? code;
@@ -79,29 +92,24 @@ export default function SbaReviewPage() {
     const submitted = s.status === "submitted";
     const moderated = s.status === "moderated";
     if (submitted && canModerate)
-      acts.push({
-        label: "Moderate",
-        action: "moderate",
-        className: "text-indigo-700",
-      });
+      acts.push({ label: "Moderate", action: "moderate", className: "text-indigo-700" });
     if ((submitted || moderated) && canApprove)
-      acts.push({
-        label: "Approve",
-        action: "approve",
-        className: "text-green-700",
-      });
+      acts.push({ label: "Approve", action: "approve", className: "text-green-700" });
     if ((submitted || moderated) && (canModerate || canApprove))
-      acts.push({
-        label: "Return",
-        action: "return",
-        className: "text-amber-700",
-      });
+      acts.push({ label: "Return", action: "return", className: "text-amber-700" });
     return acts;
   }
 
-  function runAction(submissionId: string, a: SbaSubmissionActionType) {
-    if (!profile) return;
-    action.mutate({ actorUid: profile.uid, submissionId, action: a });
+  async function confirmAction() {
+    if (!profile || !pending) return;
+    await action.mutateAsync({
+      actorUid: profile.uid,
+      submissionId: pending.submissionId,
+      action: pending.action,
+      comment: comment.trim() || undefined,
+    });
+    setPending(null);
+    setComment("");
   }
 
   return (
@@ -146,9 +154,7 @@ export default function SbaReviewPage() {
               <p className="p-6 text-gray-500">Loading submissions...</p>
             )}
             {!submissions.isLoading && rows.length === 0 && (
-              <p className="p-6 text-gray-500">
-                No submissions in this view.
-              </p>
+              <p className="p-6 text-gray-500">No submissions in this view.</p>
             )}
             {rows.length > 0 && (
               <table className="w-full text-left text-sm">
@@ -164,35 +170,38 @@ export default function SbaReviewPage() {
                 </thead>
                 <tbody>
                   {rows.map((s) => (
-                    <tr key={s.submissionId} className="border-b">
-                      <td className="p-3">{subjectName(s.subjectId)}</td>
-                      <td className="p-3">{streamName(s.streamId)}</td>
-                      <td className="p-3">{s.academicLevelCode}</td>
-                      <td className="p-3">{teacherLabel(s.teacherId)}</td>
-                      <td className="p-3">
-                        <StatusBadge status={s.status} />
-                      </td>
-                      <td className="p-3 text-right">
-                        <div className="flex items-center justify-end gap-3">
-                          <Link
-                            to={`/assessments/marks?form=${s.academicLevelCode}&stream=${s.streamId}&subject=${s.subjectId}`}
-                            className="text-blue-700 hover:underline"
-                          >
-                            View
-                          </Link>
-                          {actionsFor(s).map((a) => (
-                            <button
-                              key={a.action}
-                              onClick={() => runAction(s.submissionId, a.action)}
-                              disabled={action.isPending}
-                              className={`${a.className} hover:underline disabled:opacity-40`}
-                            >
-                              {a.label}
-                            </button>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
+                    <RowGroup
+                      key={s.submissionId}
+                      submission={s}
+                      subjectName={subjectName(s.subjectId)}
+                      streamLabel={streamName(s.streamId)}
+                      teacher={teacherLabel(s.teacherId)}
+                      actions={actionsFor(s)}
+                      pending={
+                        pending?.submissionId === s.submissionId ? pending : null
+                      }
+                      comment={comment}
+                      onComment={setComment}
+                      onPick={(a) => {
+                        setPending({
+                          submissionId: s.submissionId,
+                          action: a.action,
+                          label: a.label,
+                        });
+                        setComment("");
+                        setHistoryId(null);
+                      }}
+                      onCancel={() => setPending(null)}
+                      onConfirm={confirmAction}
+                      confirming={action.isPending}
+                      historyOpen={historyId === s.submissionId}
+                      onToggleHistory={() =>
+                        setHistoryId((id) =>
+                          id === s.submissionId ? null : s.submissionId
+                        )
+                      }
+                      schoolCode={schoolCode}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -206,6 +215,157 @@ export default function SbaReviewPage() {
         </>
       )}
     </div>
+  );
+}
+
+interface RowProps {
+  submission: SbaClassSubmission;
+  subjectName: string;
+  streamLabel: string;
+  teacher: string;
+  actions: ActionSpec[];
+  pending: { action: SbaSubmissionActionType; label: string } | null;
+  comment: string;
+  onComment: (v: string) => void;
+  onPick: (a: ActionSpec) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+  confirming: boolean;
+  historyOpen: boolean;
+  onToggleHistory: () => void;
+  schoolCode?: string;
+}
+
+function RowGroup({
+  submission: s,
+  subjectName,
+  streamLabel,
+  teacher,
+  actions,
+  pending,
+  comment,
+  onComment,
+  onPick,
+  onCancel,
+  onConfirm,
+  confirming,
+  historyOpen,
+  onToggleHistory,
+  schoolCode,
+}: RowProps) {
+  return (
+    <>
+      <tr className="border-b">
+        <td className="p-3">{subjectName}</td>
+        <td className="p-3">{streamLabel}</td>
+        <td className="p-3">{s.academicLevelCode}</td>
+        <td className="p-3">{teacher}</td>
+        <td className="p-3">
+          <StatusBadge status={s.status} />
+          {s.version && s.version > 1 && (
+            <span className="ml-2 text-xs text-gray-400">v{s.version}</span>
+          )}
+        </td>
+        <td className="p-3 text-right">
+          <div className="flex items-center justify-end gap-3">
+            <Link
+              to={`/assessments/marks?form=${s.academicLevelCode}&stream=${s.streamId}&subject=${s.subjectId}`}
+              className="text-blue-700 hover:underline"
+            >
+              View
+            </Link>
+            <button onClick={onToggleHistory} className="text-slate-600 hover:underline">
+              History
+            </button>
+            {actions.map((a) => (
+              <button
+                key={a.action}
+                onClick={() => onPick(a)}
+                disabled={confirming}
+                className={`${a.className} hover:underline disabled:opacity-40`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </td>
+      </tr>
+
+      {pending && (
+        <tr className="border-b bg-slate-50">
+          <td colSpan={COLSPAN} className="p-3">
+            <p className="text-sm font-medium">{pending.label} this sheet</p>
+            <textarea
+              value={comment}
+              onChange={(e) => onComment(e.target.value)}
+              placeholder={
+                pending.action === "return"
+                  ? "Reason for returning (recommended)"
+                  : "Comment (optional)"
+              }
+              rows={2}
+              className="mt-2 w-full rounded border p-2 text-sm"
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={onConfirm}
+                disabled={confirming}
+                className="rounded bg-blue-700 px-4 py-1.5 text-sm text-white hover:bg-blue-800 disabled:opacity-50"
+              >
+                {confirming ? "Working..." : `Confirm ${pending.label}`}
+              </button>
+              <button
+                onClick={onCancel}
+                className="rounded border border-slate-300 px-4 py-1.5 text-sm hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {historyOpen && (
+        <tr className="border-b bg-slate-50">
+          <td colSpan={COLSPAN} className="p-3">
+            <HistoryTimeline schoolCode={schoolCode} submissionId={s.submissionId} />
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function HistoryTimeline({
+  schoolCode,
+  submissionId,
+}: {
+  schoolCode?: string;
+  submissionId: string;
+}) {
+  const events = useSbaSubmissionEvents(schoolCode, submissionId);
+
+  if (events.isLoading) return <p className="text-sm text-gray-500">Loading history...</p>;
+  if ((events.data ?? []).length === 0)
+    return <p className="text-sm text-gray-500">No workflow history yet.</p>;
+
+  return (
+    <ol className="space-y-2">
+      {(events.data ?? []).map((e) => (
+        <li key={e.id} className="flex gap-3 text-sm">
+          <span className="text-gray-400">
+            {e.at ? e.at.toLocaleString() : ""}
+          </span>
+          <span className="font-medium capitalize">
+            {e.action.replace("sba.submission.", "")}
+          </span>
+          {e.version != null && (
+            <span className="text-xs text-gray-400">v{e.version}</span>
+          )}
+          {e.comment && <span className="text-gray-600">“{e.comment}”</span>}
+        </li>
+      ))}
+    </ol>
   );
 }
 

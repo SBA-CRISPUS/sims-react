@@ -20,10 +20,29 @@ export interface SbaClassSubmission {
   moderatedByUid?: string; // 5C
   approvedByUid?: string; // 5C
   lastActionByUid: string; // read by the audit CF (triggers have no auth context)
+  lastComment?: string | null; // transient carrier for the CF to log on each event
+  version?: number; // submit-attempt number; bumps when a returned sheet is resubmitted
   frozenAt?: Date; // set when totals are frozen at approval (5C)
   createdByUid: string;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+/**
+ * One entry in a submission's append-only workflow history
+ * (schools/{code}/sbaSubmissions/{id}/events). Written only by the audit
+ * Cloud Function; never overwritten - the record of who did what, when,
+ * and why (comment), across every submit/return version.
+ */
+export interface SbaSubmissionEvent {
+  id: string;
+  action: string;
+  fromStatus?: string | null;
+  toStatus: string;
+  version?: number | null;
+  actorUid?: string | null;
+  comment?: string | null;
+  at?: Date;
 }
 
 /**

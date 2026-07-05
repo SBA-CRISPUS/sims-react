@@ -98,8 +98,11 @@ export const onSbaSubmissionWritten = onDocumentWritten(
     const afterStatus = after.status as string | undefined;
     if (!afterStatus || beforeStatus === afterStatus) return; // no transition
 
+    const action = `sba.submission.${ACTION_BY_STATUS[afterStatus] ?? afterStatus}`;
+
+    // Compliance audit (auditLogs is admin-scoped).
     await adminDb.collection(`schools/${schoolCode}/auditLogs`).add({
-      action: `sba.submission.${ACTION_BY_STATUS[afterStatus] ?? afterStatus}`,
+      action,
       submissionId,
       academicYearId: after.academicYearId ?? null,
       academicLevelCode: after.academicLevelCode ?? null,
@@ -108,6 +111,21 @@ export const onSbaSubmissionWritten = onDocumentWritten(
       actorUid: after.lastActionByUid ?? null,
       at: FieldValue.serverTimestamp(),
     });
+
+    // Append-only workflow history (staff-readable, per submission). Never
+    // overwritten - the who/when/action/comment record across every
+    // submit/return version, for verification and dispute resolution.
+    await adminDb
+      .collection(`schools/${schoolCode}/sbaSubmissions/${submissionId}/events`)
+      .add({
+        action,
+        fromStatus: beforeStatus ?? null,
+        toStatus: afterStatus,
+        version: after.version ?? null,
+        actorUid: after.lastActionByUid ?? null,
+        comment: after.lastComment ?? null,
+        at: FieldValue.serverTimestamp(),
+      });
 
     if (afterStatus === "approved") {
       await freezeMarks(schoolCode, submissionId, after.planId as string);

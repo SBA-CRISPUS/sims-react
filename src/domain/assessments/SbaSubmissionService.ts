@@ -15,6 +15,7 @@ import { db } from "../../firebase";
 import { sbaSubmissionId } from "./SbaSubmission";
 import type {
   SbaClassSubmission,
+  SbaSubmissionEvent,
   SbaSubmissionMeta,
   SbaSubmissionStatus,
 } from "./SbaSubmission";
@@ -86,6 +87,8 @@ export class SbaSubmissionService {
         subjectId: meta.subjectId,
         teacherId: meta.teacherId ?? null,
         status: "draft",
+        version: 1,
+        lastComment: null,
         lastActionByUid: actorUid,
         createdByUid: actorUid,
         createdAt: serverTimestamp(),
@@ -94,11 +97,35 @@ export class SbaSubmissionService {
     });
   }
 
+  static async listEvents(
+    schoolCode: string,
+    submissionId: string
+  ): Promise<SbaSubmissionEvent[]> {
+    const snapshot = await getDocs(
+      collection(
+        db,
+        "schools",
+        schoolCode,
+        "sbaSubmissions",
+        submissionId,
+        "events"
+      )
+    );
+    // No orderBy(at) - would need a composite index; sort client-side.
+    return snapshot.docs
+      .map(
+        (d) =>
+          ({ id: d.id, ...d.data(), at: toDate(d.data().at) }) as SbaSubmissionEvent
+      )
+      .sort((a, b) => (a.at?.getTime() ?? 0) - (b.at?.getTime() ?? 0));
+  }
+
   /** Subject teacher submits an open sheet for moderation/approval. */
   static async submit(
     schoolCode: string,
     actorUid: string,
-    submissionId: string
+    submissionId: string,
+    comment?: string
   ): Promise<void> {
     await this.transition(
       schoolCode,
@@ -106,7 +133,8 @@ export class SbaSubmissionService {
       submissionId,
       ["draft", "returned"],
       "submitted",
-      { submittedByUid: actorUid }
+      { submittedByUid: actorUid },
+      comment
     );
   }
 
@@ -114,7 +142,8 @@ export class SbaSubmissionService {
   static async withdraw(
     schoolCode: string,
     actorUid: string,
-    submissionId: string
+    submissionId: string,
+    comment?: string
   ): Promise<void> {
     await this.transition(
       schoolCode,
@@ -122,7 +151,8 @@ export class SbaSubmissionService {
       submissionId,
       ["submitted"],
       "draft",
-      {}
+      {},
+      comment
     );
   }
 
@@ -130,7 +160,8 @@ export class SbaSubmissionService {
   static async moderate(
     schoolCode: string,
     actorUid: string,
-    submissionId: string
+    submissionId: string,
+    comment?: string
   ): Promise<void> {
     await this.transition(
       schoolCode,
@@ -138,7 +169,8 @@ export class SbaSubmissionService {
       submissionId,
       ["submitted"],
       "moderated",
-      { moderatedByUid: actorUid }
+      { moderatedByUid: actorUid },
+      comment
     );
   }
 
@@ -152,7 +184,8 @@ export class SbaSubmissionService {
   static async approve(
     schoolCode: string,
     actorUid: string,
-    submissionId: string
+    submissionId: string,
+    comment?: string
   ): Promise<void> {
     await this.transition(
       schoolCode,
@@ -160,7 +193,8 @@ export class SbaSubmissionService {
       submissionId,
       ["submitted", "moderated"],
       "approved",
-      { approvedByUid: actorUid }
+      { approvedByUid: actorUid },
+      comment
     );
   }
 
@@ -168,7 +202,8 @@ export class SbaSubmissionService {
   static async returnForCorrection(
     schoolCode: string,
     actorUid: string,
-    submissionId: string
+    submissionId: string,
+    comment?: string
   ): Promise<void> {
     await this.transition(
       schoolCode,
@@ -176,7 +211,8 @@ export class SbaSubmissionService {
       submissionId,
       ["submitted", "moderated"],
       "returned",
-      {}
+      {},
+      comment
     );
   }
 
@@ -185,6 +221,11 @@ export class SbaSubmissionService {
    * marks (so the mark rules can freeze/unfreeze rows by their own status
    * field, without a cross-document get()). Status is the only thing the
    * marks change here - scores are untouched.
+   *
+   * Stamps version + lastComment so the audit CF can log an append-only
+   * workflow event. version is the submit-attempt number: it bumps when a
+   * returned sheet is resubmitted, so the whole submit -> return -> resubmit
+   * history is reconstructable.
    */
   private static async transition(
     schoolCode: string,
@@ -192,7 +233,8 @@ export class SbaSubmissionService {
     submissionId: string,
     from: SbaSubmissionStatus[],
     to: SbaSubmissionStatus,
-    extra: Record<string, unknown>
+    extra: Record<string, unknown>,
+    comment?: string
   ): Promise<void> {
     const subRef = doc(db, "schools", schoolCode, "sbaSubmissions", submissionId);
     const snap = await getDoc(subRef);
@@ -201,6 +243,10 @@ export class SbaSubmissionService {
     if (!from.includes(current)) {
       throw new Error(`This sheet is ${current} and can't be changed that way.`);
     }
+
+    const curVersion = (snap.data().version as number) ?? 1;
+    const version =
+      to === "submitted" && current === "returned" ? curVersion + 1 : curVersion;
 
     const marksSnap = await getDocs(
       query(
@@ -212,6 +258,8 @@ export class SbaSubmissionService {
     const batch = writeBatch(db);
     batch.update(subRef, {
       status: to,
+      version,
+      lastComment: comment?.trim() ? comment.trim() : null,
       lastActionByUid: actorUid,
       ...extra,
       updatedAt: serverTimestamp(),
