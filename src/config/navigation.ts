@@ -164,8 +164,9 @@ export const navigation: NavigationItem[] = [
     path: "/reports",
     roles: [
       "school_admin",
-      "teacher",
       "head_teacher",
+      "deputy_head",
+      "hod",
     ],
   },
 
