@@ -1,6 +1,6 @@
 # Phase 5 — CBC School-Based Assessment (SBA) Engine
 
-**Status:** Decisions accepted 2026-07-05; **5A–5C + 5D-1 (Results & Verification) built + deployed** · **Author:** SIMS team · **Date:** 2026-07-05
+**Status:** Decisions accepted 2026-07-05; **5A–5C + 5D (Results, Verification, Workflow History, ECZ Export) built + deployed** · **Author:** SIMS team · **Date:** 2026-07-05
 
 > **Mentor reorder (2026-07-05):** Sprint 5D leads with **SBA Results & Verification** (student SBA tab, subject register, school readiness radar) *before* ECZ export — schools verify frozen results first; export then only ever consumes verified, frozen records. Also requested: **append-only workflow history/versioning** (who/when/action/comment per submission, never overwritten) before export. 5E becomes **Analytics** (school/subject averages, trends, compliance).
 **Sources:** ECZ *Guide to Calculating SBA (Forms 1–3)* (Bernard Tito) and *CBC SBA Marks Entry Guide (ECSEOL 2026)*.
@@ -342,7 +342,7 @@ Key guards: `id == composed-key` (slot integrity, like `teachingAssignments`); `
 | **5B — Marks Entry** ✅ **DONE** | Class score-sheet grid (roster from enrollment, `taskScores` map, live raw%, offline `set()`), `SbaClassSubmission` draft/submit + manager reopen | the daily-driver screen |
 | **5C — Moderation & Approval** ✅ **DONE** | SBA Review board (HOD moderate → head approve, return); `onSbaSubmissionWritten` audit + freeze trigger; immutability after approval | completes the governance chain |
 | **5D-1 — SBA Results & Verification** ✅ **DONE** | Student-profile SBA tab (F2/F3 raw%, band, frozen, combined /20); printable Subject SBA Register; School SBA Readiness radar (per-subject pipeline progress) | verify frozen results before export |
-| **5D-2 — Workflow History & ECZ Export** | Append-only workflow events (who/when/action/comment) + version counter; exam-number bulk-assign; ECZ readiness validation (missing exam#/approvals/marks); per-form-year raw CSV + print | the ECZ deliverable |
+| **5D-2 — Workflow History & ECZ Export** ✅ **DONE** | Append-only `events` subcollection (who/when/action/comment) + version counter + Review history timeline; exam-number bulk-assign; ECZ export with readiness validation (ready / missing exam# / not approved) → raw CSV keyed by exam number + print | the ECZ deliverable |
 | **5E — Teacher Identity** *(prereq for true teacher entry)* | Auth accounts for teachers + `uid↔EMP` link; tighten `canScoreSba` to the slot teacher; "My Classes" | teacher-entered marks |
 | **5F — SBA Analytics** | School/subject averages, performance trends, completion/compliance | insight layer |
 

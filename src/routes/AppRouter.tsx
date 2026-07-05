@@ -25,6 +25,8 @@ import {
   SbaReviewPage,
   SbaReadinessPage,
   SbaRegisterPage,
+  SbaExamNumbersPage,
+  SbaExportPage,
 } from "../features/assessments";
 import { LoginPage } from "../features/auth";
 
@@ -192,6 +194,24 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher", "deputy_head", "hod", "teacher"]}>
               <SbaRegisterPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/assessments/exam-numbers"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <SbaExamNumbersPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/assessments/export"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "deputy_head"]}>
+              <SbaExportPage />
             </AppShell>
           }
         />

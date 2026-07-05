@@ -138,6 +138,17 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    title: "ECZ Export",
+    path: "/assessments/export",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "deputy_head",
+    ],
+  },
+
+  {
     title: "Reports",
     path: "/reports",
     roles: [

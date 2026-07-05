@@ -113,6 +113,29 @@ export class SbaMarkService {
     );
   }
 
+  /** Every mark for a subject across its streams (single-field query on
+   * subjectId; the year/form filter is applied in memory). Backs the ECZ
+   * export. */
+  static async listSubjectMarks(
+    schoolCode: string,
+    subjectId: string
+  ): Promise<SbaMark[]> {
+    const snapshot = await getDocs(
+      query(
+        collection(db, "schools", schoolCode, "sbaMarks"),
+        where("subjectId", "==", subjectId)
+      )
+    );
+    return snapshot.docs.map(
+      (d) =>
+        ({
+          ...d.data(),
+          createdAt: toDate(d.data().createdAt),
+          updatedAt: toDate(d.data().updatedAt),
+        }) as SbaMark
+    );
+  }
+
   /**
    * Upserts the given rows as a single batch. New rows are created (with
    * origin metadata) at status "draft"; existing rows are updated in place
