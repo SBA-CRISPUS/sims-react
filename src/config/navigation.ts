@@ -164,4 +164,11 @@ export const navigation: NavigationItem[] = [
     group: "Administration",
     roles: ["school_admin"],
   },
+
+  {
+    title: "Bulk Admit",
+    path: "/dev/bulk-admit",
+    group: "Administration",
+    roles: ["school_admin"],
+  },
 ];

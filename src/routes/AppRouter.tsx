@@ -28,7 +28,7 @@ import {
   SbaExamNumbersPage,
   SbaExportPage,
 } from "../features/assessments";
-import { SbaSeedPage } from "../features/dev";
+import { SbaSeedPage, BulkAdmitPage } from "../features/dev";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -222,6 +222,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin"]}>
               <SbaSeedPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/dev/bulk-admit"
+          element={
+            <AppShell roles={["school_admin"]}>
+              <BulkAdmitPage />
             </AppShell>
           }
         />
