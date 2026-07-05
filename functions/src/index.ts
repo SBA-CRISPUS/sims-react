@@ -11,6 +11,7 @@
  *   reports/   - reporting and aggregation
  */
 export { createSchoolAdministrator } from "./identity/createSchoolAdministrator";
+export { createTeacherAccount } from "./identity/createTeacherAccount";
 export { syncMyClaims } from "./identity/syncMyClaims";
 export { onStudentAdmitted } from "./students/onStudentAdmitted";
 export { onEnrollmentWritten } from "./academic/onEnrollmentWritten";

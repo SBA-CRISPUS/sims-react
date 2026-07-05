@@ -7,8 +7,9 @@ import { useStreams } from "../../academic/hooks/streamQueries";
 import { useDepartments, useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useTeachingAssignments } from "../../teaching/hooks/teachingQueries";
 import TeachingLoadView from "../../teaching/components/TeachingLoadView";
-import { useTeacher } from "../hooks/teacherQueries";
+import { useTeacher, useCreateTeacherAccount } from "../hooks/teacherQueries";
 import { teacherName, teacherStatusLabel } from "../format";
+import type { CreateTeacherAccountResult } from "../../../domain/identity/IdentityManagementService";
 
 const TABS = [
   "Overview",
@@ -30,16 +31,55 @@ function Field({ label, value }: { label: string; value?: string }) {
   );
 }
 
+function CredentialReveal({ result }: { result: CreateTeacherAccountResult }) {
+  return (
+    <div className="mt-4 rounded-lg border border-green-300 bg-green-50 p-4">
+      <p className="text-sm font-medium text-green-800">
+        Login account created. Share these once — the password is not shown
+        again.
+      </p>
+      <div className="mt-3 space-y-1 font-mono text-sm">
+        <div>
+          <span className="text-gray-500">Email: </span>
+          {result.user.email}
+        </div>
+        <div>
+          <span className="text-gray-500">Temporary password: </span>
+          {result.credentials.temporaryPassword}
+        </div>
+      </div>
+      <button
+        onClick={() =>
+          navigator.clipboard?.writeText(
+            `Email: ${result.user.email}\nTemporary password: ${result.credentials.temporaryPassword}`
+          )
+        }
+        className="mt-3 rounded border border-green-400 px-3 py-1.5 text-sm text-green-800 hover:bg-green-100"
+      >
+        Copy
+      </button>
+      <p className="mt-2 text-xs text-green-700">
+        The teacher must change this password on first sign-in.
+      </p>
+    </div>
+  );
+}
+
 export default function TeacherProfilePage() {
   const { employeeNumber } = useParams<{ employeeNumber: string }>();
-  const { school } = useAuth();
+  const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
+  const canManage = profile?.role === "school_admin";
   const { academicYearId, termId, academicYear, term } = useAcademicContext();
 
   const { data: teacher, isLoading, isError } = useTeacher(
     schoolCode,
     employeeNumber
   );
+  const createAccount = useCreateTeacherAccount(schoolCode ?? "");
+  const [credentials, setCredentials] =
+    useState<CreateTeacherAccountResult | null>(null);
+  const [accountError, setAccountError] = useState<string | null>(null);
   const departments = useDepartments(schoolCode);
   const subjects = useSubjects(schoolCode);
   const streams = useStreams(schoolCode);
@@ -65,6 +105,22 @@ export default function TeacherProfilePage() {
         (!termId || a.termId === termId)
     );
   }, [assignmentsQuery.data, employeeNumber, academicYearId, termId]);
+
+  async function handleCreateAccount() {
+    if (!employeeNumber) return;
+    setAccountError(null);
+    setCredentials(null);
+    try {
+      const res = await createAccount.mutateAsync(employeeNumber);
+      setCredentials(res);
+    } catch (e) {
+      setAccountError(
+        e instanceof Error && e.message
+          ? e.message
+          : "Failed to create the login account."
+      );
+    }
+  }
 
   if (isLoading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (isError || !teacher) {
@@ -123,14 +179,57 @@ export default function TeacherProfilePage() {
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow">
         {tab === "Overview" && (
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
-            <Field label="Gender" value={teacher.gender} />
-            <Field label="Phone" value={teacher.phone} />
-            <Field label="Email" value={teacher.email} />
-            <Field label="Department" value={deptName} />
-            <Field label="Employment Type" value={teacher.employmentType} />
-            <Field label="Qualification" value={teacher.qualification} />
-            <Field label="TSC Number" value={teacher.tscNumber} />
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
+              <Field label="Gender" value={teacher.gender} />
+              <Field label="Phone" value={teacher.phone} />
+              <Field label="Email" value={teacher.email} />
+              <Field label="Department" value={deptName} />
+              <Field label="Employment Type" value={teacher.employmentType} />
+              <Field label="Qualification" value={teacher.qualification} />
+              <Field label="TSC Number" value={teacher.tscNumber} />
+            </div>
+
+            <div className="border-t pt-6">
+              <p className="text-sm font-medium">Login account</p>
+              {teacher.linkedUserUid ? (
+                <p className="mt-2 text-sm text-green-700">
+                  ✓ This teacher has a login account and can sign in to see
+                  their own classes and enter SBA marks.
+                </p>
+              ) : (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600">
+                    No login account yet.{" "}
+                    {canManage
+                      ? "Create one so the teacher can sign in and own their classes."
+                      : "An administrator can create one."}
+                  </p>
+                  {canManage && !credentials && (
+                    <button
+                      onClick={handleCreateAccount}
+                      disabled={
+                        createAccount.isPending || teacher.status !== "active"
+                      }
+                      className="mt-3 rounded bg-blue-700 px-4 py-2 text-white hover:bg-blue-800 disabled:opacity-50"
+                    >
+                      {createAccount.isPending
+                        ? "Creating…"
+                        : "Create login account"}
+                    </button>
+                  )}
+                  {teacher.status !== "active" && (
+                    <p className="mt-2 text-xs text-amber-700">
+                      Only an active teacher can be given an account.
+                    </p>
+                  )}
+                  {accountError && (
+                    <p className="mt-2 text-sm text-red-600">{accountError}</p>
+                  )}
+                  {credentials && <CredentialReveal result={credentials} />}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

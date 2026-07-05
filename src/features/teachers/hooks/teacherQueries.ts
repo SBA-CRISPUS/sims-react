@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TeacherService } from "../../../domain/teachers/TeacherService";
 import { TeacherRegistrationService } from "../../../domain/teachers/TeacherRegistrationService";
+import { IdentityManagementService } from "../../../domain/identity/IdentityManagementService";
 import type { TeacherRegistrationRequest } from "../../../domain/teachers/Teacher";
 
 export function useTeachers(schoolCode?: string) {
@@ -31,5 +32,22 @@ export function useRegisterTeacher(schoolCode: string) {
       ),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["teachers", schoolCode] }),
+  });
+}
+
+export function useCreateTeacherAccount(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (employeeNumber: string) =>
+      IdentityManagementService.createTeacherAccount({
+        schoolCode,
+        employeeNumber,
+      }),
+    onSuccess: (_data, employeeNumber) => {
+      queryClient.invalidateQueries({
+        queryKey: ["teacher", schoolCode, employeeNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["teachers", schoolCode] });
+    },
   });
 }

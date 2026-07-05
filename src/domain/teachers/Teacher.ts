@@ -22,6 +22,9 @@ export interface Teacher {
   qualification?: string;
   tscNumber?: string;
   status: TeacherStatus;
+  /** The Firebase Auth uid of the teacher's login account, set only by the
+   * createTeacherAccount Cloud Function once provisioned (null until then). */
+  linkedUserUid?: string | null;
   createdByUid: string;
   createdAt?: Date;
   updatedAt?: Date;

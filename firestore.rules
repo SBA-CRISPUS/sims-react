@@ -148,7 +148,9 @@ service cloud.firestore {
       // Users may edit their own profile, but the security fields
       // (role, schoolCode, active) only change by super admin or the
       // Admin SDK - otherwise anyone could grant themselves a role
-      // and have syncMyClaims mint it into their token.
+      // and have syncMyClaims mint it into their token. employeeNumber
+      // (the teacher link) is likewise CF-only, so a user cannot bind
+      // their own account to a teaching identity.
       allow update: if isSuperAdmin()
         || (
           signedIn()
@@ -156,6 +158,7 @@ service cloud.firestore {
           && request.resource.data.role == resource.data.role
           && request.resource.data.schoolCode == resource.data.schoolCode
           && request.resource.data.active == resource.data.active
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['employeeNumber'])
         );
 
       allow delete: if false;
@@ -336,10 +339,16 @@ service cloud.firestore {
     // read staff contact data once those accounts exist).
     //
 
+    // linkedUserUid is the link to the teacher's Auth account. It is set
+    // ONLY by the createTeacherAccount Cloud Function (Admin SDK) - a client
+    // must never write it, or a teacher could point their HR record at
+    // someone else's login. Everything else is managed by teacher-admins.
     match /schools/{schoolId}/teachers/{teacherId} {
       allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
-      allow create: if belongsToSchool(schoolId) && canManageTeachers();
-      allow update: if belongsToSchool(schoolId) && canManageTeachers();
+      allow create: if belongsToSchool(schoolId) && canManageTeachers()
+        && !request.resource.data.keys().hasAny(['linkedUserUid']);
+      allow update: if belongsToSchool(schoolId) && canManageTeachers()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['linkedUserUid']);
       allow delete: if false;
     }
 

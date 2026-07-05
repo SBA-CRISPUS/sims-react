@@ -21,9 +21,28 @@ export interface CreateAdministratorResult {
   };
 }
 
+export interface CreateTeacherAccountRequest {
+  schoolCode: string;
+  employeeNumber: string;
+  email?: string;
+}
+
+export interface CreateTeacherAccountResult {
+  user: {
+    uid: string;
+    displayName: string;
+    email: string;
+    employeeNumber: string;
+  };
+  credentials: {
+    temporaryPassword: string;
+  };
+}
+
 export interface SyncedClaims {
   role: string;
   schoolCode: string;
+  employeeNumber?: string;
 }
 
 export class IdentityManagementService {
@@ -45,6 +64,19 @@ export class IdentityManagementService {
       CreateAdministratorRequest,
       CreateAdministratorResult
     >(functions, "createSchoolAdministrator");
+
+    const result = await callable(request);
+
+    return result.data;
+  }
+
+  static async createTeacherAccount(
+    request: CreateTeacherAccountRequest
+  ): Promise<CreateTeacherAccountResult> {
+    const callable = httpsCallable<
+      CreateTeacherAccountRequest,
+      CreateTeacherAccountResult
+    >(functions, "createTeacherAccount");
 
     const result = await callable(request);
 

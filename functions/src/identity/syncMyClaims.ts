@@ -38,10 +38,15 @@ export const syncMyClaims = onCall(async (request) => {
     throw new HttpsError("permission-denied", "This account is disabled.");
   }
 
-  const claims = {
+  const claims: Record<string, unknown> = {
     role: profile.role as string,
     schoolCode: profile.schoolCode as string,
   };
+  // Teachers carry their employee number in the token so assignment-based
+  // SBA rules can match the signed-in user to their teaching slots.
+  if (profile.employeeNumber) {
+    claims.employeeNumber = profile.employeeNumber as string;
+  }
 
   await adminAuth.setCustomUserClaims(uid, claims);
 

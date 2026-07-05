@@ -13,7 +13,9 @@
       // Users may edit their own profile, but the security fields
       // (role, schoolCode, active) only change by super admin or the
       // Admin SDK - otherwise anyone could grant themselves a role
-      // and have syncMyClaims mint it into their token.
+      // and have syncMyClaims mint it into their token. employeeNumber
+      // (the teacher link) is likewise CF-only, so a user cannot bind
+      // their own account to a teaching identity.
       allow update: if isSuperAdmin()
         || (
           signedIn()
@@ -21,6 +23,7 @@
           && request.resource.data.role == resource.data.role
           && request.resource.data.schoolCode == resource.data.schoolCode
           && request.resource.data.active == resource.data.active
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['employeeNumber'])
         );
 
       allow delete: if false;
