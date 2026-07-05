@@ -171,6 +171,13 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    title: "School Profile",
+    path: "/school",
+    group: "Administration",
+    roles: ["school_admin"],
+  },
+
+  {
     title: "SBA Demo Data",
     path: "/dev/seed",
     group: "Administration",

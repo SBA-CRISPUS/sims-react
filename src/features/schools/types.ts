@@ -48,6 +48,12 @@ export interface School {
     email: string;
   };
 
+  // Descriptive profile fields maintained after setup (all optional).
+  principal?: string;
+  motto?: string;
+  website?: string;
+  postalAddress?: string;
+
   subscription: SubscriptionPlan;
 
   status: SchoolStatus;
