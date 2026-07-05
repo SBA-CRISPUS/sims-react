@@ -72,6 +72,9 @@ export class StudentAdmissionService {
       tx.set(studentRef, {
         studentNumber,
         admissionId,
+        // Admission number is generated, not typed - it mirrors the
+        // admission id so every learner has one automatically.
+        admissionNumber: admissionId,
         guardianIds: [guardianId],
         admittedByUid: actorUid,
         ...request.student,

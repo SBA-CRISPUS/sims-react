@@ -4,6 +4,7 @@ import type { Teacher } from "../../../domain/teachers/Teacher";
 import type { Subject } from "../../../domain/subjects/Subject";
 import type { AcademicLevel } from "../../../domain/academic/AcademicLevel";
 import type { Stream } from "../../../domain/academic/Stream";
+import type { Department } from "../../../domain/academic/Department";
 import type {
   TeachingAssignment,
   TeachingAssignmentInput,
@@ -17,6 +18,7 @@ interface Props {
   subjects: Subject[];
   levels: AcademicLevel[];
   streams: Stream[];
+  departments: Department[];
   assignments: TeachingAssignment[];
   defaultTeacherId?: string;
   onCancel: () => void;
@@ -30,6 +32,7 @@ export default function AssignmentForm({
   subjects,
   levels,
   streams,
+  departments,
   assignments,
   defaultTeacherId,
   onCancel,
@@ -46,6 +49,13 @@ export default function AssignmentForm({
 
   const activeTeachers = teachers.filter((t) => t.status === "active");
   const activeSubjects = subjects.filter((s) => s.active);
+
+  // Show the selected teacher's department (loaded with the teacher).
+  const selectedTeacher = teachers.find((t) => t.employeeNumber === teacherId);
+  const teacherDept = selectedTeacher
+    ? departments.find((d) => d.id === selectedTeacher.departmentId)?.name ??
+      "No department"
+    : null;
   const levelStreams = streams.filter(
     (s) => s.academicLevelCode === academicLevelCode && s.active
   );
@@ -120,6 +130,11 @@ export default function AssignmentForm({
               </option>
             ))}
           </select>
+          {teacherDept && (
+            <p className="mt-1 text-xs text-gray-500">
+              Department: {teacherDept}
+            </p>
+          )}
         </div>
 
         <div>

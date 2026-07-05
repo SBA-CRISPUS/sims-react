@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TeacherService } from "../../../domain/teachers/TeacherService";
+import type { TeacherPatch } from "../../../domain/teachers/TeacherService";
 import { TeacherRegistrationService } from "../../../domain/teachers/TeacherRegistrationService";
 import { IdentityManagementService } from "../../../domain/identity/IdentityManagementService";
 import type { TeacherRegistrationRequest } from "../../../domain/teachers/Teacher";
@@ -32,6 +33,20 @@ export function useRegisterTeacher(schoolCode: string) {
       ),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["teachers", schoolCode] }),
+  });
+}
+
+export function useUpdateTeacher(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { employeeNumber: string; patch: TeacherPatch }) =>
+      TeacherService.updateTeacher(schoolCode, input.employeeNumber, input.patch),
+    onSuccess: (_data, input) => {
+      queryClient.invalidateQueries({
+        queryKey: ["teacher", schoolCode, input.employeeNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["teachers", schoolCode] });
+    },
   });
 }
 

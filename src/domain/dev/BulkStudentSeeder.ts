@@ -124,7 +124,6 @@ export class BulkStudentSeeder {
       `${start} already enrolled in ${sid}; admitting ${toAdmit} to reach ${target}...`
     );
 
-    const stamp = Date.now().toString(36);
     let admitted = 0;
     for (let i = 0; i < toAdmit; i++) {
       const pos = start + i;
@@ -134,7 +133,6 @@ export class BulkStudentSeeder {
 
       const res = await StudentAdmissionService.admit(schoolCode, actorUid, {
         student: {
-          admissionNumber: `BULK-${stamp}-${pos + 1}`,
           firstName: first,
           lastName: last,
           gender,

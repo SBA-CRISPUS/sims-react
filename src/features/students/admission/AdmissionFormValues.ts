@@ -7,8 +7,7 @@ import type { GuardianRelationship } from "../../../domain/students/Guardian";
  */
 export interface AdmissionFormValues {
   student: {
-    admissionNumber: string;
-    emisNumber?: string;
+    // admissionNumber is auto-generated; emisNumber comes from the school.
     examinationNumber?: string;
     firstName: string;
     lastName: string;

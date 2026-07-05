@@ -101,7 +101,6 @@ export class SbaDemoSeeder {
     const toAdmit = Math.max(0, input.learnerCount - existing.length);
     onLog(`• ${existing.length} learner(s) already in ${sid}; admitting ${toAdmit} more...`);
 
-    const stamp = Date.now().toString(36);
     for (let i = 0; i < toAdmit; i++) {
       const firstName = FIRST_NAMES[(existing.length + i) % FIRST_NAMES.length];
       const lastName = LAST_NAMES[(existing.length + i) % LAST_NAMES.length];
@@ -110,7 +109,6 @@ export class SbaDemoSeeder {
       try {
         const res = await StudentAdmissionService.admit(schoolCode, actorUid, {
           student: {
-            admissionNumber: `DEMO-${stamp}-${i + 1}`,
             firstName,
             lastName,
             gender,

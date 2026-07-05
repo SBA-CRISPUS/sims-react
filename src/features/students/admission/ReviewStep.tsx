@@ -34,7 +34,7 @@ export default function ReviewStep() {
         <Row label="Gender" value={student.gender} />
         <Row label="Date of Birth" value={student.dateOfBirth} />
         <Row label="Nationality" value={student.nationality} />
-        <Row label="Admission No." value={student.admissionNumber} />
+        <Row label="Admission No." value="Auto-generated on submit" />
       </section>
 
       <section>

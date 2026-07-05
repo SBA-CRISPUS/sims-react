@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useLevels, useStreams } from "../../academic/hooks/streamQueries";
-import { useSubjects } from "../../subjects/hooks/subjectQueries";
+import { useSubjects, useDepartments } from "../../subjects/hooks/subjectQueries";
 import { useTeachers } from "../../teachers/hooks/teacherQueries";
 import { teacherName } from "../../teachers/format";
 import {
@@ -24,6 +24,7 @@ export default function TeachingAssignmentsPage() {
   const assignments = useTeachingAssignments(schoolCode);
   const teachers = useTeachers(schoolCode);
   const subjects = useSubjects(schoolCode);
+  const departments = useDepartments(schoolCode);
   const levels = useLevels(schoolCode);
   const streams = useStreams(schoolCode);
   const saveAssignment = useSaveAssignment(schoolCode ?? "");
@@ -95,6 +96,7 @@ export default function TeachingAssignmentsPage() {
             subjects={subjects.data ?? []}
             levels={levels.data ?? []}
             streams={streams.data ?? []}
+            departments={departments.data ?? []}
             assignments={assignments.data ?? []}
             onCancel={() => setShowForm(false)}
             onSubmit={async (input) => {

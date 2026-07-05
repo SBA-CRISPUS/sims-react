@@ -7,8 +7,13 @@ import { useStreams } from "../../academic/hooks/streamQueries";
 import { useDepartments, useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useTeachingAssignments } from "../../teaching/hooks/teachingQueries";
 import TeachingLoadView from "../../teaching/components/TeachingLoadView";
-import { useTeacher, useCreateTeacherAccount } from "../hooks/teacherQueries";
+import {
+  useTeacher,
+  useCreateTeacherAccount,
+  useUpdateTeacher,
+} from "../hooks/teacherQueries";
 import { teacherName, teacherStatusLabel } from "../format";
+import TeacherEditForm from "../components/TeacherEditForm";
 import type { CreateTeacherAccountResult } from "../../../domain/identity/IdentityManagementService";
 
 const TABS = [
@@ -77,9 +82,11 @@ export default function TeacherProfilePage() {
     employeeNumber
   );
   const createAccount = useCreateTeacherAccount(schoolCode ?? "");
+  const updateTeacher = useUpdateTeacher(schoolCode ?? "");
   const [credentials, setCredentials] =
     useState<CreateTeacherAccountResult | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const departments = useDepartments(schoolCode);
   const subjects = useSubjects(schoolCode);
   const streams = useStreams(schoolCode);
@@ -180,15 +187,44 @@ export default function TeacherProfilePage() {
       <div className="mt-6 rounded-lg bg-white p-6 shadow">
         {tab === "Overview" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
-              <Field label="Gender" value={teacher.gender} />
-              <Field label="Phone" value={teacher.phone} />
-              <Field label="Email" value={teacher.email} />
-              <Field label="Department" value={deptName} />
-              <Field label="Employment Type" value={teacher.employmentType} />
-              <Field label="Qualification" value={teacher.qualification} />
-              <Field label="TSC Number" value={teacher.tscNumber} />
-            </div>
+            {editing ? (
+              <TeacherEditForm
+                teacher={teacher}
+                departments={departments.data ?? []}
+                saving={updateTeacher.isPending}
+                onCancel={() => setEditing(false)}
+                onSubmit={async (patch) => {
+                  await updateTeacher.mutateAsync({
+                    employeeNumber: teacher.employeeNumber,
+                    patch,
+                  });
+                  setEditing(false);
+                }}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-500">Details</p>
+                  {canManage && (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="text-sm text-blue-700 hover:underline"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
+                  <Field label="Gender" value={teacher.gender} />
+                  <Field label="Phone" value={teacher.phone} />
+                  <Field label="Email" value={teacher.email} />
+                  <Field label="Department" value={deptName} />
+                  <Field label="Employment Type" value={teacher.employmentType} />
+                  <Field label="Qualification" value={teacher.qualification} />
+                  <Field label="TSC Number" value={teacher.tscNumber} />
+                </div>
+              </>
+            )}
 
             <div className="border-t pt-6">
               <p className="text-sm font-medium">Login account</p>

@@ -94,38 +94,19 @@ export default function PersonalStep() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block font-medium">Admission No.</label>
-          <input
-            {...register("student.admissionNumber", {
-              required: "Admission number is required",
-            })}
-            className="w-full border rounded p-2"
-          />
-          {errors.student?.admissionNumber && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.student.admissionNumber.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block font-medium">EMIS No.</label>
-          <input
-            {...register("student.emisNumber")}
-            className="w-full border rounded p-2"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Exam No.</label>
-          <input
-            {...register("student.examinationNumber")}
-            className="w-full border rounded p-2"
-          />
-        </div>
+      <div>
+        <label className="block font-medium">Examination No.</label>
+        <input
+          {...register("student.examinationNumber")}
+          placeholder="Optional — usually assigned later"
+          className="w-full border rounded p-2 sm:w-1/2"
+        />
       </div>
+
+      <p className="rounded bg-slate-50 p-3 text-sm text-gray-500">
+        The admission number is generated automatically, and the EMIS number is
+        taken from the school profile — you don't enter them here.
+      </p>
     </div>
   );
 }

@@ -31,7 +31,6 @@ const STEP_FIELDS: Path<AdmissionFormValues>[][] = [
     "student.lastName",
     "student.dateOfBirth",
     "student.nationality",
-    "student.admissionNumber",
   ],
   ["guardian.firstName", "guardian.lastName", "guardian.phone"],
   [
@@ -58,7 +57,6 @@ export default function AdmissionWizard() {
   const methods = useForm<AdmissionFormValues>({
     defaultValues: {
       student: {
-        admissionNumber: "",
         firstName: "",
         lastName: "",
         gender: "Male",
@@ -108,6 +106,8 @@ export default function AdmissionWizard() {
       student: {
         ...values.student,
         dateOfBirth: new Date(values.student.dateOfBirth),
+        // EMIS is the school's Ministry code, pulled from the profile.
+        emisNumber: school.emisCode || undefined,
       },
       guardian: { ...values.guardian },
       enrollment: {
