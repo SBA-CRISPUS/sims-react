@@ -80,6 +80,16 @@ service cloud.firestore {
       return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
     }
 
+    // Who may enter/edit SBA marks. MVP (no teacher login accounts yet) is
+    // coarse - any scoring staff in the school. Sprint 5E gives teachers
+    // accounts and tightens this to the assigned teacher of the slot.
+    function canScoreSba() {
+      return isSchoolAdmin()
+        || hasRole("head_teacher")
+        || hasRole("hod")
+        || hasRole("teacher");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
@@ -404,6 +414,114 @@ service cloud.firestore {
             || request.resource.data.status == 'published')
         && (resource.data.status != 'published'
             || request.resource.data.tasks == resource.data.tasks);
+
+      allow delete: if false;
+    }
+
+    //
+    // SBA class submissions (Sprint 5B): one class's subject sheet =
+    // (academic year, stream, subject) - the workflow unit a subject
+    // teacher submits and a Head Teacher approves (5C). The id encodes the
+    // slot {academicYearId}_{streamId}_{subjectId} (the teaching slot minus
+    // the term, because SBA is scored per form-year). Status carries the
+    // workflow; identity/slot fields are frozen after creation.
+    // lastActionByUid is stamped to the caller so the audit trigger (5C)
+    // can attribute each transition. Moderation/approval land in 5C; 5B
+    // exercises draft -> submitted (scorer) and submitted -> draft (a
+    // manager reopening for correction).
+    //
+    match /schools/{schoolId}/sbaSubmissions/{submissionId} {
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
+
+      allow create: if belongsToSchool(schoolId)
+        && canScoreSba()
+        && request.resource.data.submissionId == submissionId
+        && submissionId ==
+             request.resource.data.academicYearId + '_'
+             + request.resource.data.streamId + '_'
+             + request.resource.data.subjectId
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.lastActionByUid == request.auth.uid
+        && request.resource.data.status == 'draft';
+
+      allow update: if belongsToSchool(schoolId)
+        && request.resource.data.submissionId == resource.data.submissionId
+        && request.resource.data.planId == resource.data.planId
+        && request.resource.data.academicYearId == resource.data.academicYearId
+        && request.resource.data.academicLevelCode == resource.data.academicLevelCode
+        && request.resource.data.streamId == resource.data.streamId
+        && request.resource.data.subjectId == resource.data.subjectId
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.lastActionByUid == request.auth.uid
+        && (
+             (canScoreSba()
+               && (resource.data.status == 'draft'
+                   || resource.data.status == 'returned')
+               && request.resource.data.status == 'submitted')
+             ||
+             (canManageAssessments()
+               && resource.data.status == 'submitted'
+               && request.resource.data.status == 'draft')
+           );
+
+      allow delete: if false;
+    }
+
+    //
+    // SBA marks (Sprint 5B): one learner's task scores for a class, flat
+    // under schools/{code}/sbaMarks. The id encodes the slot
+    // {academicYearId}_{streamId}_{subjectId}_{studentId}. Scores are
+    // editable only while the sheet is open (draft/returned); once
+    // submitted they are frozen (a manager may reopen the sheet but not
+    // edit scores). The frozen totals obtainedTotal/rawScore are written
+    // solely by the approval Cloud Function (5C, Admin SDK) - clients can
+    // never set or change them.
+    //
+    match /schools/{schoolId}/sbaMarks/{markId} {
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
+
+      allow create: if belongsToSchool(schoolId)
+        && canScoreSba()
+        && request.resource.data.id == markId
+        && markId ==
+             request.resource.data.academicYearId + '_'
+             + request.resource.data.streamId + '_'
+             + request.resource.data.subjectId + '_'
+             + request.resource.data.studentId
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.lastActionByUid == request.auth.uid
+        && request.resource.data.status == 'draft'
+        && request.resource.data.taskScores is map
+        && !request.resource.data.keys().hasAny(['obtainedTotal', 'rawScore']);
+
+      allow update: if belongsToSchool(schoolId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.academicYearId == resource.data.academicYearId
+        && request.resource.data.academicLevelCode == resource.data.academicLevelCode
+        && request.resource.data.streamId == resource.data.streamId
+        && request.resource.data.subjectId == resource.data.subjectId
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.planId == resource.data.planId
+        && request.resource.data.submissionId == resource.data.submissionId
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.lastActionByUid == request.auth.uid
+        && request.resource.data.taskScores is map
+        && !request.resource.data.diff(resource.data)
+              .affectedKeys().hasAny(['obtainedTotal', 'rawScore'])
+        && (
+             (canScoreSba()
+               && (resource.data.status == 'draft'
+                   || resource.data.status == 'returned')
+               && (request.resource.data.status == 'draft'
+                   || request.resource.data.status == 'returned'
+                   || request.resource.data.status == 'submitted'))
+             ||
+             (canManageAssessments()
+               && resource.data.status == 'submitted'
+               && request.resource.data.status == 'draft'
+               && request.resource.data.taskScores == resource.data.taskScores
+               && request.resource.data.notTaking == resource.data.notTaking)
+           );
 
       allow delete: if false;
     }

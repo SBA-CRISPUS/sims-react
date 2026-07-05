@@ -19,7 +19,7 @@ import {
   TeacherProfilePage,
 } from "../features/teachers";
 import { TeachingAssignmentsPage } from "../features/teaching";
-import { SbaPlansPage } from "../features/assessments";
+import { SbaPlansPage, SbaMarksPage } from "../features/assessments";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -150,6 +150,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher", "hod"]}>
               <SbaPlansPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/assessments/marks"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "hod", "teacher"]}>
+              <SbaMarksPage />
             </AppShell>
           }
         />

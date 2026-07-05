@@ -1,0 +1,105 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { SbaMarkService } from "../../../domain/assessments/SbaMarkService";
+import { SbaSubmissionService } from "../../../domain/assessments/SbaSubmissionService";
+import { sbaSubmissionId } from "../../../domain/assessments/SbaSubmission";
+import type {
+  MarkDraft,
+} from "../../../domain/assessments/SbaMarkService";
+import type { SbaSubmissionMeta } from "../../../domain/assessments/SbaSubmission";
+
+export function useSbaRoster(
+  schoolCode?: string,
+  academicYearId?: string,
+  streamId?: string
+) {
+  return useQuery({
+    queryKey: ["sba-roster", schoolCode, academicYearId, streamId],
+    enabled: !!schoolCode && !!academicYearId && !!streamId,
+    queryFn: () =>
+      SbaMarkService.listRoster(schoolCode!, academicYearId!, streamId!),
+  });
+}
+
+export function useSbaSubmission(schoolCode?: string, submissionId?: string) {
+  return useQuery({
+    queryKey: ["sba-submission", schoolCode, submissionId],
+    enabled: !!schoolCode && !!submissionId,
+    queryFn: () => SbaSubmissionService.getSubmission(schoolCode!, submissionId!),
+  });
+}
+
+export function useSbaMarks(schoolCode?: string, submissionId?: string) {
+  return useQuery({
+    queryKey: ["sba-marks", schoolCode, submissionId],
+    enabled: !!schoolCode && !!submissionId,
+    queryFn: () => SbaMarkService.listMarks(schoolCode!, submissionId!),
+  });
+}
+
+export function useSaveMarks(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      actorUid: string;
+      meta: SbaSubmissionMeta;
+      submissionExists: boolean;
+      rows: MarkDraft[];
+    }) => {
+      // Ensure the workflow doc exists the first time a class is scored;
+      // after that, mark writes are pure (offline-friendly) batch sets.
+      if (!input.submissionExists) {
+        await SbaSubmissionService.ensureDraft(
+          schoolCode,
+          input.actorUid,
+          input.meta
+        );
+      }
+      await SbaMarkService.saveMarks(
+        schoolCode,
+        input.actorUid,
+        input.meta,
+        input.rows
+      );
+    },
+    onSuccess: (_data, input) => {
+      const id = sbaSubmissionId(input.meta);
+      queryClient.invalidateQueries({
+        queryKey: ["sba-marks", schoolCode, id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sba-submission", schoolCode, id],
+      });
+    },
+  });
+}
+
+export function useSubmissionAction(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      actorUid: string;
+      submissionId: string;
+      action: "submit" | "withdraw";
+    }) =>
+      input.action === "submit"
+        ? SbaSubmissionService.submit(
+            schoolCode,
+            input.actorUid,
+            input.submissionId
+          )
+        : SbaSubmissionService.withdraw(
+            schoolCode,
+            input.actorUid,
+            input.submissionId
+          ),
+    onSuccess: (_data, input) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sba-submission", schoolCode, input.submissionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sba-marks", schoolCode, input.submissionId],
+      });
+    },
+  });
+}

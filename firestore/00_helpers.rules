@@ -70,6 +70,16 @@
       return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
     }
 
+    // Who may enter/edit SBA marks. MVP (no teacher login accounts yet) is
+    // coarse - any scoring staff in the school. Sprint 5E gives teachers
+    // accounts and tightens this to the assigned teacher of the slot.
+    function canScoreSba() {
+      return isSchoolAdmin()
+        || hasRole("head_teacher")
+        || hasRole("hod")
+        || hasRole("teacher");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
