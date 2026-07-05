@@ -45,10 +45,20 @@ export class SbaMarkService {
     academicYearId: string,
     streamId: string
   ): Promise<Student[]> {
+    // `streamId` here is the composite stream id ("F2-A"). Enrollments store
+    // the stream CODE ("A") - the canonical convention shared with the
+    // occupancy Cloud Function and the admission wizard - so we derive the
+    // code from the composite. We also accept an enrollment that stored the
+    // composite itself, in case earlier demo data used it. Query by year
+    // (single field) and match level + stream + active in memory.
+    const dash = streamId.indexOf("-");
+    const levelCode = dash >= 0 ? streamId.slice(0, dash) : "";
+    const streamCode = dash >= 0 ? streamId.slice(dash + 1) : streamId;
+
     const enrollSnap = await getDocs(
       query(
         collection(db, "schools", schoolCode, "enrollments"),
-        where("streamId", "==", streamId)
+        where("academicYearId", "==", academicYearId)
       )
     );
 
@@ -56,7 +66,10 @@ export class SbaMarkService {
       enrollSnap.docs
         .map((d) => mapEnrollment(d.data()))
         .filter(
-          (e) => e.academicYearId === academicYearId && e.status === "active"
+          (e) =>
+            e.status === "active" &&
+            (!levelCode || e.academicLevelCode === levelCode) &&
+            (e.streamId === streamCode || e.streamId === streamId)
         )
         .map((e) => e.studentId)
     );

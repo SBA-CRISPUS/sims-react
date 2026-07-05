@@ -126,7 +126,8 @@ export class SbaDemoSeeder {
           enrollment: {
             academicYearId,
             academicLevelCode: levelCode,
-            streamId: sid,
+            // Stream CODE ("A"), matching the wizard + occupancy CF.
+            streamId: streamCode,
             admissionDate: new Date(),
             status: "active",
           },

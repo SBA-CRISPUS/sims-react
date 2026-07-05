@@ -150,7 +150,9 @@ export class BulkStudentSeeder {
         enrollment: {
           academicYearId,
           academicLevelCode: levelCode,
-          streamId: sid,
+          // Enrollments store the stream CODE ("A"), matching the admission
+          // wizard and the occupancy Cloud Function - not the composite id.
+          streamId: streamCode,
           admissionDate: new Date(),
           status: "active",
         },
