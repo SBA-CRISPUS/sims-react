@@ -18,13 +18,11 @@ import { sbaSubmissionId } from "../../../domain/assessments/SbaSubmission";
 import type { SbaSubmissionMeta } from "../../../domain/assessments/SbaSubmission";
 import MarksGrid from "../components/MarksGrid";
 
-const SCORER_ROLES = ["school_admin", "head_teacher", "hod", "teacher"];
 const MANAGER_ROLES = ["school_admin", "head_teacher", "hod"];
 
 export default function SbaMarksPage() {
   const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
-  const canScore = SCORER_ROLES.includes(profile?.role ?? "");
   const canManage = MANAGER_ROLES.includes(profile?.role ?? "");
 
   const { academicYear, academicYearId } = useAcademicContext();
@@ -83,6 +81,13 @@ export default function SbaMarksPage() {
         a.streamId === streamId &&
         a.subjectId === subjectId
     )?.teacherId ?? null;
+
+  // Managers may score any class; a teacher may score only the class they
+  // own (matches the assignment-scoped Firestore rules). Non-owners still
+  // see the sheet, read-only.
+  const canScore =
+    canManage ||
+    (!!profile?.employeeNumber && teacherId === profile.employeeNumber);
 
   const meta: SbaSubmissionMeta | null =
     classReady && plan && academicYearId

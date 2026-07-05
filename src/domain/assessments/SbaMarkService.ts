@@ -199,6 +199,8 @@ export class SbaMarkService {
           streamId: meta.streamId,
           subjectId: meta.subjectId,
           studentId: row.studentId,
+          // Owning teacher of the slot; the rules scope scoring to them.
+          teacherId: meta.teacherId ?? null,
           ...(row.examinationNumber
             ? { examinationNumber: row.examinationNumber }
             : {}),

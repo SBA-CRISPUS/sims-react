@@ -63,7 +63,7 @@
       allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
 
       allow create: if belongsToSchool(schoolId)
-        && canScoreSba()
+        && canScoreSbaFor(request.resource.data.get('teacherId', null))
         && request.resource.data.submissionId == submissionId
         && submissionId ==
              request.resource.data.academicYearId + '_'
@@ -82,9 +82,10 @@
         && request.resource.data.subjectId == resource.data.subjectId
         && request.resource.data.createdByUid == resource.data.createdByUid
         && request.resource.data.lastActionByUid == request.auth.uid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['teacherId'])
         && (
-             // subject teacher submits an open sheet
-             (canScoreSba()
+             // subject teacher (owner) submits an open sheet
+             (canScoreSbaFor(resource.data.get('teacherId', null))
                && (resource.data.status == 'draft'
                    || resource.data.status == 'returned')
                && request.resource.data.status == 'submitted')
@@ -137,7 +138,7 @@
       allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
 
       allow create: if belongsToSchool(schoolId)
-        && canScoreSba()
+        && canScoreSbaFor(request.resource.data.get('teacherId', null))
         && request.resource.data.id == markId
         && markId ==
              request.resource.data.academicYearId + '_'
@@ -163,10 +164,10 @@
         && request.resource.data.lastActionByUid == request.auth.uid
         && request.resource.data.taskScores is map
         && !request.resource.data.diff(resource.data)
-              .affectedKeys().hasAny(['obtainedTotal', 'rawScore'])
+              .affectedKeys().hasAny(['obtainedTotal', 'rawScore', 'teacherId'])
         && (
-             // scorer edits/submits while the sheet is open
-             (canScoreSba()
+             // owning teacher edits/submits while the sheet is open
+             (canScoreSbaFor(resource.data.get('teacherId', null))
                && (resource.data.status == 'draft'
                    || resource.data.status == 'returned')
                && (request.resource.data.status == 'draft'

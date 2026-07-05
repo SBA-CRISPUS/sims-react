@@ -70,14 +70,29 @@
       return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
     }
 
-    // Who may enter/edit SBA marks. MVP (no teacher login accounts yet) is
-    // coarse - any scoring staff in the school. Sprint 5E gives teachers
-    // accounts and tightens this to the assigned teacher of the slot.
-    function canScoreSba() {
-      return isSchoolAdmin()
-        || hasRole("head_teacher")
-        || hasRole("hod")
-        || hasRole("teacher");
+    // The signed-in user's teacher employee number (from their token), or
+    // null for accounts not linked to a teacher record.
+    function myEmployeeNumber() {
+      return signedIn() ? request.auth.token.get('employeeNumber', null) : null;
+    }
+
+    // A teacher "owns" an SBA slot when the slot's denormalized teacherId
+    // matches their own employee number.
+    function ownsSba(teacherId) {
+      return hasRole("teacher")
+        && teacherId != null
+        && myEmployeeNumber() == teacherId;
+    }
+
+    // Who may enter/edit the marks of a slot owned by `teacherId`:
+    // assessment managers (admin/head/hod, who may score on anyone's behalf)
+    // or the teacher who owns the slot. Replaces the old coarse canScoreSba
+    // (which let ANY teacher score ANY class). NOTE: enforcement rides the
+    // denormalized teacherId the client stamps from the teaching assignment;
+    // a fully assignment-verified check (a rules get() on the slot) is a
+    // follow-up once the emulator is available to validate it.
+    function canScoreSbaFor(teacherId) {
+      return canManageAssessments() || ownsSba(teacherId);
     }
 
     // Who may moderate a submitted SBA sheet (the HOD step).

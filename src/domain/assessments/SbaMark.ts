@@ -21,6 +21,7 @@ export interface SbaMark {
   streamId: string;
   subjectId: string;
   studentId: string;
+  teacherId?: string | null; // owning teacher (from the teaching assignment); scoped write access
   examinationNumber?: string; // denormalized for the ECZ export (5D)
   taskScores: Record<string, number>; // { [taskId]: obtained }
   notTaking?: boolean; // elective/absent/exempt -> excluded from calc + export
