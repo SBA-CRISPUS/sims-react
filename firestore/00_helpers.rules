@@ -57,6 +57,11 @@
       return isSchoolAdmin();
     }
 
+    // Who may create/change teaching assignments (timetabling).
+    function canManageAssignments() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }

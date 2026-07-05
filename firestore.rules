@@ -67,6 +67,11 @@ service cloud.firestore {
       return isSchoolAdmin();
     }
 
+    // Who may create/change teaching assignments (timetabling).
+    function canManageAssignments() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
@@ -305,6 +310,42 @@ service cloud.firestore {
       allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageTeachers();
       allow update: if belongsToSchool(schoolId) && canManageTeachers();
+      allow delete: if false;
+    }
+
+    // Teaching assignments (who teaches what, to which class, this term).
+    // Deactivated, never deleted. The doc id, the id field, and the four
+    // slot-component fields must all be mutually consistent, so the
+    // one-teacher-per-(subject,stream,term) slot invariant actually holds
+    // and the SBA engine can trust the slot key. Read is staff-only, like
+    // the teachers collection.
+    match /schools/{schoolId}/teachingAssignments/{assignmentId} {
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
+
+      allow create: if belongsToSchool(schoolId)
+        && canManageAssignments()
+        && request.resource.data.id == assignmentId
+        && request.resource.data.id ==
+             request.resource.data.academicYearId + '_'
+             + request.resource.data.termId + '_'
+             + request.resource.data.streamId + '_'
+             + request.resource.data.subjectId
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.active == true
+        && request.resource.data.periodsPerWeek is int
+        && request.resource.data.periodsPerWeek > 0;
+
+      allow update: if belongsToSchool(schoolId)
+        && canManageAssignments()
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.academicYearId == resource.data.academicYearId
+        && request.resource.data.termId == resource.data.termId
+        && request.resource.data.streamId == resource.data.streamId
+        && request.resource.data.subjectId == resource.data.subjectId
+        && request.resource.data.periodsPerWeek is int
+        && request.resource.data.periodsPerWeek > 0;
+
       allow delete: if false;
     }
 
