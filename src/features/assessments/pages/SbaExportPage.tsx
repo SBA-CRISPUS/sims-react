@@ -9,6 +9,7 @@ import { useSbaSubmissions } from "../hooks/sbaMarksQueries";
 import { useSubjectMarks, useAllStudents } from "../hooks/sbaExportQueries";
 import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
 import type { Student } from "../../../domain/students/Student";
+import { downloadCsv } from "../../../lib/csv";
 
 const EXPORTER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
 
@@ -25,10 +26,6 @@ interface ExportRow {
   raw: number | null;
   ready: boolean;
   reason?: string;
-}
-
-function csvCell(value: string): string {
-  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
 export default function SbaExportPage() {
@@ -111,18 +108,11 @@ export default function SbaExportPage() {
   const notApproved = rows.filter((r) => r.reason === "not approved").length;
 
   function exportCsv() {
-    const header = ["Examination Number", "Learner", "Raw Mark"];
-    const lines = readyRows.map((r) =>
-      [r.examNo, r.name, String(r.raw ?? "")].map(csvCell).join(",")
-    );
-    const csv = [header.join(","), ...lines].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `SBA_${subjectId}_${form}_${academicYearId}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const rows = [
+      ["Examination Number", "Learner", "Raw Mark"],
+      ...readyRows.map((r) => [r.examNo, r.name, String(r.raw ?? "")]),
+    ];
+    downloadCsv(`SBA_${subjectId}_${form}_${academicYearId}.csv`, rows);
   }
 
   const ready = !!academicYearId && !!form && !!subjectId;

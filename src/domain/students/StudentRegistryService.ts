@@ -1,6 +1,7 @@
 import { collection, getDocs } from "firebase/firestore";
 
 import { db } from "../../firebase";
+import { downloadCsv } from "../../lib/csv";
 
 import { mapStudent, mapEnrollment } from "./mappers";
 import type { Student } from "./Student";
@@ -180,21 +181,17 @@ export class StudentRegistryService {
   }
 
   static exportCsv(rows: StudentRow[]): void {
-    const header = [
-      "Student Number",
-      "Admission ID",
-      "Name",
-      "Gender",
-      "Level",
-      "Stream",
-      "Status",
-    ];
-
-    const csvCell = (value: string) =>
-      /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-
-    const lines = rows.map((row) =>
+    const csvRows = [
       [
+        "Student Number",
+        "Admission ID",
+        "Name",
+        "Gender",
+        "Level",
+        "Stream",
+        "Status",
+      ],
+      ...rows.map((row) => [
         row.student.studentNumber,
         row.student.admissionId ?? "",
         fullName(row.student),
@@ -202,20 +199,8 @@ export class StudentRegistryService {
         row.enrollment?.academicLevelCode ?? "",
         row.enrollment?.streamId ?? "",
         row.student.status,
-      ]
-        .map((v) => csvCell(String(v)))
-        .join(",")
-    );
-
-    const csv = [header.join(","), ...lines].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "students.csv";
-    anchor.click();
-
-    URL.revokeObjectURL(url);
+      ]),
+    ];
+    downloadCsv("students.csv", csvRows);
   }
 }

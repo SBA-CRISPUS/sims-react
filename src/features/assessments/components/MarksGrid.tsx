@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 import type { Student } from "../../../domain/students/Student";
-import type { SbaPlan } from "../../../domain/assessments/SbaPlan";
+import type { SbaPlan, SbaTask } from "../../../domain/assessments/SbaPlan";
 import type { SbaMark } from "../../../domain/assessments/SbaMark";
 import type { SbaClassSubmission } from "../../../domain/assessments/SbaSubmission";
 import { SBA_OPEN_STATUSES } from "../../../domain/assessments/SbaSubmission";
@@ -29,6 +29,8 @@ function studentName(s: Student): string {
   return [s.firstName, s.otherNames, s.lastName].filter(Boolean).join(" ");
 }
 
+type ScoreMap = Record<string, number>;
+
 export default function MarksGrid({
   plan,
   roster,
@@ -49,13 +51,11 @@ export default function MarksGrid({
     [marks]
   );
 
-  const [scores, setScores] = useState<Record<string, Record<string, number>>>(
-    () => {
-      const seed: Record<string, Record<string, number>> = {};
-      for (const m of marks) seed[m.studentId] = { ...m.taskScores };
-      return seed;
-    }
-  );
+  const [scores, setScores] = useState<Record<string, ScoreMap>>(() => {
+    const seed: Record<string, ScoreMap> = {};
+    for (const m of marks) seed[m.studentId] = { ...m.taskScores };
+    return seed;
+  });
   const [notTaking, setNotTaking] = useState<Record<string, boolean>>(() => {
     const seed: Record<string, boolean> = {};
     for (const m of marks) seed[m.studentId] = !!m.notTaking;
@@ -67,24 +67,25 @@ export default function MarksGrid({
   const status = submission?.status ?? "draft";
   const editable = canScore && SBA_OPEN_STATUSES.includes(status);
 
-  function markDirty(studentId: string) {
-    setDirty((prev) => new Set(prev).add(studentId));
-  }
+  // Stable callbacks (functional setState) so memoised rows don't re-render
+  // when a *different* row changes - typing stays O(1 row), not O(grid).
+  const setScore = useCallback(
+    (studentId: string, taskId: string, value?: number) => {
+      setScores((prev) => {
+        const row = { ...(prev[studentId] ?? {}) };
+        if (value === undefined) delete row[taskId];
+        else row[taskId] = value;
+        return { ...prev, [studentId]: row };
+      });
+      setDirty((prev) => new Set(prev).add(studentId));
+    },
+    []
+  );
 
-  function setScore(studentId: string, taskId: string, value?: number) {
-    setScores((prev) => {
-      const row = { ...(prev[studentId] ?? {}) };
-      if (value === undefined) delete row[taskId];
-      else row[taskId] = value;
-      return { ...prev, [studentId]: row };
-    });
-    markDirty(studentId);
-  }
-
-  function toggleNotTaking(studentId: string) {
+  const toggleNotTaking = useCallback((studentId: string) => {
     setNotTaking((prev) => ({ ...prev, [studentId]: !prev[studentId] }));
-    markDirty(studentId);
-  }
+    setDirty((prev) => new Set(prev).add(studentId));
+  }, []);
 
   function scoredCount(studentId: string): number {
     const row = scores[studentId] ?? {};
@@ -161,9 +162,7 @@ export default function MarksGrid({
         <div className="flex items-center gap-3">
           <StatusBadge status={status} />
           {dirty.size > 0 && (
-            <span className="text-sm text-amber-700">
-              {dirty.size} unsaved
-            </span>
+            <span className="text-sm text-amber-700">{dirty.size} unsaved</span>
           )}
         </div>
       </div>
@@ -192,64 +191,19 @@ export default function MarksGrid({
             </tr>
           </thead>
           <tbody>
-            {roster.map((s) => {
-              const sid = s.studentNumber;
-              const row = scores[sid] ?? {};
-              const nt = notTaking[sid] ?? false;
-              const got = obtainedTotal(row, tasks);
-              const raw = sbaRawOutOf100(row, tasks);
-              return (
-                <tr key={sid} className="border-b">
-                  <td className="sticky left-0 bg-white p-3">
-                    <div className="font-medium">{studentName(s)}</div>
-                    <div className="text-xs text-gray-400">
-                      {s.examinationNumber
-                        ? `Exam ${s.examinationNumber}`
-                        : sid}
-                    </div>
-                  </td>
-                  {tasks.map((t) => (
-                    <td key={t.taskId} className="p-1 text-center">
-                      <input
-                        type="number"
-                        min={0}
-                        max={t.maxMarks}
-                        disabled={!editable || nt}
-                        value={row[t.taskId] ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === "") setScore(sid, t.taskId, undefined);
-                          else {
-                            const num = Number(v);
-                            if (!Number.isNaN(num))
-                              setScore(
-                                sid,
-                                t.taskId,
-                                Math.max(0, Math.min(t.maxMarks, Math.floor(num)))
-                              );
-                          }
-                        }}
-                        className="w-14 rounded border p-1 text-center disabled:bg-slate-100 disabled:text-gray-300"
-                      />
-                    </td>
-                  ))}
-                  <td className="p-2 text-center text-gray-600">
-                    {nt ? "—" : `${got}/${planMax}`}
-                  </td>
-                  <td className="p-2 text-center font-medium">
-                    {nt ? "—" : raw}
-                  </td>
-                  <td className="p-2 text-center">
-                    <input
-                      type="checkbox"
-                      disabled={!editable}
-                      checked={nt}
-                      onChange={() => toggleNotTaking(sid)}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
+            {roster.map((s) => (
+              <MarkRow
+                key={s.studentNumber}
+                student={s}
+                tasks={tasks}
+                planMax={planMax}
+                rowScores={scores[s.studentNumber]}
+                notTaking={notTaking[s.studentNumber] ?? false}
+                editable={editable}
+                onScore={setScore}
+                onToggle={toggleNotTaking}
+              />
+            ))}
           </tbody>
         </table>
       </div>
@@ -269,10 +223,7 @@ export default function MarksGrid({
             <button
               onClick={handleSubmit}
               disabled={
-                saving ||
-                dirty.size > 0 ||
-                !submission ||
-                incomplete > 0
+                saving || dirty.size > 0 || !submission || incomplete > 0
               }
               className="rounded border border-green-700 px-4 py-2 text-green-700 hover:bg-green-50 disabled:opacity-40"
             >
@@ -285,7 +236,9 @@ export default function MarksGrid({
               </span>
             )}
             {dirty.size > 0 && (
-              <span className="text-sm text-gray-500">Save before submitting</span>
+              <span className="text-sm text-gray-500">
+                Save before submitting
+              </span>
             )}
           </>
         )}
@@ -302,6 +255,86 @@ export default function MarksGrid({
     </div>
   );
 }
+
+interface RowProps {
+  student: Student;
+  tasks: SbaTask[];
+  planMax: number;
+  rowScores?: ScoreMap;
+  notTaking: boolean;
+  editable: boolean;
+  onScore: (studentId: string, taskId: string, value?: number) => void;
+  onToggle: (studentId: string) => void;
+}
+
+/**
+ * Memoised so a keystroke in one learner's row does not re-render the whole
+ * grid - only the edited row's props change identity (its rowScores /
+ * notTaking); every other row is skipped. Keeps a 50 x 8 grid responsive.
+ */
+const MarkRow = memo(function MarkRow({
+  student,
+  tasks,
+  planMax,
+  rowScores,
+  notTaking,
+  editable,
+  onScore,
+  onToggle,
+}: RowProps) {
+  const sid = student.studentNumber;
+  const row = rowScores ?? {};
+  const got = obtainedTotal(row, tasks);
+  const raw = sbaRawOutOf100(row, tasks);
+
+  return (
+    <tr className="border-b">
+      <td className="sticky left-0 bg-white p-3">
+        <div className="font-medium">{studentName(student)}</div>
+        <div className="text-xs text-gray-400">
+          {student.examinationNumber ? `Exam ${student.examinationNumber}` : sid}
+        </div>
+      </td>
+      {tasks.map((t) => (
+        <td key={t.taskId} className="p-1 text-center">
+          <input
+            type="number"
+            min={0}
+            max={t.maxMarks}
+            disabled={!editable || notTaking}
+            value={row[t.taskId] ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "") onScore(sid, t.taskId, undefined);
+              else {
+                const num = Number(v);
+                if (!Number.isNaN(num))
+                  onScore(
+                    sid,
+                    t.taskId,
+                    Math.max(0, Math.min(t.maxMarks, Math.floor(num)))
+                  );
+              }
+            }}
+            className="w-14 rounded border p-1 text-center disabled:bg-slate-100 disabled:text-gray-300"
+          />
+        </td>
+      ))}
+      <td className="p-2 text-center text-gray-600">
+        {notTaking ? "—" : `${got}/${planMax}`}
+      </td>
+      <td className="p-2 text-center font-medium">{notTaking ? "—" : raw}</td>
+      <td className="p-2 text-center">
+        <input
+          type="checkbox"
+          disabled={!editable}
+          checked={notTaking}
+          onChange={() => onToggle(sid)}
+        />
+      </td>
+    </tr>
+  );
+});
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
