@@ -114,6 +114,18 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    title: "SBA Review",
+    path: "/assessments/review",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "deputy_head",
+      "hod",
+    ],
+  },
+
+  {
     title: "Reports",
     path: "/reports",
     roles: [

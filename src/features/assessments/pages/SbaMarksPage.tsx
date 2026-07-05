@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
@@ -28,9 +29,12 @@ export default function SbaMarksPage() {
 
   const { academicYear, academicYearId } = useAcademicContext();
 
-  const [form, setForm] = useState("");
-  const [streamId, setStreamId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+  // Seed the class selectors from the URL so the SBA Review board can deep
+  // link straight to a class.
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(searchParams.get("form") ?? "");
+  const [streamId, setStreamId] = useState(searchParams.get("stream") ?? "");
+  const [subjectId, setSubjectId] = useState(searchParams.get("subject") ?? "");
 
   const plans = useSbaPlans(schoolCode);
   const levels = useLevels(schoolCode);

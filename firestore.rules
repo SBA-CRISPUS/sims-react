@@ -90,6 +90,18 @@ service cloud.firestore {
         || hasRole("teacher");
     }
 
+    // Who may moderate a submitted SBA sheet (the HOD step).
+    function canModerateSba() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
+    }
+
+    // Who may approve/sign off an SBA sheet (the Head Teacher step). This
+    // freezes the marks - the approval Cloud Function computes the final
+    // raw scores.
+    function canApproveSba() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("deputy_head");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
@@ -454,14 +466,33 @@ service cloud.firestore {
         && request.resource.data.createdByUid == resource.data.createdByUid
         && request.resource.data.lastActionByUid == request.auth.uid
         && (
+             // subject teacher submits an open sheet
              (canScoreSba()
                && (resource.data.status == 'draft'
                    || resource.data.status == 'returned')
                && request.resource.data.status == 'submitted')
              ||
+             // manager reopens a submitted sheet straight to draft
              (canManageAssessments()
                && resource.data.status == 'submitted'
                && request.resource.data.status == 'draft')
+             ||
+             // HOD moderates a submitted sheet
+             (canModerateSba()
+               && resource.data.status == 'submitted'
+               && request.resource.data.status == 'moderated')
+             ||
+             // Head Teacher approves (moderation may be skipped)
+             (canApproveSba()
+               && (resource.data.status == 'submitted'
+                   || resource.data.status == 'moderated')
+               && request.resource.data.status == 'approved')
+             ||
+             // HOD/Head returns a sheet for correction
+             ((canModerateSba() || canApproveSba())
+               && (resource.data.status == 'submitted'
+                   || resource.data.status == 'moderated')
+               && request.resource.data.status == 'returned')
            );
 
       allow delete: if false;
@@ -509,6 +540,7 @@ service cloud.firestore {
         && !request.resource.data.diff(resource.data)
               .affectedKeys().hasAny(['obtainedTotal', 'rawScore'])
         && (
+             // scorer edits/submits while the sheet is open
              (canScoreSba()
                && (resource.data.status == 'draft'
                    || resource.data.status == 'returned')
@@ -516,11 +548,35 @@ service cloud.firestore {
                    || request.resource.data.status == 'returned'
                    || request.resource.data.status == 'submitted'))
              ||
-             (canManageAssessments()
-               && resource.data.status == 'submitted'
-               && request.resource.data.status == 'draft'
-               && request.resource.data.taskScores == resource.data.taskScores
-               && request.resource.data.notTaking == resource.data.notTaking)
+             // every non-scorer transition below only moves status - the
+             // scores and the not-taking flag are frozen.
+             (
+               (request.resource.data.taskScores == resource.data.taskScores
+                && request.resource.data.notTaking == resource.data.notTaking)
+               && (
+                    // manager reopens straight to draft
+                    (canManageAssessments()
+                      && resource.data.status == 'submitted'
+                      && request.resource.data.status == 'draft')
+                    ||
+                    // HOD moderates
+                    (canModerateSba()
+                      && resource.data.status == 'submitted'
+                      && request.resource.data.status == 'moderated')
+                    ||
+                    // Head Teacher approves (freeze follows via the CF)
+                    (canApproveSba()
+                      && (resource.data.status == 'submitted'
+                          || resource.data.status == 'moderated')
+                      && request.resource.data.status == 'approved')
+                    ||
+                    // HOD/Head returns for correction
+                    ((canModerateSba() || canApproveSba())
+                      && (resource.data.status == 'submitted'
+                          || resource.data.status == 'moderated')
+                      && request.resource.data.status == 'returned')
+                  )
+             )
            );
 
       allow delete: if false;

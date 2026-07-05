@@ -15,3 +15,4 @@ export { syncMyClaims } from "./identity/syncMyClaims";
 export { onStudentAdmitted } from "./students/onStudentAdmitted";
 export { onEnrollmentWritten } from "./academic/onEnrollmentWritten";
 export { onTeacherRegistered } from "./teachers/onTeacherRegistered";
+export { onSbaSubmissionWritten } from "./assessments/onSbaSubmissionWritten";

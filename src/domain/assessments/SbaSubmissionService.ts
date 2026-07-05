@@ -27,6 +27,23 @@ function toDate(value: unknown): Date | undefined {
 }
 
 export class SbaSubmissionService {
+  static async listSubmissions(
+    schoolCode: string
+  ): Promise<SbaClassSubmission[]> {
+    const snapshot = await getDocs(
+      collection(db, "schools", schoolCode, "sbaSubmissions")
+    );
+    return snapshot.docs.map(
+      (d) =>
+        ({
+          ...d.data(),
+          createdAt: toDate(d.data().createdAt),
+          updatedAt: toDate(d.data().updatedAt),
+          frozenAt: toDate(d.data().frozenAt),
+        }) as SbaClassSubmission
+    );
+  }
+
   static async getSubmission(
     schoolCode: string,
     submissionId: string
@@ -93,8 +110,7 @@ export class SbaSubmissionService {
     );
   }
 
-  /** Manager reopens a submitted sheet back to draft (light stand-in for
-   * moderation's "return"; 5C replaces it with the full HOD/head flow). */
+  /** Manager reopens a submitted sheet straight back to draft. */
   static async withdraw(
     schoolCode: string,
     actorUid: string,
@@ -106,6 +122,60 @@ export class SbaSubmissionService {
       submissionId,
       ["submitted"],
       "draft",
+      {}
+    );
+  }
+
+  /** HOD moderates a submitted sheet. */
+  static async moderate(
+    schoolCode: string,
+    actorUid: string,
+    submissionId: string
+  ): Promise<void> {
+    await this.transition(
+      schoolCode,
+      actorUid,
+      submissionId,
+      ["submitted"],
+      "moderated",
+      { moderatedByUid: actorUid }
+    );
+  }
+
+  /**
+   * Head Teacher approves (and signs off) a sheet. Moderation may be
+   * skipped in small schools, so approval is allowed straight from
+   * submitted. Approval is terminal for the client: the approval Cloud
+   * Function freezes each learner's raw mark and the sheet becomes
+   * immutable.
+   */
+  static async approve(
+    schoolCode: string,
+    actorUid: string,
+    submissionId: string
+  ): Promise<void> {
+    await this.transition(
+      schoolCode,
+      actorUid,
+      submissionId,
+      ["submitted", "moderated"],
+      "approved",
+      { approvedByUid: actorUid }
+    );
+  }
+
+  /** HOD/Head bounces a sheet back to the teacher for correction. */
+  static async returnForCorrection(
+    schoolCode: string,
+    actorUid: string,
+    submissionId: string
+  ): Promise<void> {
+    await this.transition(
+      schoolCode,
+      actorUid,
+      submissionId,
+      ["submitted", "moderated"],
+      "returned",
       {}
     );
   }

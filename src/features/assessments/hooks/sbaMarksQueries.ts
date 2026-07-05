@@ -29,6 +29,14 @@ export function useSbaSubmission(schoolCode?: string, submissionId?: string) {
   });
 }
 
+export function useSbaSubmissions(schoolCode?: string) {
+  return useQuery({
+    queryKey: ["sba-submissions", schoolCode],
+    enabled: !!schoolCode,
+    queryFn: () => SbaSubmissionService.listSubmissions(schoolCode!),
+  });
+}
+
 export function useSbaMarks(schoolCode?: string, submissionId?: string) {
   return useQuery({
     queryKey: ["sba-marks", schoolCode, submissionId],
@@ -74,31 +82,41 @@ export function useSaveMarks(schoolCode: string) {
   });
 }
 
+export type SbaSubmissionActionType =
+  | "submit"
+  | "withdraw"
+  | "moderate"
+  | "approve"
+  | "return";
+
+const ACTION_FNS: Record<
+  SbaSubmissionActionType,
+  (schoolCode: string, actorUid: string, submissionId: string) => Promise<void>
+> = {
+  submit: SbaSubmissionService.submit.bind(SbaSubmissionService),
+  withdraw: SbaSubmissionService.withdraw.bind(SbaSubmissionService),
+  moderate: SbaSubmissionService.moderate.bind(SbaSubmissionService),
+  approve: SbaSubmissionService.approve.bind(SbaSubmissionService),
+  return: SbaSubmissionService.returnForCorrection.bind(SbaSubmissionService),
+};
+
 export function useSubmissionAction(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: {
       actorUid: string;
       submissionId: string;
-      action: "submit" | "withdraw";
-    }) =>
-      input.action === "submit"
-        ? SbaSubmissionService.submit(
-            schoolCode,
-            input.actorUid,
-            input.submissionId
-          )
-        : SbaSubmissionService.withdraw(
-            schoolCode,
-            input.actorUid,
-            input.submissionId
-          ),
+      action: SbaSubmissionActionType;
+    }) => ACTION_FNS[input.action](schoolCode, input.actorUid, input.submissionId),
     onSuccess: (_data, input) => {
       queryClient.invalidateQueries({
         queryKey: ["sba-submission", schoolCode, input.submissionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["sba-marks", schoolCode, input.submissionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sba-submissions", schoolCode],
       });
     },
   });

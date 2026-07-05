@@ -1,6 +1,6 @@
 # Phase 5 — CBC School-Based Assessment (SBA) Engine
 
-**Status:** Decisions accepted 2026-07-05; **Sprints 5A + 5B built + deployed** · **Author:** SIMS team · **Date:** 2026-07-05
+**Status:** Decisions accepted 2026-07-05; **Sprints 5A + 5B + 5C built + deployed** · **Author:** SIMS team · **Date:** 2026-07-05
 **Sources:** ECZ *Guide to Calculating SBA (Forms 1–3)* (Bernard Tito) and *CBC SBA Marks Entry Guide (ECSEOL 2026)*.
 **Audience:** mentor review + build blueprint.
 
@@ -338,7 +338,7 @@ Key guards: `id == composed-key` (slot integrity, like `teachingAssignments`); `
 |---|---|---|
 | **5A — SBA Structure** ✅ **DONE** | `SbaPlan` + task builder (F2/F3-gated), `60_assessments.rules`, `SbaCalculationService` | everything |
 | **5B — Marks Entry** ✅ **DONE** | Class score-sheet grid (roster from enrollment, `taskScores` map, live raw%, offline `set()`), `SbaClassSubmission` draft/submit + manager reopen | the daily-driver screen |
-| **5C — Moderation & Approval** | HOD moderation queue → head approve/lock; `onSbaSubmissionWritten` audit + freeze trigger; immutability rules | completes the governance chain |
+| **5C — Moderation & Approval** ✅ **DONE** | SBA Review board (HOD moderate → head approve, return); `onSbaSubmissionWritten` audit + freeze trigger; immutability after approval | completes the governance chain |
 | **5D — ECZ Export & Learner View** | Exam-number bulk-assign; per-form-year raw score-sheet export (CSV + print); student-profile SBA tab (F2+F3, provisional band) | the ECZ deliverable |
 | **5E — Teacher Identity** *(optional/prereq)* | Auth accounts for teachers + `uid↔EMP` link; tighten `canScoreSba` to the slot teacher; "My Classes" | true teacher-entered marks |
 

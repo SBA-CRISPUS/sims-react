@@ -80,6 +80,18 @@
         || hasRole("teacher");
     }
 
+    // Who may moderate a submitted SBA sheet (the HOD step).
+    function canModerateSba() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
+    }
+
+    // Who may approve/sign off an SBA sheet (the Head Teacher step). This
+    // freezes the marks - the approval Cloud Function computes the final
+    // raw scores.
+    function canApproveSba() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("deputy_head");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
