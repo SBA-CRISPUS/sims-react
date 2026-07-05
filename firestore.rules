@@ -72,6 +72,14 @@ service cloud.firestore {
       return isSchoolAdmin() || hasRole("head_teacher");
     }
 
+    // Who may define SBA assessment plans (the task structure a subject is
+    // scored against). Subject scoring, moderation and approval get their
+    // own finer helpers when marks entry (5B) and the approval workflow
+    // (5C) land.
+    function canManageAssessments() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
@@ -352,9 +360,53 @@ service cloud.firestore {
     // ===== 60_assessments.rules =====
 
     //
-    // Assessments (SBA, marks). Rules land with the assessments
-    // module. Until then the default deny covers these paths.
+    // SBA assessments. Sprint 5A: assessment plans - the task structure a
+    // subject is scored against, per form-year. Marks entry and the
+    // submit -> moderate -> approve -> lock workflow land in 5B/5C; until
+    // then the default deny covers those paths.
     //
+    // Plans carry no PII, but the whole assessments module is staff-scoped,
+    // so read is staff-only (excludes student/parent). The doc id encodes
+    // the slot {academicYearId}_{academicLevelCode}_{subjectId} and is
+    // reconstructed from the stored fields (like teachingAssignments), so
+    // one plan == one (subject, form-year) and a raw client write can't
+    // desync the id from its fields. SBA runs in Form 2 and Form 3 only.
+    //
+    match /schools/{schoolId}/sbaPlans/{planId} {
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
+
+      allow create: if belongsToSchool(schoolId)
+        && canManageAssessments()
+        && request.resource.data.planId == planId
+        && planId ==
+             request.resource.data.academicYearId + '_'
+             + request.resource.data.academicLevelCode + '_'
+             + request.resource.data.subjectId
+        && (request.resource.data.academicLevelCode == 'F2'
+            || request.resource.data.academicLevelCode == 'F3')
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.status == 'draft';
+
+      // Identity/slot fields and the plan's origin are frozen; only the
+      // task list and the draft/published status may change - and the task
+      // list is frozen once published (unpublish to draft to edit it),
+      // matching SbaPlanService and pre-empting task edits under scored
+      // marks in 5B/5C. Publish/unpublish is a status-only update, so the
+      // task list is unchanged and the equality guard passes.
+      allow update: if belongsToSchool(schoolId)
+        && canManageAssessments()
+        && request.resource.data.planId == resource.data.planId
+        && request.resource.data.academicYearId == resource.data.academicYearId
+        && request.resource.data.academicLevelCode == resource.data.academicLevelCode
+        && request.resource.data.subjectId == resource.data.subjectId
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && (request.resource.data.status == 'draft'
+            || request.resource.data.status == 'published')
+        && (resource.data.status != 'published'
+            || request.resource.data.tasks == resource.data.tasks);
+
+      allow delete: if false;
+    }
 
     // ===== 70_reports.rules =====
 

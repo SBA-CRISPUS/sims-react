@@ -1,6 +1,6 @@
 # Phase 5 — CBC School-Based Assessment (SBA) Engine
 
-**Status:** Design (pre-build) · **Author:** SIMS team · **Date:** 2026-07-05
+**Status:** Decisions accepted 2026-07-05; **Sprint 5A built + deployed** · **Author:** SIMS team · **Date:** 2026-07-05
 **Sources:** ECZ *Guide to Calculating SBA (Forms 1–3)* (Bernard Tito) and *CBC SBA Marks Entry Guide (ECSEOL 2026)*.
 **Audience:** mentor review + build blueprint.
 
@@ -320,9 +320,9 @@ Key guards: `id == composed-key` (slot integrity, like `teachingAssignments`); `
 
 ---
 
-## 12. Decisions (recommended defaults — mentor may override)
+## 12. Decisions (**accepted 2026-07-05** — mentor may still override before later sprints)
 
-| # | Decision | Default baked into this design | Alternative |
+| # | Decision | Accepted call | Alternative |
 |---|---|---|---|
 | D1 | Who enters marks in MVP | **school_admin/head/HOD enter now; Teacher Identity (5E) tightens later** | Do 5E first so real teachers enter their own marks |
 | D2 | SBA roster source | **Derive from stream enrollment + `notTaking` toggle** | Full per-learner subject-enrolment module |
@@ -336,7 +336,7 @@ Key guards: `id == composed-key` (slot integrity, like `teachingAssignments`); `
 
 | Sprint | Deliverable | Unblocks |
 |---|---|---|
-| **5A — SBA Structure** | `SbaPlan` + task builder (F2/F3-gated), rules, `SbaCalculationService` (unit-tested vs PDF examples) | everything |
+| **5A — SBA Structure** ✅ **DONE** | `SbaPlan` + task builder (F2/F3-gated), `60_assessments.rules`, `SbaCalculationService` | everything |
 | **5B — Marks Entry** | Class score-sheet grid (roster from enrollment, `taskScores` map, live raw%, offline `set()`), `SbaClassSubmission` draft/submit | the daily-driver screen |
 | **5C — Moderation & Approval** | HOD moderation queue → head approve/lock; `onSbaSubmissionWritten` audit + freeze trigger; immutability rules | completes the governance chain |
 | **5D — ECZ Export & Learner View** | Exam-number bulk-assign; per-form-year raw score-sheet export (CSV + print); student-profile SBA tab (F2+F3, provisional band) | the ECZ deliverable |

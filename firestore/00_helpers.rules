@@ -62,6 +62,14 @@
       return isSchoolAdmin() || hasRole("head_teacher");
     }
 
+    // Who may define SBA assessment plans (the task structure a subject is
+    // scored against). Subject scoring, moderation and approval get their
+    // own finer helpers when marks entry (5B) and the approval workflow
+    // (5C) land.
+    function canManageAssessments() {
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("hod");
+    }
+
     function canManageAcademicStructure() {
       return isSchoolAdmin();
     }
