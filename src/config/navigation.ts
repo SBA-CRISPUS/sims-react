@@ -62,6 +62,7 @@ export const navigation: NavigationItem[] = [
   {
     title: "Teachers",
     path: "/teachers",
+    group: "Academics",
     roles: [
       "school_admin",
       "head_teacher",
@@ -71,8 +72,10 @@ export const navigation: NavigationItem[] = [
   {
     title: "Subjects",
     path: "/subjects",
+    group: "Academics",
     roles: [
       "school_admin",
+      "head_teacher",
       "teacher",
     ],
   },

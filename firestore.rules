@@ -36,6 +36,17 @@ service cloud.firestore {
       return hasRole("school_admin");
     }
 
+    // Any school staff member (excludes student/parent).
+    function isStaff() {
+      return signedIn() && (
+        role() == "school_admin"
+        || role() == "head_teacher"
+        || role() == "deputy_head"
+        || role() == "hod"
+        || role() == "teacher"
+      );
+    }
+
     function belongsToSchool(code) {
       return signedIn() && schoolCode() == code;
     }
@@ -166,7 +177,11 @@ service cloud.firestore {
     match /schools/{schoolId}/counters/{counterId} {
       allow read: if isSuperAdmin()
         || (belongsToSchool(schoolId) && canManageStudents());
-      allow create, update: if belongsToSchool(schoolId) && canManageStudents();
+      // The teacher counter is only written when registering a teacher
+      // (school_admin), so match that authority rather than the broader
+      // student-admitting one.
+      allow create, update: if belongsToSchool(schoolId)
+        && (counterId == 'teachers' ? canManageTeachers() : canManageStudents());
       allow delete: if false;
     }
 
@@ -174,6 +189,21 @@ service cloud.firestore {
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
       allow write: if isSuperAdmin()
         || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    // Subjects a school teaches. Managed by academic-structure staff.
+    // The subjectCode field is pinned to the doc id (create) and immutable
+    // (update), so the doc-id == subjectCode invariant the services rely
+    // on can't be broken by a raw client write.
+    match /schools/{schoolId}/subjects/{subjectId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.subjectCode == subjectId;
+      allow update: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.subjectCode == resource.data.subjectCode;
+      allow delete: if false;
     }
 
     match /schools/{schoolId}/academicLevels/{levelId} {
@@ -266,10 +296,13 @@ service cloud.firestore {
 
     //
     // Teachers. Deletion is disabled - staff are deactivated.
+    // Records hold PII (phone, email, TSC number), so read is scoped to
+    // staff rather than every school member (students/parents cannot
+    // read staff contact data once those accounts exist).
     //
 
     match /schools/{schoolId}/teachers/{teacherId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageTeachers();
       allow update: if belongsToSchool(schoolId) && canManageTeachers();
       allow delete: if false;

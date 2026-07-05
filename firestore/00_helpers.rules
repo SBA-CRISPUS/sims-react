@@ -26,6 +26,17 @@
       return hasRole("school_admin");
     }
 
+    // Any school staff member (excludes student/parent).
+    function isStaff() {
+      return signedIn() && (
+        role() == "school_admin"
+        || role() == "head_teacher"
+        || role() == "deputy_head"
+        || role() == "hod"
+        || role() == "teacher"
+      );
+    }
+
     function belongsToSchool(code) {
       return signedIn() && schoolCode() == code;
     }

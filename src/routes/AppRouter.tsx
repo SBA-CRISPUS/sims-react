@@ -11,6 +11,13 @@ import {
   AdmissionWizard,
 } from "../features/students";
 import { AcademicStructurePage } from "../features/academic";
+import { SubjectsPage } from "../features/subjects";
+import {
+  TeacherDashboardPage,
+  TeacherRegistryPage,
+  TeacherRegisterPage,
+  TeacherProfilePage,
+} from "../features/teachers";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -78,6 +85,51 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
               <AcademicStructurePage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/subjects"
+          element={
+            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+              <SubjectsPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/teachers"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <TeacherDashboardPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/teachers/registry"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <TeacherRegistryPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/teachers/register"
+          element={
+            <AppShell roles={["school_admin"]}>
+              <TeacherRegisterPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/teachers/:employeeNumber"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <TeacherProfilePage />
             </AppShell>
           }
         />

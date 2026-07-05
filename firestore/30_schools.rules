@@ -47,7 +47,11 @@
     match /schools/{schoolId}/counters/{counterId} {
       allow read: if isSuperAdmin()
         || (belongsToSchool(schoolId) && canManageStudents());
-      allow create, update: if belongsToSchool(schoolId) && canManageStudents();
+      // The teacher counter is only written when registering a teacher
+      // (school_admin), so match that authority rather than the broader
+      // student-admitting one.
+      allow create, update: if belongsToSchool(schoolId)
+        && (counterId == 'teachers' ? canManageTeachers() : canManageStudents());
       allow delete: if false;
     }
 
@@ -55,6 +59,21 @@
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
       allow write: if isSuperAdmin()
         || (belongsToSchool(schoolId) && canManageAcademicStructure());
+    }
+
+    // Subjects a school teaches. Managed by academic-structure staff.
+    // The subjectCode field is pinned to the doc id (create) and immutable
+    // (update), so the doc-id == subjectCode invariant the services rely
+    // on can't be broken by a raw client write.
+    match /schools/{schoolId}/subjects/{subjectId} {
+      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow create: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.subjectCode == subjectId;
+      allow update: if belongsToSchool(schoolId)
+        && canManageAcademicStructure()
+        && request.resource.data.subjectCode == resource.data.subjectCode;
+      allow delete: if false;
     }
 
     match /schools/{schoolId}/academicLevels/{levelId} {
