@@ -1,0 +1,41 @@
+    //
+    // Cross-school student transfers (Phase 8).
+    //
+    // THE ONLY MULTI-TENANT SHARED SURFACE in SIMS. A transfer request is
+    // visible to its two parties only (sender or receiver), never as a
+    // directory of another school's learners. The sending head/admin
+    // creates it (carrying a self-contained snapshot); the receiving
+    // head/admin decides (accept / reject / request info). The 'completed'
+    // import - creating the receiving enrollment, closing the sending one,
+    // and every cross-school write - is done solely by the
+    // onTransferAccepted Cloud Function (Sprint 8.3, Admin SDK), never a
+    // client. Snapshot + party fields are frozen once created.
+    //
+    match /transferRequests/{requestId} {
+      allow read: if isSuperAdmin()
+        || belongsToSchool(resource.data.fromSchoolCode)
+        || belongsToSchool(resource.data.toSchoolCode);
+
+      allow create: if belongsToSchool(request.resource.data.fromSchoolCode)
+        && canInitiateTransfer()
+        && request.resource.data.requestId == requestId
+        && request.resource.data.status == 'requested'
+        && request.resource.data.requestedByUid == request.auth.uid
+        && request.resource.data.toSchoolCode is string
+        && request.resource.data.toSchoolCode != request.resource.data.fromSchoolCode;
+
+      // Only the RECEIVING school's head/admin decides, only from
+      // 'requested', and only status + decision metadata may change - the
+      // snapshot and the parties are immutable.
+      allow update: if belongsToSchool(resource.data.toSchoolCode)
+        && canDecideTransfer()
+        && resource.data.status == 'requested'
+        && (request.resource.data.status == 'accepted'
+            || request.resource.data.status == 'rejected'
+            || request.resource.data.status == 'info_requested')
+        && request.resource.data.decidedByUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'decidedByUid', 'decisionNote', 'decidedAt', 'updatedAt']);
+
+      allow delete: if false;
+    }

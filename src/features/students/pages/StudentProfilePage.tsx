@@ -13,6 +13,7 @@ import AuditTab from "../components/tabs/AuditTab";
 import DocumentsTab from "../components/tabs/DocumentsTab";
 import SbaTab from "../components/tabs/SbaTab";
 import PlaceholderTab from "../components/tabs/PlaceholderTab";
+import TransferInitiateForm from "../../transfers/components/TransferInitiateForm";
 
 const TABS = [
   "Profile",
@@ -30,8 +31,11 @@ type Tab = (typeof TABS)[number];
 
 export default function StudentProfilePage() {
   const { studentNumber } = useParams<{ studentNumber: string }>();
-  const { school } = useAuth();
+  const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
+  const canTransfer = ["school_admin", "head_teacher"].includes(
+    profile?.role ?? ""
+  );
 
   const { data: student, isLoading, isError } = useStudent(
     schoolCode,
@@ -39,6 +43,7 @@ export default function StudentProfilePage() {
   );
 
   const [tab, setTab] = useState<Tab>("Profile");
+  const [showTransfer, setShowTransfer] = useState(false);
 
   if (isLoading) {
     return <div className="p-8 text-gray-500">Loading student...</div>;
@@ -75,10 +80,32 @@ export default function StudentProfilePage() {
             </p>
           )}
         </div>
-        <span className="rounded bg-slate-100 px-3 py-1 text-sm capitalize">
-          {student.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded bg-slate-100 px-3 py-1 text-sm capitalize">
+            {student.status}
+          </span>
+          {canTransfer && (
+            <button
+              onClick={() => setShowTransfer((v) => !v)}
+              className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+            >
+              Transfer out
+            </button>
+          )}
+        </div>
       </div>
+
+      {showTransfer && schoolCode && profile && (
+        <TransferInitiateForm
+          schoolCode={schoolCode}
+          schoolName={school?.name ?? schoolCode}
+          actorUid={profile.uid}
+          studentNumber={student.studentNumber}
+          learnerId={student.learnerId}
+          studentName={fullName(student)}
+          onDone={() => setShowTransfer(false)}
+        />
+      )}
 
       <div className="mt-6 flex gap-1 overflow-x-auto border-b">
         {TABS.map((t) => (

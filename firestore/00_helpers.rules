@@ -111,6 +111,15 @@
       return isSchoolAdmin();
     }
 
+    // Who may initiate an outgoing transfer / decide an incoming one
+    // (Phase 8). Head office actions - never a plain teacher.
+    function canInitiateTransfer() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+    function canDecideTransfer() {
+      return isSchoolAdmin() || hasRole("head_teacher");
+    }
+
     function canViewReports() {
       return isSchoolAdmin()
         || hasRole("head_teacher")
