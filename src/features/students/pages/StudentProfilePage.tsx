@@ -11,6 +11,7 @@ import GuardiansTab from "../components/tabs/GuardiansTab";
 import TimelineTab from "../components/tabs/TimelineTab";
 import AuditTab from "../components/tabs/AuditTab";
 import DocumentsTab from "../components/tabs/DocumentsTab";
+import SbaTab from "../components/tabs/SbaTab";
 import PlaceholderTab from "../components/tabs/PlaceholderTab";
 
 const TABS = [
@@ -97,7 +98,9 @@ export default function StudentProfilePage() {
         {tab === "Timeline" && <TimelineTab {...tabProps} />}
         {tab === "Audit" && <AuditTab {...tabProps} />}
         {tab === "Attendance" && <PlaceholderTab label="Attendance" />}
-        {tab === "SBA" && <PlaceholderTab label="SBA" />}
+        {tab === "SBA" && (
+          <SbaTab schoolCode={schoolCode} studentNumber={studentNumber} />
+        )}
         {tab === "Reports" && <PlaceholderTab label="Reports" />}
         {tab === "Documents" && <DocumentsTab {...tabProps} />}
       </div>

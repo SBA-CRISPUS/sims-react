@@ -45,6 +45,15 @@ export function useSbaMarks(schoolCode?: string, submissionId?: string) {
   });
 }
 
+export function useLearnerSbaMarks(schoolCode?: string, studentNumber?: string) {
+  return useQuery({
+    queryKey: ["sba-learner-marks", schoolCode, studentNumber],
+    enabled: !!schoolCode && !!studentNumber,
+    queryFn: () =>
+      SbaMarkService.listLearnerMarks(schoolCode!, studentNumber!),
+  });
+}
+
 export function useSaveMarks(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({

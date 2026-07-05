@@ -91,6 +91,28 @@ export class SbaMarkService {
     );
   }
 
+  /** One learner's marks across every subject/form-year (single-field
+   * query on studentId - no composite index). */
+  static async listLearnerMarks(
+    schoolCode: string,
+    studentNumber: string
+  ): Promise<SbaMark[]> {
+    const snapshot = await getDocs(
+      query(
+        collection(db, "schools", schoolCode, "sbaMarks"),
+        where("studentId", "==", studentNumber)
+      )
+    );
+    return snapshot.docs.map(
+      (d) =>
+        ({
+          ...d.data(),
+          createdAt: toDate(d.data().createdAt),
+          updatedAt: toDate(d.data().updatedAt),
+        }) as SbaMark
+    );
+  }
+
   /**
    * Upserts the given rows as a single batch. New rows are created (with
    * origin metadata) at status "draft"; existing rows are updated in place
