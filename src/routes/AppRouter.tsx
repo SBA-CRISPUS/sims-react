@@ -29,6 +29,7 @@ import {
   SbaExportPage,
 } from "../features/assessments";
 import { SbaSeedPage, BulkAdmitPage } from "../features/dev";
+import { MyClassesPage } from "../features/myclasses";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -60,6 +61,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["super_admin"]}>
               <CreateSchoolPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/my-classes"
+          element={
+            <AppShell roles={["teacher", "hod", "head_teacher", "deputy_head"]}>
+              <MyClassesPage />
             </AppShell>
           }
         />
