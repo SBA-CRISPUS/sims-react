@@ -146,6 +146,15 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    // Platform learner registry (Phase 8). The permanent SIMS learner id
+    // and a pointer to the learner's current school. Written only by the
+    // Cloud Functions (Admin SDK); a school reads a learner's id off its
+    // own student document, so client read here is super-admin only.
+    match /learners/{learnerId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
     // ===== 20_users.rules =====
 
     //

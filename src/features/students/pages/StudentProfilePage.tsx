@@ -69,6 +69,11 @@ export default function StudentProfilePage() {
           <p className="mt-1 font-mono text-gray-600">
             {student.studentNumber} · {student.admissionId}
           </p>
+          {student.learnerId && (
+            <p className="mt-1 font-mono text-sm text-blue-700">
+              SIMS Learner ID: {student.learnerId}
+            </p>
+          )}
         </div>
         <span className="rounded bg-slate-100 px-3 py-1 text-sm capitalize">
           {student.status}

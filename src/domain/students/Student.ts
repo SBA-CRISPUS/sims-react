@@ -18,6 +18,10 @@ export interface StudentCbc {
  */
 export interface Student {
   studentNumber: string;
+  /** Permanent SIMS learner id (SL-YYYY-NNNNNNNNN), assigned by the
+   * onStudentAdmitted Cloud Function and unchanged for life - it follows
+   * the learner across schools (Phase 8). */
+  learnerId?: string;
   admissionNumber: string;
   emisNumber?: string;
   examinationNumber?: string;
