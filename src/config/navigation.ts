@@ -157,4 +157,11 @@ export const navigation: NavigationItem[] = [
       "head_teacher",
     ],
   },
+
+  {
+    title: "SBA Demo Data",
+    path: "/dev/seed",
+    group: "Administration",
+    roles: ["school_admin"],
+  },
 ];

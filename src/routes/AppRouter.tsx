@@ -28,6 +28,7 @@ import {
   SbaExamNumbersPage,
   SbaExportPage,
 } from "../features/assessments";
+import { SbaSeedPage } from "../features/dev";
 import { LoginPage } from "../features/auth";
 
 export function AppRouter() {
@@ -212,6 +213,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher", "deputy_head"]}>
               <SbaExportPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/dev/seed"
+          element={
+            <AppShell roles={["school_admin"]}>
+              <SbaSeedPage />
             </AppShell>
           }
         />
