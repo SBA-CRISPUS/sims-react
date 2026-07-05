@@ -84,6 +84,12 @@ export default function StudentProfilePage() {
           <span className="rounded bg-slate-100 px-3 py-1 text-sm capitalize">
             {student.status}
           </span>
+          <Link
+            to={`/students/${studentNumber}/transcript`}
+            className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+          >
+            Transcript
+          </Link>
           {canTransfer && (
             <button
               onClick={() => setShowTransfer((v) => !v)}
