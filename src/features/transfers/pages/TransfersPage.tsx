@@ -158,8 +158,13 @@ export default function TransfersPage() {
               )}
               {r.status === "accepted" && (
                 <p className="mt-2 text-xs text-gray-500">
-                  Accepted — the learner will be imported into your records
-                  automatically (arriving in a later sprint).
+                  Accepted — importing the learner... (refresh in a moment).
+                </p>
+              )}
+              {r.status === "completed" && (
+                <p className="mt-2 text-xs text-green-700">
+                  Completed — the learner has been imported into your records.
+                  Assign them a class from the Students registry.
                 </p>
               )}
             </div>

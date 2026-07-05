@@ -9,7 +9,9 @@ export interface Enrollment {
   academicLevelCode: string;
   streamId: string;
   admissionDate: Date;
-  status: "active";
+  // "transferred" is set by onTransferAccepted when the learner moves to
+  // another SIMS school (the record stays as history).
+  status: "active" | "transferred";
   createdAt: Date;
   updatedAt: Date;
 }
