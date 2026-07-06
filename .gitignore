@@ -31,3 +31,4 @@ functions/lib
 
 # Word lock files
 ~$*
+.claude/settings.local.json*
