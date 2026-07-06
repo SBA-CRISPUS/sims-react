@@ -36,11 +36,17 @@ function Field({ label, value }: { label: string; value?: string }) {
   );
 }
 
-function CredentialReveal({ result }: { result: CreateTeacherAccountResult }) {
+function CredentialReveal({
+  result,
+  onDone,
+}: {
+  result: CreateTeacherAccountResult;
+  onDone: () => void;
+}) {
   return (
-    <div className="mt-4 rounded-lg border border-green-300 bg-green-50 p-4">
+    <div className="mt-2 rounded-lg border border-green-300 bg-green-50 p-4">
       <p className="text-sm font-medium text-green-800">
-        Login account created. Share these once — the password is not shown
+        Login account created. Copy these now — the password is not shown
         again.
       </p>
       <div className="mt-3 space-y-1 font-mono text-sm">
@@ -53,16 +59,24 @@ function CredentialReveal({ result }: { result: CreateTeacherAccountResult }) {
           {result.credentials.temporaryPassword}
         </div>
       </div>
-      <button
-        onClick={() =>
-          navigator.clipboard?.writeText(
-            `Email: ${result.user.email}\nTemporary password: ${result.credentials.temporaryPassword}`
-          )
-        }
-        className="mt-3 rounded border border-green-400 px-3 py-1.5 text-sm text-green-800 hover:bg-green-100"
-      >
-        Copy
-      </button>
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={() =>
+            navigator.clipboard?.writeText(
+              `Email: ${result.user.email}\nTemporary password: ${result.credentials.temporaryPassword}`
+            )
+          }
+          className="rounded border border-green-400 px-3 py-1.5 text-sm text-green-800 hover:bg-green-100"
+        >
+          Copy
+        </button>
+        <button
+          onClick={onDone}
+          className="rounded bg-green-700 px-3 py-1.5 text-sm text-white hover:bg-green-800"
+        >
+          Done
+        </button>
+      </div>
       <p className="mt-2 text-xs text-green-700">
         The teacher must change this password on first sign-in.
       </p>
@@ -228,7 +242,15 @@ export default function TeacherProfilePage() {
 
             <div className="border-t pt-6">
               <p className="text-sm font-medium">Login account</p>
-              {teacher.linkedUserUid ? (
+              {/* Freshly-created credentials take precedence: once shown they
+                  stay put (even after the teacher record refetches with its
+                  new linkedUserUid) until the admin dismisses them. */}
+              {credentials ? (
+                <CredentialReveal
+                  result={credentials}
+                  onDone={() => setCredentials(null)}
+                />
+              ) : teacher.linkedUserUid ? (
                 <p className="mt-2 text-sm text-green-700">
                   ✓ This teacher has a login account and can sign in to see
                   their own classes and enter SBA marks.
@@ -241,7 +263,7 @@ export default function TeacherProfilePage() {
                       ? "Create one so the teacher can sign in and own their classes."
                       : "An administrator can create one."}
                   </p>
-                  {canManage && !credentials && (
+                  {canManage && (
                     <button
                       onClick={handleCreateAccount}
                       disabled={
@@ -262,7 +284,6 @@ export default function TeacherProfilePage() {
                   {accountError && (
                     <p className="mt-2 text-sm text-red-600">{accountError}</p>
                   )}
-                  {credentials && <CredentialReveal result={credentials} />}
                 </div>
               )}
             </div>
