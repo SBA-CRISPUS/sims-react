@@ -42,8 +42,18 @@ export default function CreateSchoolPage() {
       reset();
     } catch (error) {
       console.error(error);
+      // Surface the real reason (e.g. "A user with email ... already exists")
+      // instead of hiding it. The school itself provisions before the admin
+      // account is created, so a failure here means the school exists but the
+      // administrator login could not be created - usually a duplicate email.
+      const reason =
+        error instanceof Error && error.message
+          ? error.message
+          : "Unknown error.";
       setSubmitError(
-        "Onboarding failed. The error has been logged to the console."
+        `Onboarding failed after the school was provisioned: ${reason} ` +
+          "The school may have been created without an administrator — check " +
+          "the Schools list, and use an email that isn't already registered."
       );
     }
   }
