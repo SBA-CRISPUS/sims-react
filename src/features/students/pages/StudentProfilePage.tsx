@@ -14,6 +14,7 @@ import DocumentsTab from "../components/tabs/DocumentsTab";
 import SbaTab from "../components/tabs/SbaTab";
 import PlaceholderTab from "../components/tabs/PlaceholderTab";
 import TransferInitiateForm from "../../transfers/components/TransferInitiateForm";
+import PlacementPanel from "../components/PlacementPanel";
 
 const TABS = [
   "Profile",
@@ -112,6 +113,8 @@ export default function StudentProfilePage() {
           onDone={() => setShowTransfer(false)}
         />
       )}
+
+      <PlacementPanel schoolCode={schoolCode} studentNumber={studentNumber} />
 
       <div className="mt-6 flex gap-1 overflow-x-auto border-b">
         {TABS.map((t) => (

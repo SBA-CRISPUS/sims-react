@@ -56,6 +56,8 @@ export interface TransferRequest {
   requestedByUid: string;
   decidedByUid?: string;
   decisionNote?: string;
+  /** Written by onTransferAccepted: the learner's number AT THE RECEIVER. */
+  importedStudentNumber?: string;
   requestedAt?: Date;
   decidedAt?: Date;
   completedAt?: Date;

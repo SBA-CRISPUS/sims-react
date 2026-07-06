@@ -2,7 +2,7 @@
 
 **Purpose:** exercise the full platform end-to-end across three schools — SBA engine,
 teacher identity & scoping, cross-school transfers, reports, transcripts — with realistic data.
-**Build under test:** commit `f013d02` (Phase 8 core complete). **Date:** 2026-07-06.
+**Build under test:** Phase 8 core + transfer placement (2026-07-06).
 
 > You provision the schools and create the students/teachers; this doc says exactly what to enter
 > and what to verify. Work through it in order — later scenarios depend on earlier setup.
@@ -98,15 +98,22 @@ Signed in as **School A admin** unless noted.
 4. Click **Accept** → wait ~5 s → **refresh**.
    - [ ] The request moves **accepted → completed** ("learner imported").
 5. Verify the move:
-   - [ ] **School B → Students registry**: **Liam O'Brien** now exists, **same SIMS Learner ID**, status active.
+   - [ ] **School B → Students registry**: **Liam O'Brien** now exists, **same SIMS Learner ID**, status active, stream shows **—** (unplaced).
    - [ ] **School A → Liam's profile**: status is now **transferred**; his transcript/history still shows his School A record (history preserved).
-   - [ ] **Known limitation:** at School B, Liam has **no stream yet** (import leaves placement to you) — he's in the registry but not in a class roster. There's no placement screen yet; this is expected.
+6. **Place the learner** (imports arrive unplaced — the receiving school assigns the class):
+   - On the completed request (Transfers → Incoming) click **Open their profile to assign a class** — or open Liam from the registry.
+   - [ ] His profile shows an amber **"No class assigned"** banner → pick **F2-A** → **Assign class**.
+   - [ ] Banner disappears; Enrollment tab shows stream **A**; registry now shows the stream.
+   - [ ] Wait ~3 s → **Academic Structure → Streams**: F2-A's occupancy went up by 1 (the recount function).
+   - [ ] School B's **teacher 1 (Maths)** now sees Liam in the **F2-A learner count** on My Classes.
 
 ## Scenario 5 — Transfer chain  B → C  (identity continuity)
 1. As **School B admin**, open **Liam O'Brien** → **Transfer out** → Receiving code = **School C's SIMS code** → send.
 2. As **School C admin** → **Transfers → Incoming** → **Accept** → refresh.
    - [ ] Liam appears at **School C** with the **same SIMS Learner ID** as at A and B — the identity is continuous across all three schools.
    - [ ] School B's Liam is now **transferred**; School A's remains **transferred**. Three enrollment records, one learner.
+   - [ ] Place him at C too (profile banner → **F2-A**) — placement at B is *not* required for the onward transfer, but C should place him to finish.
+   - [ ] School B's F2-A occupancy **drops back** after he leaves (recount excludes non-active enrollments).
 
 ## Scenario 6 — Exam numbers, transcript, export (School A)
 1. **Examination Numbers** (`/assessments/exam-numbers`) → Form 2 → F2-A → enter numbers for the learners → **Save**.

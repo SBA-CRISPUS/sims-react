@@ -45,7 +45,7 @@ export default function StudentTable({ rows }: { rows: StudentRow[] }) {
               </td>
               <td className="p-3">{fullName(student)}</td>
               <td className="p-3">{enrollment?.academicLevelCode ?? "—"}</td>
-              <td className="p-3">{enrollment?.streamId ?? "—"}</td>
+              <td className="p-3">{enrollment?.streamId || "—"}</td>
               <td className="p-3">
                 <span
                   className={`rounded px-2 py-1 text-xs capitalize ${

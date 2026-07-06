@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import {
@@ -163,8 +164,30 @@ export default function TransfersPage() {
               )}
               {r.status === "completed" && (
                 <p className="mt-2 text-xs text-green-700">
-                  Completed — the learner has been imported into your records.
-                  Assign them a class from the Students registry.
+                  {tab === "incoming" ? (
+                    <>
+                      Completed — the learner has been imported into your
+                      records.{" "}
+                      {r.importedStudentNumber ? (
+                        <>
+                          <Link
+                            to={`/students/${r.importedStudentNumber}`}
+                            className="font-medium text-blue-700 hover:underline"
+                          >
+                            Open their profile to assign a class
+                          </Link>
+                          .
+                        </>
+                      ) : (
+                        "Assign them a class from the Students registry."
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      Completed — the learner now belongs to {r.toSchoolCode}.
+                      Their record here is preserved as history.
+                    </>
+                  )}
                 </p>
               )}
             </div>

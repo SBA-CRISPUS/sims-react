@@ -35,7 +35,7 @@ export default function EnrollmentTab({ schoolCode, studentNumber }: TabProps) {
           <tr key={i} className="border-b">
             <td className="p-3">{e.academicYearId}</td>
             <td className="p-3">{e.academicLevelCode}</td>
-            <td className="p-3">{e.streamId}</td>
+            <td className="p-3">{e.streamId || "—"}</td>
             <td className="p-3">{formatDate(e.admissionDate)}</td>
             <td className="p-3 capitalize">{e.status}</td>
           </tr>

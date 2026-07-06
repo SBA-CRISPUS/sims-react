@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { StudentRegistryService } from "../../../domain/students/StudentRegistryService";
 import { StudentProfileService } from "../../../domain/students/StudentProfileService";
+import { StudentPlacementService } from "../../../domain/students/StudentPlacementService";
 import { GuardianService } from "../../../domain/students/GuardianService";
 
 export type { StudentRow } from "../../../domain/students/StudentRegistryService";
@@ -31,6 +32,30 @@ export function useStudentEnrollments(
     enabled: !!schoolCode && !!studentNumber,
     queryFn: () =>
       StudentProfileService.listStudentEnrollments(schoolCode!, studentNumber!),
+  });
+}
+
+export function usePlaceStudent(schoolCode?: string, studentNumber?: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (streamCode: string) =>
+      StudentPlacementService.placeStudent(
+        schoolCode!,
+        studentNumber!,
+        streamCode
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["student-enrollments", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+      queryClient.invalidateQueries({
+        queryKey: ["enrollments-year", schoolCode],
+      });
+      // Rosters now include the learner; occupancy follows via the CF.
+      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+      queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] });
+    },
   });
 }
 

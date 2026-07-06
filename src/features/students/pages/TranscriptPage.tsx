@@ -171,7 +171,7 @@ export default function TranscriptPage() {
                     <tr key={i} className="border-b">
                       <td className="py-1">{e.academicYearId}</td>
                       <td className="py-1">{e.academicLevelCode}</td>
-                      <td className="py-1">{e.streamId}</td>
+                      <td className="py-1">{e.streamId || "—"}</td>
                       <td className="py-1 capitalize">{e.status}</td>
                     </tr>
                   ))}
