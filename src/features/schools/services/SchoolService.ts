@@ -19,6 +19,8 @@ export type SchoolProfilePatch = Partial<
     | "motto"
     | "website"
     | "postalAddress"
+    | "logoUrl"
+    | "gradingScale"
   >
 >;
 

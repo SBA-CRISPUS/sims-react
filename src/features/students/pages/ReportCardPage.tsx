@@ -1,18 +1,23 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useSbaPlans } from "../../assessments/hooks/sbaQueries";
 import { useStreamSbaMarks } from "../../assessments/hooks/sbaMarksQueries";
+import { useTerms } from "../../academic/hooks/streamQueries";
+import { useFeeStatus } from "../../finance/hooks/financeQueries";
 import { useStudent, useStudentEnrollments } from "../hooks/studentQueries";
 import { fullName } from "../format";
 import { resultFor } from "../../../domain/assessments/SbaResultsService";
+import { sbaRawOutOf100 } from "../../../domain/assessments/SbaCalculationService";
 import {
   classStats,
   learnerAverage,
   rankPositions,
 } from "../../../domain/assessments/SbaStatsService";
+import { DEFAULT_GRADING_SCALE, gradeFor } from "../../schools/types";
 import type { ClassStats } from "../../../domain/assessments/SbaStatsService";
 import type { SbaPlan } from "../../../domain/assessments/SbaPlan";
 import type { SbaMark } from "../../../domain/assessments/SbaMark";
@@ -24,11 +29,15 @@ const LEVEL_LABEL: Record<string, string> = {
   F4: "Form 4",
 };
 
+const POINT_LABELS = ["Midterm", "End of term"] as const;
+
+// Managers see a withheld card with a notice; teachers don't see it at all.
+const FEE_OVERRIDE_ROLES = ["school_admin", "head_teacher"];
+
 interface Row {
   subjectId: string;
   subjectName: string;
   raw: number;
-  band: string;
   frozen: boolean;
   stats: ClassStats | null;
 }
@@ -39,20 +48,34 @@ function streamCodeOf(streamId: string): string {
 }
 
 /**
- * The learner's REPORT CARD for one school year: their SBA scores next to
- * the class average, plus the school's own calculations (overall average,
- * class position). These calculations are the school's internal view -
- * ECZ still receives raw marks only.
+ * The learner's REPORT CARD: their SBA scores next to the class average,
+ * with the school's own calculations (overall average, class position) and
+ * the school's grading scale printed as a legend for parents.
+ *
+ * The reporting period is selectable: the whole year (frozen-aware), or
+ * one term - scores then computed over that term's tagged tasks only -
+ * optionally labelled Midterm / End of term (e.g. "Term 2 — Midterm").
+ *
+ * For PRIVATE schools the card is gated on fee clearance (Payments page):
+ * not cleared -> teachers are blocked, admin/head see a withhold notice.
+ * Government schools are fee-free by law - never gated.
  */
 export default function ReportCardPage() {
   const { studentNumber } = useParams<{ studentNumber: string }>();
-  const { school } = useAuth();
-  const schoolCode = school?.schoolCode;
+  const { school: sessionSchool, profile } = useAuth();
+  const schoolCode = sessionSchool?.schoolCode;
+
+  // Fresh read: logo / grading scale / ownership may have changed since login.
+  const schoolQ = useSchool(schoolCode);
+  const school = schoolQ.data ?? sessionSchool;
 
   const studentQ = useStudent(schoolCode, studentNumber);
   const enrollments = useStudentEnrollments(schoolCode, studentNumber);
   const plans = useSbaPlans(schoolCode);
   const subjects = useSubjects(schoolCode);
+
+  const [termId, setTermId] = useState(""); // "" = whole year
+  const [point, setPoint] = useState("");
 
   // The report-card year = the learner's current (newest) enrollment.
   const enrollment = useMemo(
@@ -70,6 +93,12 @@ export default function ReportCardPage() {
     : undefined;
 
   const classMarks = useStreamSbaMarks(schoolCode, compositeStreamId);
+  const terms = useTerms(schoolCode, enrollment?.academicYearId);
+  const feeStatus = useFeeStatus(
+    school?.ownership === "Private" ? schoolCode : undefined,
+    enrollment?.academicYearId,
+    studentNumber
+  );
 
   const plansById = useMemo(
     () => new Map<string, SbaPlan>((plans.data ?? []).map((p) => [p.planId, p])),
@@ -79,13 +108,41 @@ export default function ReportCardPage() {
   const classMarkList = classMarks.data;
   const subjectList = subjects.data;
 
-  // Every classmate's per-subject results for the year, in one pass.
+  // Term options = the terms actually tagged on this class's plan tasks.
+  const termOptions = useMemo(() => {
+    const ids = new Set<string>();
+    for (const m of classMarkList ?? []) {
+      const plan = plansById.get(m.planId);
+      for (const t of plan?.tasks ?? []) {
+        if (t.termId) ids.add(t.termId);
+      }
+    }
+    return [...ids]
+      .map((id) => ({
+        id,
+        name: terms.data?.find((t) => t.termId === id)?.name ?? id,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [classMarkList, plansById, terms.data]);
+
+  // Every classmate's per-subject results for the selected period.
   const { rows, average, position, classSize, classAverage } = useMemo(() => {
     const yearMarks = (classMarkList ?? []).filter(
       (m) => m.academicYearId === enrollment?.academicYearId && !m.notTaking
     );
 
-    const scoreOf = (m: SbaMark) => resultFor(m, plansById.get(m.planId));
+    // Whole year: frozen-aware. Term view: live calc over the term's tasks.
+    const scoreOf = (m: SbaMark): { raw: number; frozen: boolean } | null => {
+      const plan = plansById.get(m.planId);
+      if (!plan) return null;
+      if (!termId) {
+        const r = resultFor(m, plan);
+        return r ? { raw: r.raw, frozen: r.frozen } : null;
+      }
+      const termTasks = plan.tasks.filter((t) => t.termId === termId);
+      if (termTasks.length === 0) return null; // subject not assessed this term
+      return { raw: sbaRawOutOf100(m.taskScores, termTasks), frozen: false };
+    };
 
     const bySubject = new Map<string, SbaMark[]>();
     const byStudent = new Map<string, number[]>();
@@ -117,7 +174,6 @@ export default function ReportCardPage() {
         subjectId,
         subjectName: subjectName(mine.planId, subjectId),
         raw: result.raw,
-        band: result.band,
         frozen: result.frozen,
         stats: classStats(classScores),
       });
@@ -139,10 +195,16 @@ export default function ReportCardPage() {
       classSize: averages.size,
       classAverage: learnerAverage(allAverages),
     };
-  }, [classMarkList, enrollment, plansById, subjectList, studentNumber]);
+  }, [classMarkList, enrollment, plansById, subjectList, studentNumber, termId]);
 
   const student = studentQ.data;
-  if (studentQ.isLoading || enrollments.isLoading || classMarks.isLoading) {
+  if (
+    studentQ.isLoading ||
+    enrollments.isLoading ||
+    classMarks.isLoading ||
+    // Never flash a withheld card while the clearance check is in flight.
+    (school?.ownership === "Private" && feeStatus.isLoading)
+  ) {
     return <div className="p-8 text-gray-500">Loading report card...</div>;
   }
   if (!student || !studentNumber) {
@@ -156,29 +218,122 @@ export default function ReportCardPage() {
     );
   }
 
+  // ---- Fee clearance gate (private schools only). ----
+  const feeGated =
+    school?.ownership === "Private" &&
+    !feeStatus.isLoading &&
+    feeStatus.data?.cleared !== true;
+  const canOverride = FEE_OVERRIDE_ROLES.includes(profile?.role ?? "");
+
+  if (feeGated && !canOverride) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-md rounded-lg border border-amber-300 bg-amber-50 p-6">
+          <p className="font-medium text-amber-900">Report card withheld</p>
+          <p className="mt-2 text-sm text-amber-800">
+            This learner's school fees are not marked as cleared for{" "}
+            {enrollment?.academicYearId ?? "this year"}, so the report card
+            can't be viewed. Please contact the school office.
+          </p>
+          <Link
+            to={`/students/${studentNumber}`}
+            className="mt-4 inline-block text-sm text-blue-700 hover:underline"
+          >
+            ← Back to profile
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const scale = school?.gradingScale?.length
+    ? school.gradingScale
+    : DEFAULT_GRADING_SCALE;
+  const termName = termId
+    ? (termOptions.find((t) => t.id === termId)?.name ?? termId)
+    : "";
+  const periodLabel = termId
+    ? `${termName}${point ? ` — ${point}` : ""}`
+    : "Whole year";
   const issued = new Date().toLocaleDateString();
 
   return (
     <div className="p-8">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-center justify-between print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
           <Link
             to={`/students/${studentNumber}`}
             className="text-sm text-blue-700 hover:underline"
           >
             ← Back to profile
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="rounded bg-blue-700 px-4 py-2 text-white hover:bg-blue-800"
-          >
-            Print / Save as PDF
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={termId}
+              onChange={(e) => {
+                setTermId(e.target.value);
+                if (!e.target.value) setPoint("");
+              }}
+              className="rounded border p-2 text-sm"
+            >
+              <option value="">Whole year</option>
+              {termOptions.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={point}
+              onChange={(e) => setPoint(e.target.value)}
+              disabled={!termId}
+              className="rounded border p-2 text-sm disabled:opacity-50"
+            >
+              <option value="">— point —</option>
+              {POINT_LABELS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => window.print()}
+              className="rounded bg-blue-700 px-4 py-2 text-white hover:bg-blue-800"
+            >
+              Print / Save as PDF
+            </button>
+          </div>
         </div>
+        {termOptions.length === 0 && (
+          <p className="mt-2 text-xs text-gray-500 print:hidden">
+            Tip: tag each task with a Term in the SBA plan to produce
+            per-term report cards (e.g. Term 2 — Midterm).
+          </p>
+        )}
+
+        {feeGated && canOverride && (
+          <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 print:hidden">
+            <strong>Fees not cleared</strong> for{" "}
+            {enrollment?.academicYearId ?? "this year"} — this report card
+            should be withheld from the learner's family until the office
+            clears them on the{" "}
+            <Link to="/finance/payments" className="text-blue-700 underline">
+              Payments
+            </Link>{" "}
+            page.
+          </div>
+        )}
 
         <div className="mt-4 rounded-lg border bg-white p-8 shadow print:border-0 print:shadow-none">
           {/* School header */}
           <div className="border-b pb-4 text-center">
+            {school?.logoUrl && (
+              <img
+                src={school.logoUrl}
+                alt=""
+                className="mx-auto mb-2 h-16 w-16 object-contain"
+              />
+            )}
             <h1 className="text-2xl font-bold">{school?.name ?? "School"}</h1>
             <p className="text-sm text-gray-600">
               {[school?.location?.district, school?.location?.province]
@@ -194,7 +349,8 @@ export default function ReportCardPage() {
                 {enrollment.academicYearId} ·{" "}
                 {LEVEL_LABEL[enrollment.academicLevelCode] ??
                   enrollment.academicLevelCode}{" "}
-                {streamCodeOf(enrollment.streamId || "")}
+                {streamCodeOf(enrollment.streamId || "")} ·{" "}
+                <span className="font-medium">{periodLabel}</span>
               </p>
             )}
           </div>
@@ -212,11 +368,12 @@ export default function ReportCardPage() {
 
           {/* Subject results */}
           <h2 className="mb-2 mt-6 border-b pb-1 text-base font-semibold">
-            School-Based Assessment
+            School-Based Assessment — {periodLabel}
           </h2>
           {rows.length === 0 ? (
             <p className="text-sm text-gray-500">
-              No SBA scores recorded for this class year
+              No SBA scores recorded for this
+              {termId ? " term" : " class year"}
               {enrollment && !enrollment.streamId
                 ? " — the learner has no class placement yet"
                 : ""}
@@ -228,10 +385,10 @@ export default function ReportCardPage() {
                 <tr>
                   <th className="py-1">Subject</th>
                   <th className="py-1 text-center">Score /100</th>
-                  <th className="py-1">Band</th>
+                  <th className="py-1">Grade</th>
                   <th className="py-1 text-center">Class Avg</th>
                   <th className="py-1 text-center">Class Range</th>
-                  <th className="py-1">Status</th>
+                  {!termId && <th className="py-1">Status</th>}
                 </tr>
               </thead>
               <tbody>
@@ -239,12 +396,16 @@ export default function ReportCardPage() {
                   <tr key={r.subjectId} className="border-b">
                     <td className="py-1">{r.subjectName}</td>
                     <td className="py-1 text-center font-medium">{r.raw}</td>
-                    <td className="py-1">{r.band}</td>
+                    <td className="py-1">{gradeFor(r.raw, scale)}</td>
                     <td className="py-1 text-center">{r.stats?.mean ?? "—"}</td>
                     <td className="py-1 text-center">
                       {r.stats ? `${r.stats.min}–${r.stats.max}` : "—"}
                     </td>
-                    <td className="py-1">{r.frozen ? "final" : "provisional"}</td>
+                    {!termId && (
+                      <td className="py-1">
+                        {r.frozen ? "final" : "provisional"}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -264,10 +425,25 @@ export default function ReportCardPage() {
           )}
 
           <p className="mt-3 text-xs text-gray-500">
-            Scores are raw school-based marks out of 100; averages and
-            positions are the school's own calculations. ECZ receives raw
-            marks only and applies the official subject weighting centrally.
+            {termId
+              ? "Term scores are the school's own calculation over that term's assessment tasks."
+              : "Scores are raw school-based marks out of 100."}{" "}
+            Averages and positions are the school's own calculations; ECZ
+            receives raw marks only and applies the official subject
+            weighting centrally.
           </p>
+
+          {/* Grading scale legend */}
+          <div className="mt-4 rounded border border-slate-200 p-3">
+            <p className="text-xs font-semibold text-gray-600">
+              Grading scale
+            </p>
+            <p className="mt-1 text-xs text-gray-600">
+              {scale
+                .map((b) => `${b.min}–${b.max} ${b.label}`)
+                .join("  ·  ")}
+            </p>
+          </div>
 
           {/* Remarks + signatures */}
           <div className="mt-8 space-y-6 text-sm">

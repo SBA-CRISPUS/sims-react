@@ -4,13 +4,16 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useActionCounts } from "../../features/notifications/useActionCounts";
 
 export default function Sidebar() {
-  const { profile } = useAuth();
+  const { profile, school } = useAuth();
   const counts = useActionCounts();
 
   const userRole = profile?.role;
 
   const visibleItems = navigation.filter(
-    (item) => userRole !== undefined && item.roles.includes(userRole)
+    (item) =>
+      userRole !== undefined &&
+      item.roles.includes(userRole) &&
+      !(item.hideForGovernment && school?.ownership === "Government")
   );
 
   return (

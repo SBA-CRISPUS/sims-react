@@ -139,8 +139,9 @@ Signed in as **School A admin** unless noted.
 2. Open a learner → **Transcript** → **Print / Save as PDF**.
    - [ ] Clean sheet (no app sidebar/header): school + EMIS, learner identity + **SIMS Learner ID**, enrollment history, SBA results, signature line.
 3. Open a learner → **Report card** → the school's own calculations:
-   - [ ] Subject rows show score /100, band, **class average**, class range, final/provisional.
-   - [ ] Footer shows **overall average**, **class position (N of M)**, class average; remarks + signature lines; prints clean.
+   - [ ] Subject rows show score /100, **Grade** (school scale), **class average**, class range, final/provisional.
+   - [ ] Footer shows **overall average**, **class position (N of M)**, class average; the **grading scale legend** (0–49 Fail … 80–100 Excellent, or as set on School Profile); remarks + signature lines; school **logo** in the header; prints clean.
+   - [ ] **Reporting period:** pick a Term (only offered if plan tasks are tagged with terms) + "Midterm" → the card header reads e.g. **Term 2 — Midterm** and scores recompute over that term's tasks only.
 4. **ECZ Export** (`/assessments/export`) → Form 2 → Mathematics → tiles (Ready / Missing exam# / Not approved):
    - [ ] **Export for ECZ**: raw marks only, keyed by exam number; a name like `=x` is **not** executed (injection guard).
    - [ ] **School copy (per-task)**: one column per task (`Test 1 /20`, …) + `Obtained /80` + `Raw /100`.
@@ -163,6 +164,19 @@ Signed in as **School A admin** unless noted.
    - [ ] Mr Banda's open session is locked out on next load ("Account deactivated"); fresh sign-in fails (Auth account disabled — allow up to ~1 h for an already-issued token to die).
    - [ ] **Reactivate** him → he can sign in again.
 5. As admin, confirm you **cannot deactivate yourself** (no button on your own row).
+
+## Scenario 9 — Branding, dashboard, payments & report-card gate
+1. **Branding:** School Profile → **Branding** → upload a logo (PNG/JPG ≤ 2MB).
+   - [ ] Logo shows on School Profile immediately and on printed report card / transcript / certificate headers; app header shows it after next sign-in.
+2. **Grading scale:** School Profile → **Grading scale** → change a band label (e.g. 80–100 → "Distinction") → Save.
+   - [ ] A report card now grades with the new label and the legend reflects it.
+3. **Dashboard:** sign in as admin → the landing page is the cockpit: greeting hero with year/term chips, KPI tiles (learners / teachers / SBA approved / actions pending), "Needs your attention", SBA pipeline bars, quick actions.
+4. **Payments (private school only — School A is Government, so set a test school's ownership to Private on School Profile first):**
+   - [ ] As a **Government** school, the Payments nav is hidden and /finance/payments says fees are off (free education).
+   - [ ] As **Private**: Payments page → record a payment for a learner (amount, method, reference) → totals update; ledger CSV exports.
+   - [ ] **Report-card gate:** with the learner NOT cleared → a **teacher** opening their report card is blocked ("withheld"); the **admin** sees it with an amber withhold notice.
+   - [ ] Tick **Cleared for reports** on the Payments page → the report card opens normally for everyone.
+   - [ ] Record a **negative adjustment** entry (e.g. -200, note "posting error") → net total drops; the original entry is untouched (append-only).
 - [ ] On **Transfers**, a teacher has no "Transfer out" button (initiating is admin/head only).
 - [ ] School B cannot see School A's transfer requests **except** the one addressed to School B.
 

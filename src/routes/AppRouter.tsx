@@ -40,6 +40,7 @@ import { MyClassesPage } from "../features/myclasses";
 import { ReportsPage } from "../features/reports";
 import { TransfersPage } from "../features/transfers";
 import StaffAccountsPage from "../features/staff/pages/StaffAccountsPage";
+import PaymentsPage from "../features/finance/pages/PaymentsPage";
 import AccountPasswordPage from "../features/auth/pages/AccountPasswordPage";
 import { LoginPage } from "../features/auth";
 
@@ -333,6 +334,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin"]}>
               <StaffAccountsPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/finance/payments"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <PaymentsPage />
             </AppShell>
           }
         />

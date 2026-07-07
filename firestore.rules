@@ -330,6 +330,35 @@ service cloud.firestore {
       allow delete: if belongsToSchool(schoolId) && canManageAcademicStructure();
     }
 
+    // Fee payments ledger (private / grant-aided schools; government
+    // schools are fee-free by law and never write here). APPEND-ONLY:
+    // corrections are new negative adjustment entries, never edits or
+    // deletes - the ledger is the finance audit trail. Read is admin
+    // staff only (financial data, not for every teacher).
+    match /schools/{schoolId}/payments/{paymentId} {
+      allow read: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && canManageStudents());
+      allow create: if belongsToSchool(schoolId)
+        && canManageStudents()
+        && request.resource.data.recordedByUid == request.auth.uid
+        && request.resource.data.studentId is string
+        && request.resource.data.academicYearId is string
+        && request.resource.data.amount is number
+        && request.resource.data.amount != 0;
+      allow update, delete: if false;
+    }
+
+    // Per-learner fee clearance for a year - the switch that releases
+    // report cards. Staff-readable (the report-card page checks it);
+    // written only by admin staff, pinned to the caller.
+    match /schools/{schoolId}/feeStatus/{statusId} {
+      allow read: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && isStaff());
+      allow write: if belongsToSchool(schoolId)
+        && canManageStudents()
+        && request.resource.data.updatedByUid == request.auth.uid;
+    }
+
     match /schools/{schoolId}/academicYears/{yearId} {
       allow read: if isSuperAdmin() || belongsToSchool(schoolId);
       allow write: if isSuperAdmin()

@@ -10,6 +10,19 @@ service firebase.storage {
     // so create/update and delete are distinguished by request.resource
     // (null on delete). Delete is school_admin-only, mirroring the
     // Firestore metadata delete rule. Uploads: PDFs/images up to 10MB.
+    // School branding (the logo). Not sensitive - any signed-in user may
+    // read (it renders in headers and on printed documents); only the
+    // school's administrator uploads/replaces it. Images up to 2MB.
+    match /schools/{schoolCode}/branding/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.token.schoolCode == schoolCode
+        && request.auth.token.role == 'school_admin'
+        && (request.resource == null
+            || (request.resource.size < 2 * 1024 * 1024
+                && request.resource.contentType.matches('image/.*')));
+    }
+
     match /schools/{schoolCode}/students/{studentNumber}/documents/{allPaths=**} {
       allow read: if request.auth != null
         && request.auth.token.schoolCode == schoolCode

@@ -14,14 +14,21 @@ export default function Header() {
     <header className="h-16 bg-blue-700 flex items-center justify-between px-6 text-white shadow">
 
       {/* The school is the identity; SIMS is the product. Name on top. */}
-      <div>
+      <div className="flex items-center gap-3">
+        {school?.logoUrl && (
+          <img
+            src={school.logoUrl}
+            alt=""
+            className="h-10 w-10 rounded bg-white object-contain p-0.5"
+          />
+        )}
         {school ? (
-          <>
+          <div>
             <h1 className="text-xl font-bold leading-tight">{school.name}</h1>
             <p className="text-xs uppercase tracking-wider text-blue-200">
               SIMS · School Information Management System
             </p>
-          </>
+          </div>
         ) : (
           <h1 className="text-xl font-bold">
             SIMS · School Information Management System

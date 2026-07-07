@@ -3,6 +3,28 @@ export type SubscriptionPlan =
   | "Professional"
   | "Enterprise";
 
+/** One band of the school's grading scale (inclusive bounds, raw /100). */
+export interface GradingBand {
+  min: number;
+  max: number;
+  label: string;
+}
+
+/** Sensible Zambian default; schools tune it on the School Profile page. */
+export const DEFAULT_GRADING_SCALE: GradingBand[] = [
+  { min: 0, max: 49, label: "Fail" },
+  { min: 50, max: 59, label: "Pass" },
+  { min: 60, max: 69, label: "Satisfactory" },
+  { min: 70, max: 79, label: "Good" },
+  { min: 80, max: 100, label: "Excellent" },
+];
+
+export function gradeFor(score: number, scale: GradingBand[]): string {
+  return (
+    scale.find((b) => score >= b.min && score <= b.max)?.label ?? "—"
+  );
+}
+
 export type SchoolStatus =
   | "active"
   | "inactive"
@@ -53,6 +75,14 @@ export interface School {
   motto?: string;
   website?: string;
   postalAddress?: string;
+
+  /** Download URL of the school's logo (Firebase Storage, uploaded on the
+   * School Profile page). Shown in the header and on printed documents. */
+  logoUrl?: string;
+
+  /** The school's own grading scale, printed on report cards so parents
+   * can read the scores. Falls back to DEFAULT_GRADING_SCALE. */
+  gradingScale?: GradingBand[];
 
   subscription: SubscriptionPlan;
 

@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useAuth } from "../../auth/hooks/useAuth";
-import { useSchool, useUpdateSchool } from "../hooks/schoolQueries";
-import type { School } from "../types";
+import {
+  useSchool,
+  useUpdateSchool,
+  useUploadLogo,
+} from "../hooks/schoolQueries";
+import { DEFAULT_GRADING_SCALE } from "../types";
+import type { GradingBand, School } from "../types";
 import type { SchoolProfilePatch } from "../services/SchoolService";
 
 export default function SchoolProfilePage() {
@@ -64,6 +69,9 @@ function SchoolProfileForm({
   const [district, setDistrict] = useState(school.location?.district ?? "");
   const [address, setAddress] = useState(school.location?.address ?? "");
   const [postalAddress, setPostalAddress] = useState(school.postalAddress ?? "");
+  const [scale, setScale] = useState<GradingBand[]>(
+    school.gradingScale?.length ? school.gradingScale : DEFAULT_GRADING_SCALE
+  );
 
   function save() {
     onSave({
@@ -80,6 +88,14 @@ function SchoolProfileForm({
         address: address.trim(),
       },
       contact: { phone: phone.trim(), email: email.trim() },
+      gradingScale: [...scale]
+        .filter((b) => b.label.trim())
+        .map((b) => ({
+          min: Math.max(0, Math.min(100, Math.round(b.min))),
+          max: Math.max(0, Math.min(100, Math.round(b.max))),
+          label: b.label.trim(),
+        }))
+        .sort((a, b) => a.min - b.min),
     });
   }
 
@@ -128,6 +144,95 @@ function SchoolProfileForm({
         <Text label="Motto" value={motto} onChange={setMotto} ro={ro} />
       </Section>
 
+      <LogoSection school={school} canEdit={canEdit} />
+
+      <div className="mt-6 rounded-lg bg-white p-6 shadow">
+        <h2 className="mb-1 text-lg font-semibold">Grading scale</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          Printed at the bottom of every report card so parents and other
+          stakeholders can read the scores. Bands are inclusive, out of 100.
+        </p>
+        <div className="space-y-2">
+          {scale.map((band, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={band.min}
+                disabled={ro}
+                onChange={(e) =>
+                  setScale((s) =>
+                    s.map((b, j) =>
+                      j === i ? { ...b, min: Number(e.target.value) } : b
+                    )
+                  )
+                }
+                className="w-20 rounded border p-2 disabled:bg-slate-50"
+              />
+              <span className="text-gray-500">–</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={band.max}
+                disabled={ro}
+                onChange={(e) =>
+                  setScale((s) =>
+                    s.map((b, j) =>
+                      j === i ? { ...b, max: Number(e.target.value) } : b
+                    )
+                  )
+                }
+                className="w-20 rounded border p-2 disabled:bg-slate-50"
+              />
+              <input
+                value={band.label}
+                disabled={ro}
+                placeholder="Label (e.g. Excellent)"
+                onChange={(e) =>
+                  setScale((s) =>
+                    s.map((b, j) =>
+                      j === i ? { ...b, label: e.target.value } : b
+                    )
+                  )
+                }
+                className="w-48 rounded border p-2 disabled:bg-slate-50"
+              />
+              {!ro && scale.length > 1 && (
+                <button
+                  onClick={() => setScale((s) => s.filter((_, j) => j !== i))}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {!ro && (
+          <div className="mt-3 flex items-center gap-4">
+            <button
+              onClick={() =>
+                setScale((s) => [...s, { min: 0, max: 0, label: "" }])
+              }
+              className="text-sm text-blue-700 hover:underline"
+            >
+              + Add band
+            </button>
+            <button
+              onClick={() => setScale(DEFAULT_GRADING_SCALE)}
+              className="text-sm text-gray-500 hover:underline"
+            >
+              Reset to default
+            </button>
+            <span className="text-xs text-gray-400">
+              Remember to Save changes above.
+            </span>
+          </div>
+        )}
+      </div>
+
       <Section title="Contact">
         <Text label="Phone" value={phone} onChange={setPhone} ro={ro} />
         <Text label="Email" value={email} onChange={setEmail} ro={ro} />
@@ -151,6 +256,77 @@ function SchoolProfileForm({
           Ministry and can't be changed here.
         </p>
       </Section>
+    </div>
+  );
+}
+
+function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) {
+  const upload = useUploadLogo(school.schoolCode);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    try {
+      await upload.mutateAsync(file);
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not upload the logo."
+      );
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-lg bg-white p-6 shadow">
+      <h2 className="mb-1 text-lg font-semibold">Branding</h2>
+      <p className="mb-4 text-sm text-gray-500">
+        The logo appears in the app header and on printed documents (report
+        cards, transcripts, certificates).
+      </p>
+      <div className="flex items-center gap-5">
+        {school.logoUrl ? (
+          <img
+            src={school.logoUrl}
+            alt={`${school.name} logo`}
+            className="h-20 w-20 rounded border bg-white object-contain p-1"
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed text-xs text-gray-400">
+            No logo
+          </div>
+        )}
+        {canEdit && (
+          <div>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              onChange={onPick}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInput.current?.click()}
+              disabled={upload.isPending}
+              className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+            >
+              {upload.isPending
+                ? "Uploading..."
+                : school.logoUrl
+                  ? "Replace logo"
+                  : "Upload logo"}
+            </button>
+            <p className="mt-1 text-xs text-gray-500">
+              PNG or JPG, up to 2MB. Square works best.
+            </p>
+            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

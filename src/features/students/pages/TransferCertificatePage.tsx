@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useOutgoingTransfers } from "../../transfers/hooks/transferQueries";
 import { useStudent, useStudentEnrollments } from "../hooks/studentQueries";
 import { fullName } from "../format";
@@ -16,8 +17,10 @@ import { fullName } from "../format";
  */
 export default function TransferCertificatePage() {
   const { studentNumber } = useParams<{ studentNumber: string }>();
-  const { school } = useAuth();
-  const schoolCode = school?.schoolCode;
+  const { school: sessionSchool } = useAuth();
+  const schoolCode = sessionSchool?.schoolCode;
+  const schoolQ = useSchool(schoolCode);
+  const school = schoolQ.data ?? sessionSchool; // fresh logo/details for print
 
   const studentQ = useStudent(schoolCode, studentNumber);
   const enrollments = useStudentEnrollments(schoolCode, studentNumber);
@@ -104,6 +107,13 @@ export default function TransferCertificatePage() {
         <div className="mt-4 rounded-lg border bg-white p-8 shadow print:border-0 print:shadow-none">
           {/* School header */}
           <div className="border-b pb-4 text-center">
+            {school?.logoUrl && (
+              <img
+                src={school.logoUrl}
+                alt=""
+                className="mx-auto mb-2 h-16 w-16 object-contain"
+              />
+            )}
             <h1 className="text-2xl font-bold">{school?.name ?? "School"}</h1>
             <p className="text-sm text-gray-600">
               {[school?.location?.district, school?.location?.province]

@@ -8,4 +8,7 @@ export interface NavigationItem {
   group?: string;
 
   roles: UserRole[];
+
+  /** Hidden for Government schools (fee-free by law) - e.g. Payments. */
+  hideForGovernment?: boolean;
 }

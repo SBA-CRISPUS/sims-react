@@ -1,13 +1,19 @@
 import { useAuth } from "../../auth/hooks/useAuth";
 import TeacherDashboard from "../components/TeacherDashboard";
+import AdminDashboard from "../components/AdminDashboard";
+
+const LEADERSHIP_ROLES = ["school_admin", "head_teacher", "deputy_head", "hod"];
 
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, school } = useAuth();
 
   // A teacher-linked account (has an employee number) lands on their own
-  // SBA workspace; everyone else gets the generic welcome for now.
+  // SBA workspace; school leadership gets the cockpit.
   if (profile?.role === "teacher" || profile?.employeeNumber) {
     return <TeacherDashboard />;
+  }
+  if (school && LEADERSHIP_ROLES.includes(profile?.role ?? "")) {
+    return <AdminDashboard />;
   }
 
   return (

@@ -195,6 +195,14 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    title: "Payments",
+    path: "/finance/payments",
+    group: "Administration",
+    roles: ["school_admin", "head_teacher"],
+    hideForGovernment: true,
+  },
+
+  {
     title: "SBA Demo Data",
     path: "/dev/seed",
     group: "Administration",

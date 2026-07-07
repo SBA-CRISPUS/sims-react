@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useSbaPlans } from "../../assessments/hooks/sbaQueries";
 import { useLearnerSbaMarks } from "../../assessments/hooks/sbaMarksQueries";
@@ -24,8 +25,10 @@ interface Row {
 
 export default function TranscriptPage() {
   const { studentNumber } = useParams<{ studentNumber: string }>();
-  const { school } = useAuth();
-  const schoolCode = school?.schoolCode;
+  const { school: sessionSchool } = useAuth();
+  const schoolCode = sessionSchool?.schoolCode;
+  const schoolQ = useSchool(schoolCode);
+  const school = schoolQ.data ?? sessionSchool; // fresh logo/details for print
 
   const studentQ = useStudent(schoolCode, studentNumber);
   const enrollments = useStudentEnrollments(schoolCode, studentNumber);
@@ -119,6 +122,13 @@ export default function TranscriptPage() {
         <div className="mt-4 rounded-lg border bg-white p-8 shadow print:border-0 print:shadow-none">
           {/* School header */}
           <div className="border-b pb-4 text-center">
+            {school?.logoUrl && (
+              <img
+                src={school.logoUrl}
+                alt=""
+                className="mx-auto mb-2 h-16 w-16 object-contain"
+              />
+            )}
             <h1 className="text-2xl font-bold">{school?.name ?? "School"}</h1>
             <p className="text-sm text-gray-600">
               {[school?.location?.district, school?.location?.province]
