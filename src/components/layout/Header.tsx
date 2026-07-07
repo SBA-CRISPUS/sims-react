@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import { AuthService } from "../../features/auth/services/AuthService";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
@@ -31,6 +33,15 @@ export default function Header() {
         <span className="text-sm">
           {profile ? profile.displayName : "Not Signed In"}
         </span>
+
+        {profile && (
+          <Link
+            to="/account/password"
+            className="text-xs text-blue-200 hover:text-white hover:underline"
+          >
+            Change password
+          </Link>
+        )}
 
         {profile && (
           <button

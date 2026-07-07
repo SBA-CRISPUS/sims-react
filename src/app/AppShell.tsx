@@ -1,6 +1,7 @@
 import SessionLoader from "../components/common/SessionLoader";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
 import RoleGuard from "../features/auth/components/RoleGuard";
+import PasswordGate from "../features/auth/components/PasswordGate";
 import AppLayout from "../layouts/AppLayout";
 
 import type { UserRole } from "../features/auth/types/UserProfile";
@@ -16,7 +17,9 @@ export default function AppShell({ roles, children }: Props) {
   return (
     <SessionLoader>
       <ProtectedRoute>
-        {roles ? <RoleGuard roles={roles}>{page}</RoleGuard> : page}
+        <PasswordGate>
+          {roles ? <RoleGuard roles={roles}>{page}</RoleGuard> : page}
+        </PasswordGate>
       </ProtectedRoute>
     </SessionLoader>
   );

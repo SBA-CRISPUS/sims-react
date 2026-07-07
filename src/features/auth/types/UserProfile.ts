@@ -16,6 +16,9 @@ export interface UserProfile {
   role: UserRole;
   employeeNumber?: string;
   active: boolean;
+  /** Set by the identity Cloud Functions on provisioning; cleared by the
+   * user's own first successful password change. */
+  mustChangePassword?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

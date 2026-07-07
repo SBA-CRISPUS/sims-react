@@ -1,10 +1,10 @@
 import { randomInt } from "node:crypto";
 
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import type { CallableRequest } from "firebase-functions/v2/https";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { adminAuth, adminDb } from "../admin";
+import { assertCallerManagesSchool } from "./assertCallerManagesSchool";
 
 export interface CreateTeacherAccountRequest {
   schoolCode: string;
@@ -36,43 +36,6 @@ function generateTemporaryPassword(length = 12): string {
 }
 
 /**
- * The caller must be an active administrator of the SAME school. Falls
- * back to the users/{uid} profile for accounts created before custom
- * claims, mirroring createSchoolAdministrator.
- */
-async function assertCallerManagesSchool(
-  request: CallableRequest,
-  schoolCode: string
-): Promise<void> {
-  if (!request.auth) {
-    throw new HttpsError(
-      "unauthenticated",
-      "You must be signed in to create a teacher account."
-    );
-  }
-
-  const token = request.auth.token;
-  if (token.role === "super_admin") return;
-  if (token.role === "school_admin" && token.schoolCode === schoolCode) return;
-
-  const snapshot = await adminDb.doc(`users/${request.auth.uid}`).get();
-  const caller = snapshot.data();
-  if (
-    snapshot.exists &&
-    caller?.active === true &&
-    caller?.role === "school_admin" &&
-    caller?.schoolCode === schoolCode
-  ) {
-    return;
-  }
-
-  throw new HttpsError(
-    "permission-denied",
-    "Only an active administrator of this school can create teacher accounts."
-  );
-}
-
-/**
  * Provisions a login account for an existing teacher (HR) record and links
  * the two: creates the Firebase Auth user, sets teacher claims
  * {role, schoolCode, employeeNumber}, writes the users/{uid} profile, and
@@ -89,7 +52,11 @@ export const createTeacherAccount = onCall(async (request) => {
     );
   }
 
-  await assertCallerManagesSchool(request, data.schoolCode);
+  await assertCallerManagesSchool(
+    request,
+    data.schoolCode,
+    "create teacher accounts"
+  );
 
   const teacherRef = adminDb.doc(
     `schools/${data.schoolCode}/teachers/${data.employeeNumber}`

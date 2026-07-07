@@ -173,8 +173,13 @@ service cloud.firestore {
     //
 
     match /users/{uid} {
+      // Self, super admin, or the school's administrator (the Staff
+      // Accounts page lists the school's own users - the query's
+      // schoolCode filter makes it provable).
       allow read: if signedIn()
-        && (request.auth.uid == uid || isSuperAdmin());
+        && (request.auth.uid == uid
+            || isSuperAdmin()
+            || (isSchoolAdmin() && belongsToSchool(resource.data.schoolCode)));
 
       allow create: if isSuperAdmin();
 
@@ -184,6 +189,12 @@ service cloud.firestore {
       // and have syncMyClaims mint it into their token. employeeNumber
       // (the teacher link) is likewise CF-only, so a user cannot bind
       // their own account to a teaching identity.
+      //
+      // A school administrator may flip ONLY `active` on other accounts
+      // of their own school (deactivate/reactivate - never their own, so
+      // a school always keeps a live admin; onUserProfileWritten then
+      // disables the Auth account and revokes tokens). Role changes stay
+      // super-admin/CF-only.
       allow update: if isSuperAdmin()
         || (
           signedIn()
@@ -192,6 +203,14 @@ service cloud.firestore {
           && request.resource.data.schoolCode == resource.data.schoolCode
           && request.resource.data.active == resource.data.active
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['employeeNumber'])
+        )
+        || (
+          isSchoolAdmin()
+          && belongsToSchool(resource.data.schoolCode)
+          && request.auth.uid != uid
+          && resource.data.role != 'super_admin'
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['active', 'updatedAt'])
         );
 
       allow delete: if false;

@@ -12,6 +12,8 @@
  */
 export { createSchoolAdministrator } from "./identity/createSchoolAdministrator";
 export { createTeacherAccount } from "./identity/createTeacherAccount";
+export { createStaffAccount } from "./identity/createStaffAccount";
+export { onUserProfileWritten } from "./identity/onUserProfileWritten";
 export { syncMyClaims } from "./identity/syncMyClaims";
 export { onStudentAdmitted } from "./students/onStudentAdmitted";
 export { onEnrollmentWritten } from "./academic/onEnrollmentWritten";

@@ -11,9 +11,11 @@ teacher identity & scoping, cross-school transfers, reports, transcripts — wit
 - **Provision schools** as a **super_admin** (schoolbasedassessment1@gmail.com).
 - Each provisioned school gets **one `school_admin`** (temp password shown once — copy it).
 - **Teacher** logins are created from **Teachers → profile → Create login account** (role `teacher`).
-- **There is no UI to create `hod` / `head_teacher` accounts yet.** `school_admin` is allowed at
-  every SBA step (moderate + approve), so **the school_admin plays HOD and Head Teacher.** Use a real
-  **teacher** account only to verify teacher scoping.
+- **Leadership** logins (`head_teacher` / `deputy_head` / `hod` / another `school_admin`) are created
+  from **Staff Accounts** (Administration nav, school_admin). Scenario 8 exercises this; for
+  Scenarios 1–6 you can still let the school_admin play every review role.
+- **Every provisioned account must change its temporary password at first sign-in** (full-screen
+  prompt before the app opens). Budget for this on each first login below.
 - Tip: use two browsers/profiles (or one normal + one incognito) so you can be signed in as an
   admin and a teacher at once.
 
@@ -144,9 +146,23 @@ Signed in as **School A admin** unless noted.
    - [ ] **School copy (per-task)**: one column per task (`Test 1 /20`, …) + `Obtained /80` + `Raw /100`.
 
 ## Scenario 7 — Role & security spot-checks
-- [ ] A **teacher** account has **no** School Profile / Reports / SBA Review / Transfers nav.
+- [ ] A **teacher** account has **no** School Profile / Reports / SBA Review / Transfers / Staff Accounts nav.
 - [ ] A **teacher** cannot open another school's data at all (multi-tenant): they only ever see their own school.
 - [ ] The header shows the **school name on top** with the SIMS title beneath it, on every account.
+
+## Scenario 8 — Staff accounts, password change, deactivation (School A)
+1. As **School A admin** → **Staff Accounts** → **Create staff account**: "Mrs Ruth Chanda",
+   an email you control, role **Head of Department** → temp password shown **once** → copy.
+   - [ ] She appears in the accounts list as **active · temp password**.
+2. Sign in as **Mrs Chanda** (other browser).
+   - [ ] Before anything else, a full-screen **"set your own password"** prompt appears; the app is unreachable until she changes it.
+   - [ ] After changing: she lands on the dashboard; signing out and back in with the **new** password works; the **old temp password fails**.
+   - [ ] On **SBA Review** she can **Moderate** a submitted sheet but has **no Approve** button (HOD ≠ approver).
+3. Voluntary change: as any account → header → **Change password** → change and re-login.
+4. **Deactivation:** as admin → Staff Accounts → **Deactivate** Mr Banda's teacher account.
+   - [ ] Mr Banda's open session is locked out on next load ("Account deactivated"); fresh sign-in fails (Auth account disabled — allow up to ~1 h for an already-issued token to die).
+   - [ ] **Reactivate** him → he can sign in again.
+5. As admin, confirm you **cannot deactivate yourself** (no button on your own row).
 - [ ] On **Transfers**, a teacher has no "Transfer out" button (initiating is admin/head only).
 - [ ] School B cannot see School A's transfer requests **except** the one addressed to School B.
 

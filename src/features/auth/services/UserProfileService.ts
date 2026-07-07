@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 import { db } from "../../../firebase";
 
@@ -13,5 +13,13 @@ export class UserProfileService {
     }
 
     return snapshot.data() as UserProfile;
+  }
+
+  /** Self-service: rules let a user edit their own non-security fields. */
+  static async clearMustChangePassword(uid: string): Promise<void> {
+    await updateDoc(doc(db, "users", uid), {
+      mustChangePassword: false,
+      updatedAt: serverTimestamp(),
+    });
   }
 }

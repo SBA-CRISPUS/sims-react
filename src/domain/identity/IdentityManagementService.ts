@@ -39,6 +39,33 @@ export interface CreateTeacherAccountResult {
   };
 }
 
+export type StaffRole =
+  | "school_admin"
+  | "head_teacher"
+  | "deputy_head"
+  | "hod";
+
+export interface CreateStaffAccountRequest {
+  schoolCode: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: StaffRole;
+}
+
+export interface CreateStaffAccountResult {
+  user: {
+    uid: string;
+    displayName: string;
+    email: string;
+    role: string;
+  };
+  credentials: {
+    temporaryPassword: string;
+  };
+}
+
 export interface SyncedClaims {
   role: string;
   schoolCode: string;
@@ -77,6 +104,21 @@ export class IdentityManagementService {
       CreateTeacherAccountRequest,
       CreateTeacherAccountResult
     >(functions, "createTeacherAccount");
+
+    const result = await callable(request);
+
+    return result.data;
+  }
+
+  /** Leadership logins (head/deputy/HOD/another admin). Teachers go via
+   * createTeacherAccount so the employeeNumber link exists. */
+  static async createStaffAccount(
+    request: CreateStaffAccountRequest
+  ): Promise<CreateStaffAccountResult> {
+    const callable = httpsCallable<
+      CreateStaffAccountRequest,
+      CreateStaffAccountResult
+    >(functions, "createStaffAccount");
 
     const result = await callable(request);
 
