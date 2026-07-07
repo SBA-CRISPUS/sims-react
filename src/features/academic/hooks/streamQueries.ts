@@ -47,6 +47,24 @@ export function useCreateStream(schoolCode: string) {
   });
 }
 
+export function useRenameStream(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      streamId: string;
+      values: { streamCode: string; name: string; capacity: number; active: boolean };
+    }) => StreamService.renameStream(schoolCode, input.streamId, input.values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] });
+      // Enrollments moved to the new code.
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+      queryClient.invalidateQueries({ queryKey: ["enrollments-year", schoolCode] });
+      queryClient.invalidateQueries({ queryKey: ["student-enrollments", schoolCode] });
+      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+    },
+  });
+}
+
 export function useUpdateStream(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({

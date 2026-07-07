@@ -302,7 +302,13 @@ service cloud.firestore {
         && request.resource.data.streamId == resource.data.streamId
         && request.resource.data.streamCode == resource.data.streamCode
         && request.resource.data.academicLevelCode == resource.data.academicLevelCode;
-      allow delete: if false;
+      // Deletable so a mistyped stream CODE can be fixed (rename = create
+      // new id + move enrollments + delete old, one atomic batch in
+      // StreamService.renameStream). Streams are structure, not history -
+      // nothing academic is stored on the stream doc itself. The service
+      // refuses to rename once teaching assignments / SBA sheets reference
+      // the stream (their deterministic ids embed it).
+      allow delete: if belongsToSchool(schoolId) && canManageAcademicStructure();
     }
 
     match /schools/{schoolId}/academicYears/{yearId} {

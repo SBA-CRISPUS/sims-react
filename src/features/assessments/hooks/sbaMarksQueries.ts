@@ -56,6 +56,14 @@ export function useSbaMarks(schoolCode?: string, submissionId?: string) {
   });
 }
 
+export function useStreamSbaMarks(schoolCode?: string, streamId?: string) {
+  return useQuery({
+    queryKey: ["sba-stream-marks", schoolCode, streamId],
+    enabled: !!schoolCode && !!streamId,
+    queryFn: () => SbaMarkService.listStreamMarks(schoolCode!, streamId!),
+  });
+}
+
 export function useLearnerSbaMarks(schoolCode?: string, studentNumber?: string) {
   return useQuery({
     queryKey: ["sba-learner-marks", schoolCode, studentNumber],

@@ -126,6 +126,29 @@ export class SbaMarkService {
     );
   }
 
+  /** A whole class's marks across every subject in one read (single-field
+   * query on the composite streamId, e.g. "F2-A"). Backs report cards and
+   * class statistics - averages and positions need every classmate. */
+  static async listStreamMarks(
+    schoolCode: string,
+    streamId: string
+  ): Promise<SbaMark[]> {
+    const snapshot = await getDocs(
+      query(
+        collection(db, "schools", schoolCode, "sbaMarks"),
+        where("streamId", "==", streamId)
+      )
+    );
+    return snapshot.docs.map(
+      (d) =>
+        ({
+          ...d.data(),
+          createdAt: toDate(d.data().createdAt),
+          updatedAt: toDate(d.data().updatedAt),
+        }) as SbaMark
+    );
+  }
+
   /** Every mark for a subject across its streams (single-field query on
    * subjectId; the year/form filter is applied in memory). Backs the ECZ
    * export. */

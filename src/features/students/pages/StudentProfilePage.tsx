@@ -86,6 +86,12 @@ export default function StudentProfilePage() {
             {student.status}
           </span>
           <Link
+            to={`/students/${studentNumber}/report-card`}
+            className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+          >
+            Report card
+          </Link>
+          <Link
             to={`/students/${studentNumber}/transcript`}
             className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
           >

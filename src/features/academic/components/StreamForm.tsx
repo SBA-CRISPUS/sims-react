@@ -37,9 +37,18 @@ export default function StreamForm({
     setError(null);
 
     const trimmedName = name.trim() || streamCode.trim().toUpperCase();
+    const codeChanged =
+      isEdit && streamCode.trim().toUpperCase() !== existing.streamCode;
 
+    // On edit, the code is validated against the OTHER streams of the
+    // level only when it actually changed (a rename).
     const validationError = isEdit
-      ? StreamValidator.validateCapacity(capacity, existing.occupiedCount)
+      ? (codeChanged
+          ? StreamValidator.validate(
+              { streamCode, capacity },
+              existingCodes.filter((c) => c !== existing.streamCode)
+            )
+          : null) ?? StreamValidator.validateCapacity(capacity, existing.occupiedCount)
       : StreamValidator.validate({ streamCode, capacity }, existingCodes);
     if (validationError) {
       setError(validationError);
@@ -72,10 +81,15 @@ export default function StreamForm({
           <input
             value={streamCode}
             onChange={(e) => setStreamCode(e.target.value)}
-            disabled={isEdit}
             placeholder="A"
-            className="w-full border rounded p-2 disabled:bg-slate-100"
+            className="w-full border rounded p-2"
           />
+          {isEdit && (
+            <p className="mt-1 text-xs text-gray-500">
+              Changing the code renames the stream — its learners move with
+              it. Not possible once teaching assignments or SBA sheets exist.
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm text-gray-600">Name</label>

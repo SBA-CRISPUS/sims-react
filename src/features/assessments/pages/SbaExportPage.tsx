@@ -6,8 +6,10 @@ import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useStreams } from "../../academic/hooks/streamQueries";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useSbaSubmissions } from "../hooks/sbaMarksQueries";
+import { useSbaPlans } from "../hooks/sbaQueries";
 import { useSubjectMarks, useAllStudents } from "../hooks/sbaExportQueries";
 import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
+import { totalMaxMarks } from "../../../domain/assessments/SbaCalculationService";
 import type { Student } from "../../../domain/students/Student";
 import { downloadCsv } from "../../../lib/csv";
 
@@ -24,6 +26,8 @@ interface ExportRow {
   name: string;
   streamId: string;
   raw: number | null;
+  taskScores: Record<string, number>;
+  obtainedTotal: number | null;
   ready: boolean;
   reason?: string;
 }
@@ -40,8 +44,14 @@ export default function SbaExportPage() {
   const submissions = useSbaSubmissions(schoolCode);
   const subjects = useSubjects(schoolCode);
   const streams = useStreams(schoolCode);
+  const plans = useSbaPlans(schoolCode);
   const subjectMarks = useSubjectMarks(schoolCode, subjectId || undefined);
   const students = useAllStudents(schoolCode);
+
+  // The plan gives the export its per-task columns.
+  const plan = (plans.data ?? []).find(
+    (p) => p.planId === `${academicYearId}_${form}_${subjectId}`
+  );
 
   const subjectName = (code: string) =>
     subjects.data?.find((s) => s.subjectCode === code)?.name ?? code;
@@ -93,6 +103,8 @@ export default function SbaExportPage() {
           name: studentName(student),
           streamId: m.streamId,
           raw: frozen ? (m.rawScore as number) : null,
+          taskScores: m.taskScores ?? {},
+          obtainedTotal: typeof m.obtainedTotal === "number" ? m.obtainedTotal : null,
           ready,
           reason,
         };
@@ -107,12 +119,38 @@ export default function SbaExportPage() {
   const missingExam = rows.filter((r) => r.reason === "no exam number").length;
   const notApproved = rows.filter((r) => r.reason === "not approved").length;
 
-  function exportCsv() {
+  // Two exports: ECZ wants the raw mark only; the school's own copy
+  // carries every task score plus obtained/max totals.
+  function exportEczCsv() {
     const rows = [
       ["Examination Number", "Learner", "Raw Mark"],
       ...readyRows.map((r) => [r.examNo, r.name, String(r.raw ?? "")]),
     ];
-    downloadCsv(`SBA_${subjectId}_${form}_${academicYearId}.csv`, rows);
+    downloadCsv(`SBA_ECZ_${subjectId}_${form}_${academicYearId}.csv`, rows);
+  }
+
+  function exportSchoolCsv() {
+    const tasks = plan?.tasks ?? [];
+    const totalMax = totalMaxMarks(tasks);
+    const rows = [
+      [
+        "Examination Number",
+        "Learner",
+        "Class",
+        ...tasks.map((t) => `${t.name} /${t.maxMarks}`),
+        `Obtained /${totalMax}`,
+        "Raw /100",
+      ],
+      ...readyRows.map((r) => [
+        r.examNo,
+        r.name,
+        streamName(r.streamId),
+        ...tasks.map((t) => String(r.taskScores[t.taskId] ?? "")),
+        String(r.obtainedTotal ?? ""),
+        String(r.raw ?? ""),
+      ]),
+    ];
+    downloadCsv(`SBA_School_${subjectId}_${form}_${academicYearId}.csv`, rows);
   }
 
   const ready = !!academicYearId && !!form && !!subjectId;
@@ -188,13 +226,21 @@ export default function SbaExportPage() {
             <Stat label="Not yet approved" value={notApproved} tone="slate" />
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
-              onClick={exportCsv}
+              onClick={exportEczCsv}
               disabled={!canExport || readyRows.length === 0}
               className="rounded bg-blue-700 px-4 py-2 text-white hover:bg-blue-800 disabled:opacity-40"
             >
-              Export CSV ({readyRows.length})
+              Export for ECZ ({readyRows.length})
+            </button>
+            <button
+              onClick={exportSchoolCsv}
+              disabled={!canExport || readyRows.length === 0 || !plan}
+              title={!plan ? "No published plan found for this selection" : undefined}
+              className="rounded border border-blue-700 px-4 py-2 text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+            >
+              School copy (per-task)
             </button>
             <button
               onClick={() => window.print()}
@@ -251,8 +297,10 @@ export default function SbaExportPage() {
             )}
             <p className="p-3 text-xs text-gray-500">
               Only approved (frozen) learners with an examination number are
-              exported. Submit raw marks to ECZ — the 30%/40% weighting is
-              applied centrally.
+              exported. "Export for ECZ" carries the raw mark only (the
+              30%/40% weighting is applied centrally); "School copy" adds
+              every task score and the obtained total for the school's own
+              records.
             </p>
           </div>
         </>

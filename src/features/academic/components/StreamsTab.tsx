@@ -6,6 +6,7 @@ import {
   useStreams,
   useCreateStream,
   useUpdateStream,
+  useRenameStream,
 } from "../hooks/streamQueries";
 import type { Stream } from "../../../domain/academic/Stream";
 import StreamCard from "./StreamCard";
@@ -28,20 +29,35 @@ export default function StreamsTab() {
   const streams = useStreams(schoolCode);
   const createStream = useCreateStream(schoolCode ?? "");
   const updateStream = useUpdateStream(schoolCode ?? "");
+  const renameStream = useRenameStream(schoolCode ?? "");
 
   const [form, setForm] = useState<FormTarget | null>(null);
 
   async function handleSubmit(values: StreamFormValues) {
     if (!form) return;
     if (form.stream) {
-      await updateStream.mutateAsync({
-        streamId: form.stream.streamId,
-        patch: {
-          name: values.name,
-          capacity: values.capacity,
-          active: values.active,
-        },
-      });
+      const codeChanged =
+        values.streamCode.trim().toUpperCase() !== form.stream.streamCode;
+      if (codeChanged) {
+        await renameStream.mutateAsync({
+          streamId: form.stream.streamId,
+          values: {
+            streamCode: values.streamCode,
+            name: values.name,
+            capacity: values.capacity,
+            active: values.active,
+          },
+        });
+      } else {
+        await updateStream.mutateAsync({
+          streamId: form.stream.streamId,
+          patch: {
+            name: values.name,
+            capacity: values.capacity,
+            active: values.active,
+          },
+        });
+      }
     } else {
       await createStream.mutateAsync({
         academicLevelCode: form.levelCode,

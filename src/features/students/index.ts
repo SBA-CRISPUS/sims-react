@@ -3,5 +3,6 @@ export { default as StudentRegistryPage } from "./pages/StudentRegistryPage";
 export { default as StudentProfilePage } from "./pages/StudentProfilePage";
 export { default as TranscriptPage } from "./pages/TranscriptPage";
 export { default as TransferCertificatePage } from "./pages/TransferCertificatePage";
+export { default as ReportCardPage } from "./pages/ReportCardPage";
 export { default as GuardianProfilePage } from "./pages/GuardianProfilePage";
 export { default as AdmissionWizard } from "./admission/AdmissionWizard";

@@ -41,6 +41,7 @@ Do this for **School A** fully first (Scenarios 1–3 run on A), then a lighter 
 For **each** school, signed in as its admin:
 1. **Academic context** — in the header bar, pick the **Academic Year** and **Term** (e.g. AY-2026 · Term 1). Confirm Form 2 / Form 3 exist under Academic Structure.
 2. **Streams** — Academic Structure → Streams: create **F2-A** and **F3-A** (capacity 40).
+   - [ ] Typo recovery: create **F2-Q** by mistake → Edit → change its **Code** to **B** → saved as F2-B (learners, if any, move with it). Deactivate or reuse it. Renaming is blocked once teaching assignments / SBA sheets exist for the stream.
 3. **Subjects** — Subjects: create three, **SBA enabled**, forms offered **F2, F3**:
    - `MATH` Mathematics · `ENG` English Language · `BIO` Biology
 4. **Teachers** — register two, then **Create login account** for each (copy temp passwords):
@@ -67,6 +68,7 @@ Signed in as **School A admin** unless noted.
    - [ ] Expected: only *his* class(es) show — no dropdowns.
 3. Mr Banda opens the class → enters marks for all 6 learners → **Save** → **reload the browser** → marks persisted → **Submit for moderation**.
    - [ ] Submit is blocked until every learner is fully scored + saved.
+   - [ ] Back as **admin**: the sidebar shows a **red count badge on SBA Review** (a sheet awaits action).
 4. Back as **admin** → **SBA Review** → "Needs review" shows the class → **Moderate** → then **Approve** (add a note if you like).
 5. Wait ~3 s (freeze function) → reopen the class in **SBA Marks** → it's **locked/read-only**.
    - [ ] A learner's mark can no longer be edited.
@@ -79,6 +81,7 @@ Signed in as **School A admin** unless noted.
 ## Scenario 2 — Return, resubmit, versioning (School A)
 1. Repeat a plan+marks for **English (ENG) F2-A** as **Mrs Phiri**, and **Submit**.
 2. As **admin** → **SBA Review** → **Return** with a note ("recheck Test 2").
+   - [ ] As **Mrs Phiri**: the sidebar shows a **badge on SBA Marks** (her returned sheet).
 3. As **Mrs Phiri** → the class is editable again → change a mark → **Save** → **Submit**.
    - [ ] On Review the status badge shows **v2**; **History** lists submitted → returned (with your note) → submitted.
 4. As **admin** → Moderate → Approve.
@@ -96,6 +99,7 @@ Signed in as **School A admin** unless noted.
    - [ ] After a moment (refresh), the row shows a **transfer number** `TRF-2026-…` (minted server-side).
    - [ ] Try **Transfer out** on Liam again → blocked: "a transfer for this learner is already in progress".
 3. Sign in as **School B admin** → **Transfers → Incoming** → the request from Discovery appears.
+   - [ ] The sidebar shows a **badge on Transfers** (an incoming request awaits a decision).
    - [ ] **View record** shows Liam's identity, **guardians**, enrollment history, and any SBA results (the "digital envelope").
 4. Click **Accept** → wait ~5 s → **refresh**.
    - [ ] The request moves **accepted → completed** ("learner imported").
@@ -132,12 +136,17 @@ Signed in as **School A admin** unless noted.
 1. **Examination Numbers** (`/assessments/exam-numbers`) → Form 2 → F2-A → enter numbers for the learners → **Save**.
 2. Open a learner → **Transcript** → **Print / Save as PDF**.
    - [ ] Clean sheet (no app sidebar/header): school + EMIS, learner identity + **SIMS Learner ID**, enrollment history, SBA results, signature line.
-3. **ECZ Export** (`/assessments/export`) → Form 2 → Mathematics → tiles (Ready / Missing exam# / Not approved) → **Export CSV**.
-   - [ ] CSV opens with raw marks keyed by exam number; a name like `=x` is **not** executed (injection guard).
+3. Open a learner → **Report card** → the school's own calculations:
+   - [ ] Subject rows show score /100, band, **class average**, class range, final/provisional.
+   - [ ] Footer shows **overall average**, **class position (N of M)**, class average; remarks + signature lines; prints clean.
+4. **ECZ Export** (`/assessments/export`) → Form 2 → Mathematics → tiles (Ready / Missing exam# / Not approved):
+   - [ ] **Export for ECZ**: raw marks only, keyed by exam number; a name like `=x` is **not** executed (injection guard).
+   - [ ] **School copy (per-task)**: one column per task (`Test 1 /20`, …) + `Obtained /80` + `Raw /100`.
 
 ## Scenario 7 — Role & security spot-checks
 - [ ] A **teacher** account has **no** School Profile / Reports / SBA Review / Transfers nav.
 - [ ] A **teacher** cannot open another school's data at all (multi-tenant): they only ever see their own school.
+- [ ] The header shows the **school name on top** with the SIMS title beneath it, on every account.
 - [ ] On **Transfers**, a teacher has no "Transfer out" button (initiating is admin/head only).
 - [ ] School B cannot see School A's transfer requests **except** the one addressed to School B.
 
