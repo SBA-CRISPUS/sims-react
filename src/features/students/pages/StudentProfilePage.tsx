@@ -91,7 +91,15 @@ export default function StudentProfilePage() {
           >
             Transcript
           </Link>
-          {canTransfer && (
+          {student.status === "transferred" && canTransfer && (
+            <Link
+              to={`/students/${studentNumber}/transfer-certificate`}
+              className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+            >
+              Transfer certificate
+            </Link>
+          )}
+          {canTransfer && student.status === "active" && (
             <button
               onClick={() => setShowTransfer((v) => !v)}
               className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"

@@ -3,6 +3,9 @@ export type TransferStatus =
   | "accepted"
   | "rejected"
   | "info_requested"
+  // Sender withdrew before the receiver decided. Terminal - a fresh
+  // request (with a fresh envelope) is the way to "edit" a transfer.
+  | "cancelled"
   | "completed";
 
 export interface TransferSnapshotEnrollment {
@@ -18,6 +21,24 @@ export interface TransferSnapshotSba {
   subjectId: string;
   rawScore: number | null; // frozen /100; null if not yet approved
   status: string;
+}
+
+export interface TransferSnapshotGuardian {
+  firstName: string;
+  lastName: string;
+  relationship: string;
+  phone: string;
+  alternativePhone: string | null;
+  email: string | null;
+  address: string | null;
+}
+
+/** CBC flags carried on the student record. */
+export interface TransferSnapshotCbc {
+  pathway: string | null;
+  specialNeeds: boolean;
+  boarding: boolean;
+  transport: boolean;
 }
 
 /**
@@ -39,11 +60,18 @@ export interface TransferSnapshot {
   };
   enrollments: TransferSnapshotEnrollment[];
   sba: TransferSnapshotSba[];
+  /** Absent on requests sent before guardians joined the envelope. */
+  guardians?: TransferSnapshotGuardian[];
+  cbc?: TransferSnapshotCbc | null;
 }
 
 /** Top-level transferRequests/{id} - the only cross-tenant shared surface. */
 export interface TransferRequest {
   requestId: string;
+  /** Human-readable transfer number (TRF-YYYY-NNNNNN), minted by the CF
+   * from a global counter ~seconds after creation - what schools quote
+   * and audit logs reference. */
+  transferNumber?: string;
   learnerId: string | null;
   studentNumber: string;
   fromSchoolCode: string;
@@ -56,6 +84,7 @@ export interface TransferRequest {
   requestedByUid: string;
   decidedByUid?: string;
   decisionNote?: string;
+  cancelledByUid?: string;
   /** Written by onTransferAccepted: the learner's number AT THE RECEIVER. */
   importedStudentNumber?: string;
   requestedAt?: Date;

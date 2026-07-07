@@ -98,9 +98,9 @@ export default function TransferInitiateForm({
     <div className="mt-4 rounded-lg border bg-slate-50 p-4">
       <p className="font-medium">Transfer {studentName} to another school</p>
       <p className="mt-1 text-xs text-gray-500">
-        A snapshot of this learner (identity, enrollment history, SBA results)
-        is sent to the receiving school for review. The learner isn't removed
-        here until they accept.
+        A snapshot of this learner (identity, guardians, enrollment history,
+        SBA results) is sent to the receiving school for review. The learner
+        isn't removed here until they accept.
       </p>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>

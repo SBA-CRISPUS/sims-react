@@ -93,19 +93,32 @@ Signed in as **School A admin** unless noted.
 1. As **School A admin**, open **Liam O'Brien**'s profile → confirm his **SIMS Learner ID**.
 2. Click **Transfer out** → Receiving school code = **School B's SIMS code** → Reason "Parent relocation" → date → **Send transfer request**.
    - [ ] Success message; on School A's **Transfers → Outgoing**, the request shows **requested**.
+   - [ ] After a moment (refresh), the row shows a **transfer number** `TRF-2026-…` (minted server-side).
+   - [ ] Try **Transfer out** on Liam again → blocked: "a transfer for this learner is already in progress".
 3. Sign in as **School B admin** → **Transfers → Incoming** → the request from Discovery appears.
-   - [ ] **View record** shows Liam's identity, enrollment history, and any SBA results (the "digital envelope").
+   - [ ] **View record** shows Liam's identity, **guardians**, enrollment history, and any SBA results (the "digital envelope").
 4. Click **Accept** → wait ~5 s → **refresh**.
    - [ ] The request moves **accepted → completed** ("learner imported").
 5. Verify the move:
    - [ ] **School B → Students registry**: **Liam O'Brien** now exists, **same SIMS Learner ID**, status active, stream shows **—** (unplaced).
+   - [ ] **School B → Liam's profile → Guardians**: his guardian arrived with him (imported from the envelope, with a new `GRD-…` number).
    - [ ] **School A → Liam's profile**: status is now **transferred**; his transcript/history still shows his School A record (history preserved).
+   - [ ] **School A → Liam's profile → Transfer certificate** → print view: identity, admitted/leaving dates, destination school code, **TRF number**, signature line.
+   - [ ] **School A → Liam's profile → Audit**: `transfer.requested` → `transfer.accepted` → `student.transferred_out`, each quoting the TRF number.
 6. **Place the learner** (imports arrive unplaced — the receiving school assigns the class):
    - On the completed request (Transfers → Incoming) click **Open their profile to assign a class** — or open Liam from the registry.
    - [ ] His profile shows an amber **"No class assigned"** banner → pick **F2-A** → **Assign class**.
    - [ ] Banner disappears; Enrollment tab shows stream **A**; registry now shows the stream.
    - [ ] Wait ~3 s → **Academic Structure → Streams**: F2-A's occupancy went up by 1 (the recount function).
    - [ ] School B's **teacher 1 (Maths)** now sees Liam in the **F2-A learner count** on My Classes.
+
+## Scenario 4b — Cancel a transfer (School A)
+1. As **School A admin**, transfer out **Emma Sullivan** to School B (as in Scenario 4).
+2. On **Transfers → Outgoing**, the pending row has a **Cancel request** button → click it.
+   - [ ] Status becomes **cancelled**; School B's inbox shows it cancelled with no actions.
+   - [ ] Emma is untouched at School A (still active — nothing moves until acceptance).
+   - [ ] Sending a **fresh** request for Emma now works (cancel is how you refresh a stale envelope).
+3. Cancel the fresh one too (so Emma stays at School A for Scenario 6).
 
 ## Scenario 5 — Transfer chain  B → C  (identity continuity)
 1. As **School B admin**, open **Liam O'Brien** → **Transfer out** → Receiving code = **School C's SIMS code** → send.

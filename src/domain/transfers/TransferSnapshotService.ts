@@ -1,4 +1,5 @@
 import { StudentProfileService } from "../students/StudentProfileService";
+import { GuardianService } from "../students/GuardianService";
 import { SbaMarkService } from "../assessments/SbaMarkService";
 import type { TransferSnapshot } from "./TransferRequest";
 
@@ -22,6 +23,11 @@ export class TransferSnapshotService {
       SbaMarkService.listLearnerMarks(schoolCode, studentNumber),
     ]);
     if (!student) throw new Error("Student not found.");
+
+    const guardians =
+      student.guardianIds.length > 0
+        ? await GuardianService.getGuardiansByIds(schoolCode, student.guardianIds)
+        : [];
 
     return {
       identity: {
@@ -57,6 +63,23 @@ export class TransferSnapshotService {
             a.academicLevelCode.localeCompare(b.academicLevelCode) ||
             a.subjectId.localeCompare(b.subjectId)
         ),
+      guardians: guardians.map((g) => ({
+        firstName: g.firstName,
+        lastName: g.lastName,
+        relationship: g.relationship,
+        phone: g.phone,
+        alternativePhone: g.alternativePhone ?? null,
+        email: g.email ?? null,
+        address: g.address ?? null,
+      })),
+      cbc: student.cbc
+        ? {
+            pathway: student.cbc.pathway ?? null,
+            specialNeeds: student.cbc.specialNeeds ?? false,
+            boarding: student.cbc.boarding ?? false,
+            transport: student.cbc.transport ?? false,
+          }
+        : null,
     };
   }
 }

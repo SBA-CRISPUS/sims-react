@@ -6,6 +6,7 @@ import {
   useIncomingTransfers,
   useOutgoingTransfers,
   useDecideTransfer,
+  useCancelTransfer,
 } from "../hooks/transferQueries";
 import type { TransferRequest } from "../../../domain/transfers/TransferRequest";
 
@@ -21,6 +22,7 @@ export default function TransfersPage() {
   const incoming = useIncomingTransfers(schoolCode);
   const outgoing = useOutgoingTransfers(schoolCode);
   const decide = useDecideTransfer(schoolCode ?? "");
+  const cancel = useCancelTransfer(schoolCode ?? "");
 
   const [tab, setTab] = useState<Tab>("incoming");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -97,6 +99,7 @@ export default function TransfersPage() {
                       : `To ${r.toSchoolCode}`}{" "}
                     · {r.reason}
                     {r.learnerId ? ` · ${r.learnerId}` : ""}
+                    {r.transferNumber ? ` · ${r.transferNumber}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -114,7 +117,9 @@ export default function TransfersPage() {
 
               {open && <SnapshotPreview request={r} />}
 
-              {tab === "incoming" && r.status === "requested" && canDecide && (
+              {tab === "incoming" &&
+                ["requested", "info_requested"].includes(r.status) &&
+                canDecide && (
                 <div className="mt-3 border-t pt-3">
                   <textarea
                     value={openId === r.requestId ? note : ""}
@@ -151,6 +156,30 @@ export default function TransfersPage() {
                   </div>
                 </div>
               )}
+
+              {tab === "outgoing" &&
+                ["requested", "info_requested"].includes(r.status) &&
+                canDecide && (
+                  <div className="mt-3 flex items-center gap-3 border-t pt-3">
+                    <button
+                      onClick={() =>
+                        profile &&
+                        cancel.mutate({
+                          requestId: r.requestId,
+                          actorUid: profile.uid,
+                        })
+                      }
+                      disabled={cancel.isPending}
+                      className="rounded border border-slate-400 px-4 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      Cancel request
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Withdraws this transfer (e.g. plans changed or the
+                      record needs updating) — you can send a fresh one after.
+                    </span>
+                  </div>
+                )}
 
               {r.decisionNote && (
                 <p className="mt-2 text-sm text-gray-600">
@@ -232,6 +261,36 @@ function SnapshotPreview({ request }: { request: TransferRequest }) {
         )}
       </div>
 
+      {(s.guardians?.length ?? 0) > 0 && (
+        <div>
+          <p className="font-medium">Guardians</p>
+          <ul className="text-gray-600">
+            {(s.guardians ?? []).map((g, i) => (
+              <li key={i}>
+                {g.firstName} {g.lastName} · {g.relationship} · {g.phone}
+                {g.email ? ` · ${g.email}` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {s.cbc && (
+        <div>
+          <p className="font-medium">Learner flags</p>
+          <p className="text-gray-600">
+            {[
+              s.cbc.pathway ? `Pathway: ${s.cbc.pathway}` : null,
+              s.cbc.specialNeeds ? "Special needs" : null,
+              s.cbc.boarding ? "Boarding" : null,
+              s.cbc.transport ? "Transport" : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "None"}
+          </p>
+        </div>
+      )}
+
       <div>
         <p className="font-medium">SBA results</p>
         {s.sba.length === 0 ? (
@@ -270,6 +329,7 @@ function StatusBadge({ status }: { status: string }) {
     completed: "bg-green-100 text-green-800",
     rejected: "bg-red-100 text-red-800",
     info_requested: "bg-amber-100 text-amber-800",
+    cancelled: "bg-slate-200 text-slate-600",
   };
   return (
     <span

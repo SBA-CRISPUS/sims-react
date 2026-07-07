@@ -56,12 +56,15 @@ export const onStudentAdmitted = onDocumentCreated(
         learnerId,
         updatedAt: FieldValue.serverTimestamp(),
       });
+      // The registry is IDENTITY ONLY - deliberately no names or other
+      // mutable PII (names change; the school's student record is the
+      // source of truth). currentSchoolCode/-StudentNumber are a derived
+      // cache of the active enrollment (a projection, rebuildable), not
+      // authoritative data.
       await adminDb.doc(`learners/${learnerId}`).set({
         learnerId,
         currentSchoolCode: schoolCode,
         currentStudentNumber: studentNumber,
-        firstName: student.firstName ?? null,
-        lastName: student.lastName ?? null,
         createdAt: FieldValue.serverTimestamp(),
       });
     }

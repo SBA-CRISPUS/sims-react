@@ -682,20 +682,44 @@ service cloud.firestore {
         && request.resource.data.status == 'requested'
         && request.resource.data.requestedByUid == request.auth.uid
         && request.resource.data.toSchoolCode is string
-        && request.resource.data.toSchoolCode != request.resource.data.fromSchoolCode;
+        && request.resource.data.toSchoolCode != request.resource.data.fromSchoolCode
+        // CF-owned fields can't be forged at creation (the transfer number
+        // is minted server-side from the global counter).
+        && !request.resource.data.keys().hasAny(
+             ['transferNumber', 'importedStudentNumber', 'completedAt']);
 
-      // Only the RECEIVING school's head/admin decides, only from
-      // 'requested', and only status + decision metadata may change - the
-      // snapshot and the parties are immutable.
-      allow update: if belongsToSchool(resource.data.toSchoolCode)
-        && canDecideTransfer()
-        && resource.data.status == 'requested'
-        && (request.resource.data.status == 'accepted'
-            || request.resource.data.status == 'rejected'
-            || request.resource.data.status == 'info_requested')
-        && request.resource.data.decidedByUid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'decidedByUid', 'decisionNote', 'decidedAt', 'updatedAt']);
+      // Two client transitions exist; everything else (completed, the
+      // transferNumber stamp) is the Cloud Function's (Admin SDK).
+      //
+      // 1. The RECEIVING school's head/admin decides - from 'requested' or
+      //    'info_requested' (asking for info must not dead-end the request;
+      //    once satisfied, the receiver accepts/rejects). Only status +
+      //    decision metadata may change - the envelope and the parties are
+      //    immutable.
+      // 2. The SENDING school's head/admin cancels a not-yet-decided
+      //    request (schools change their minds; also the MVP way to refresh
+      //    a stale envelope: cancel + re-send).
+      allow update: if (
+          belongsToSchool(resource.data.toSchoolCode)
+          && canDecideTransfer()
+          && (resource.data.status == 'requested'
+              || resource.data.status == 'info_requested')
+          && (request.resource.data.status == 'accepted'
+              || request.resource.data.status == 'rejected'
+              || request.resource.data.status == 'info_requested')
+          && request.resource.data.decidedByUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'decidedByUid', 'decisionNote', 'decidedAt', 'updatedAt'])
+        ) || (
+          belongsToSchool(resource.data.fromSchoolCode)
+          && canInitiateTransfer()
+          && (resource.data.status == 'requested'
+              || resource.data.status == 'info_requested')
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.cancelledByUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'cancelledByUid', 'updatedAt'])
+        );
 
       allow delete: if false;
     }

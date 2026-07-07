@@ -12,6 +12,7 @@ import {
   StudentRegistryPage,
   StudentProfilePage,
   TranscriptPage,
+  TransferCertificatePage,
   GuardianProfilePage,
   AdmissionWizard,
 } from "../features/students";
@@ -302,6 +303,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
               <TranscriptPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/:studentNumber/transfer-certificate"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <TransferCertificatePage />
             </AppShell>
           }
         />

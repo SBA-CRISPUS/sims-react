@@ -121,3 +121,43 @@ One click on the student profile → PDF: school logo, EMIS, learner identity, e
 3. **Snapshot freshness** — built at initiation (a point-in-time envelope) vs rebuilt at acceptance (latest). Default: at initiation, with the receiver able to "Request info" to force a refresh.
 4. **Document files** — copy into the receiving school's Storage on acceptance (CF), or keep a reference. Default: copy on acceptance.
 5. **Duplicate detection** — if the receiving school already has a student with that `learnerId`, block/merge. Default: block with a clear message.
+
+## 11. Mentor review — decisions (2026-07-07)
+The mentor approved the design (9.8/10) with refinements. What we adopted, adapted, or
+declined — and why (build state: 8.1–8.4 were already live when the review landed, so
+every change was weighed against migrating deployed data):
+
+**Adopted:**
+- **`cancelled` state** — sender (admin/head) may withdraw a `requested`/`info_requested`
+  request; terminal. Also fixed a latent dead-end the review prompted us to see: the
+  receiver can now decide from `info_requested` (it used to strand the request).
+- **Transfer number `TRF-YYYY-NNNNNN`** — minted by the CF on request creation from the
+  global `system/counters.transfers`; shown in the UI, quoted in every transfer audit
+  entry. Firestore ids stay the technical key.
+- **Registry is identity-only** — `learners/{id}` no longer stores names (names change;
+  the school's student record is the truth). `currentSchoolCode`/`currentStudentNumber`
+  stay, explicitly documented as a **derived projection** of the active enrollment —
+  rebuildable, never authoritative (the mentor's "major concern").
+- **Envelope completeness** — guardians and CBC flags now travel in the envelope and are
+  imported (receiver creates its OWN guardian records: copy, never reference). Previously
+  a transferred learner arrived with no guardian contacts — real data loss.
+- **Lifecycle audit** — the CF appends `transfer.requested/accepted/rejected/
+  info_requested/cancelled` to the sender's audit log (timeline story), alongside the
+  existing `student.transferred_out/_in`.
+- **Duplicate blocking (MVP)** — a school cannot open a second in-flight transfer for the
+  same learner; the import CF was already idempotent-by-learnerId on the receiving side.
+- **Transfer Certificate ≠ Transcript** — separate printable (identity, admission,
+  leaving date, destination, TRF number, signature) issued by the sender after
+  completion; academic history stays on the transcript.
+
+**Declined (with reasons):**
+- **Rename `learners/` → `learnerRegistry/`, `studentSnapshot` → `transferEnvelope`,
+  `Student` → `Learner`** — live collections/fields and a deployed CF; a rename buys
+  readability but costs a data migration and dual-read mapping. The concepts are kept in
+  comments/types/UI copy instead. Revisit only if a breaking migration happens anyway.
+- **Hybrid snapshot-freshness check** (CF compares/refreshes on open) — machinery MVP
+  doesn't need; `cancelled` + re-send IS the refresh path, and the receiver can still
+  `Request info`. Revisit when disputes demand server-verified freshness.
+- **Merge UI for duplicates** — agreed it's the eventual answer; blocking is the MVP.
+- **Document file copy** — agreed in principle (copy, not reference) but deferred with
+  the rest of the documents-in-envelope work (Storage-to-Storage copy is its own sprint).

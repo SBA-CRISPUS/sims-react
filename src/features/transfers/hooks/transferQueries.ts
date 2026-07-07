@@ -29,6 +29,16 @@ export function useCreateTransfer(schoolCode: string) {
   });
 }
 
+export function useCancelTransfer(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { requestId: string; actorUid: string }) =>
+      TransferService.cancel(input.requestId, input.actorUid),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["transfers-out", schoolCode] }),
+  });
+}
+
 export function useDecideTransfer(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({
