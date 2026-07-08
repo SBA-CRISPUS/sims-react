@@ -32,3 +32,6 @@ functions/lib
 # Word lock files
 ~$*
 .claude/settings.local.json*
+
+# Firebase Hosting deploy cache
+.firebase/
