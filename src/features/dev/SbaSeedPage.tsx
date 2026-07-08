@@ -62,7 +62,7 @@ export default function SbaSeedPage() {
 
       <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
         <strong>Dev/test tool.</strong> This writes real demo data (a subject,
-        a stream, learners, a teacher, a teaching assignment, exam numbers) to{" "}
+        a stream, students, a teacher, a teaching assignment, exam numbers) to{" "}
         <strong>{school?.name}</strong>'s live database. Use it on a test
         school only. It runs as you ({profile?.role}) through the normal
         services — no rule bypass.
@@ -105,7 +105,7 @@ export default function SbaSeedPage() {
                 className="w-full rounded border p-2"
               />
             </Field>
-            <Field label="Learners">
+            <Field label="Students">
               <input
                 type="number"
                 min={1}

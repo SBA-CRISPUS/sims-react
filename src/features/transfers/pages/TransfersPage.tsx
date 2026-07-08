@@ -188,14 +188,14 @@ export default function TransfersPage() {
               )}
               {r.status === "accepted" && (
                 <p className="mt-2 text-xs text-gray-500">
-                  Accepted — importing the learner... (refresh in a moment).
+                  Accepted — importing the student... (refresh in a moment).
                 </p>
               )}
               {r.status === "completed" && (
                 <p className="mt-2 text-xs text-green-700">
                   {tab === "incoming" ? (
                     <>
-                      Completed — the learner has been imported into your
+                      Completed — the student has been imported into your
                       records.{" "}
                       {r.importedStudentNumber ? (
                         <>
@@ -213,7 +213,7 @@ export default function TransfersPage() {
                     </>
                   ) : (
                     <>
-                      Completed — the learner now belongs to {r.toSchoolCode}.
+                      Completed — the student now belongs to {r.toSchoolCode}.
                       Their record here is preserved as history.
                     </>
                   )}
@@ -277,7 +277,7 @@ function SnapshotPreview({ request }: { request: TransferRequest }) {
 
       {s.cbc && (
         <div>
-          <p className="font-medium">Learner flags</p>
+          <p className="font-medium">Student flags</p>
           <p className="text-gray-600">
             {[
               s.cbc.pathway ? `Pathway: ${s.cbc.pathway}` : null,

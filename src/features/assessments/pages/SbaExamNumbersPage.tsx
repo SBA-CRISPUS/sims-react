@@ -110,11 +110,11 @@ export default function SbaExamNumbersPage() {
       {streamId && (
         <div className="mt-6 rounded-lg bg-white shadow">
           {roster.isLoading && (
-            <p className="p-6 text-gray-500">Loading learners...</p>
+            <p className="p-6 text-gray-500">Loading students...</p>
           )}
           {!roster.isLoading && (roster.data ?? []).length === 0 && (
             <p className="p-6 text-gray-500">
-              No learners enrolled in this stream this year.
+              No students enrolled in this stream this year.
             </p>
           )}
           {(roster.data ?? []).length > 0 && (
@@ -123,7 +123,7 @@ export default function SbaExamNumbersPage() {
                 <thead className="border-b bg-slate-50 text-gray-500">
                   <tr>
                     <th className="p-3">Student No.</th>
-                    <th className="p-3">Learner</th>
+                    <th className="p-3">Student</th>
                     <th className="p-3">Examination number</th>
                   </tr>
                 </thead>

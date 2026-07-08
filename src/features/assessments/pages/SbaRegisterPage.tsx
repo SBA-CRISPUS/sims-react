@@ -97,7 +97,7 @@ export default function SbaRegisterPage() {
           )}
           {!roster.isLoading && (roster.data ?? []).length === 0 && (
             <p className="p-6 text-gray-500">
-              No learners enrolled in this class.
+              No students enrolled in this class.
             </p>
           )}
           {(roster.data ?? []).length > 0 && (
@@ -105,7 +105,7 @@ export default function SbaRegisterPage() {
               <thead className="border-b bg-slate-50 text-gray-500">
                 <tr>
                   <th className="p-3">Exam No.</th>
-                  <th className="p-3">Learner</th>
+                  <th className="p-3">Student</th>
                   <th className="p-3 text-center">Raw %</th>
                   <th className="p-3">Band</th>
                   <th className="p-3">Status</th>

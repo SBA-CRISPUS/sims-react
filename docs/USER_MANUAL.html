@@ -413,7 +413,7 @@ teachers). The wizard has five steps:</p>
   <li><b>Review</b> — check everything and press <b>Admit</b>.</li>
 </ol>
 <p>On success SIMS shows the generated numbers: student number (<b>STU-000123</b>), admission
-number (<b>ADM-2026-000045</b>) and guardian number (<b>GRD-000067</b>). Each learner is also
+number (<b>ADM-2026-000045</b>) and guardian number (<b>GRD-000067</b>). Each student is also
 minted a permanent <b>SIMS Learner ID</b> (<b>SL-2026-…</b>) that follows them for life, even
 across school transfers.</p>
 <div class="callout warn"><span class="t">Connectivity:</span> admission needs an internet
@@ -427,11 +427,11 @@ Excel. Click any row to open the student's profile.</p>
 <h2>6.3 The student profile</h2>
 <p>Tabs on the profile page:</p>
 <ul>
-  <li><b>Profile</b> — personal details, learner ID, status.</li>
+  <li><b>Profile</b> — personal details, student ID, status.</li>
   <li><b>Enrollment</b> — enrolment history (form, stream, year).</li>
   <li><b>Guardians</b> — linked guardians; click through to a guardian's profile and their other children.</li>
   <li><b>Documents</b> — upload birth certificates, results slips etc. (PDF or images up to 10&nbsp;MB), download or delete (delete is admin-only).</li>
-  <li><b>SBA</b> — the learner's SBA results per form year, plus the combined Forms 2+3 score (Section 7).</li>
+  <li><b>SBA</b> — the student's SBA results per form year, plus the combined Forms 2+3 score (Section 7).</li>
   <li><b>Timeline / Audit</b> — history of what happened to the record (audit is admin-only).</li>
 </ul>
 <p>The header of the profile links to the printable <b>Report card</b>, <b>Transcript</b> and,
@@ -440,7 +440,7 @@ for administrators, <b>Transfer out</b> (Section 9).</p>
 <h2>6.4 Class placement banner</h2>
 <p>If a student has no class assigned (for example, after arriving by transfer), an amber
 <b>“No class assigned”</b> banner appears at the top of their profile. Administrators and head
-teachers choose a stream there (capacity-aware) to place the learner.</p>
+teachers choose a stream there (capacity-aware) to place the student.</p>
 
 <!-- ============================ 7 SBA ============================ -->
 <h1 id="s7" class="page-break">7 · School-Based Assessment (SBA)</h1>
@@ -479,9 +479,9 @@ Every action is recorded in the sheet's <b>history</b> with who, when and any co
 <ol class="steps">
   <li>Open <span class="menu">My Classes</span> — each card is one of your classes with its SBA progress. Click a class (or open <span class="menu">SBA Marks</span> and pick form, stream and subject).</li>
   <li>The score sheet lists your class roster with a column per task. Enter whole-number scores up to each task's maximum.</li>
-  <li>Mark any learner who does not take the subject as <b>Not taking</b>.</li>
+  <li>Mark any student who does not take the subject as <b>Not taking</b>.</li>
   <li><b>Save</b> as you go — you can return any time while the sheet is in draft. The running total and percentage update live.</li>
-  <li>When every learner is complete, press <b>Submit for review</b>. The sheet locks for you and moves to the HOD.</li>
+  <li>When every student is complete, press <b>Submit for review</b>. The sheet locks for you and moves to the HOD.</li>
 </ol>
 <div class="callout"><span class="t">Returned sheet?</span> If a reviewer returns your sheet, it
 appears on your dashboard and My Classes with a <b>Returned</b> badge and the reviewer's comment.
@@ -505,10 +505,10 @@ subjects are behind. Each class chip links to its printable class register.</p>
 
 <h2>7.7 Examination numbers and ECZ export</h2>
 <ol class="steps">
-  <li>Open <span class="menu">SBA Marks</span> group → <b>Exam numbers</b> page (<span class="route">/assessments/exam-numbers</span>): pick the form and stream, type each learner's ECZ examination number, and save (admin / head teacher).</li>
+  <li>Open <span class="menu">SBA Marks</span> group → <b>Exam numbers</b> page (<span class="route">/assessments/exam-numbers</span>): pick the form and stream, type each student's ECZ examination number, and save (admin / head teacher).</li>
   <li>Open <span class="menu">ECZ Export</span>: choose the form and subject. SIMS shows validation tiles — <b>Ready</b>, <b>Missing exam number</b>, <b>Not yet approved</b>.</li>
-  <li>Only learners whose marks are <b>approved (frozen)</b> and who have an exam number are exported. Fix the listed exceptions first.</li>
-  <li>Click <b>Export for ECZ</b> for the official CSV — it carries the ECZ header block (subject, form, school, examination centre number, year) followed by examination number, learner and raw mark — or <b>School copy (per-task)</b> for an internal file with every task column. You can also print the list.</li>
+  <li>Only students whose marks are <b>approved (frozen)</b> and who have an exam number are exported. Fix the listed exceptions first.</li>
+  <li>Click <b>Export for ECZ</b> for the official CSV — it carries the ECZ header block (subject, form, school, examination centre number, year) followed by examination number, student and raw mark — or <b>School copy (per-task)</b> for an internal file with every task column. You can also print the list.</li>
 </ol>
 <div class="callout"><span class="t">Deadline reminder:</span> if the SBA submission
 deadline is set in School Profile, the Export page shows how many days remain
@@ -534,16 +534,16 @@ provider if your school needs it.</div>
 
 <h2>8.1 Report card</h2>
 <p>From a student's profile click <b>Report card</b>. It shows each subject's score and band,
-the class average and range, the learner's overall average and <b>class position</b>, your
+the class average and range, the student's overall average and <b>class position</b>, your
 school's <b>grade</b> per subject (from the grading scale in School Profile), remarks and
 signature blocks.</p>
 <ul>
   <li>Use the <b>term selector</b> to print a term report (Midterm / End of term) — it computes over only that term's tasks — or the whole-year view, which uses final frozen marks where approved.</li>
-  <li>In private schools, report cards are <b>withheld</b> for learners whose fees are not cleared (Section 10).</li>
+  <li>In private schools, report cards are <b>withheld</b> for students whose fees are not cleared (Section 10).</li>
 </ul>
 
 <h2>8.2 Transcript</h2>
-<p>From the profile click <b>Transcript</b>: the learner's identity (including the SIMS Learner
+<p>From the profile click <b>Transcript</b>: the student's identity (including the SIMS Student
 ID), full enrolment history, SBA results per form year, and the combined Forms 2+3 score out
 of 20, with a head-teacher signature block.</p>
 
@@ -558,12 +558,12 @@ with the school logo and details at the top.</p>
 
 <!-- ============================ 9 TRANSFERS ============================ -->
 <h1 id="s9" class="page-break">9 · Student transfers between SIMS schools</h1>
-<p>When a learner moves to another school that also uses SIMS, the transfer is handled digitally.
-The learner's permanent SIMS Learner ID follows them; their record and SBA history travel in a
+<p>When a student moves to another school that also uses SIMS, the transfer is handled digitally.
+The student's permanent SIMS Learner ID follows them; their record and SBA history travel in a
 sealed “transfer envelope”. Schools never see each other's registers — only the envelope of the
-learner being transferred. Only administrators and head teachers can transfer students.</p>
+student being transferred. Only administrators and head teachers can transfer students.</p>
 
-<h2>9.1 Sending a learner (the releasing school)</h2>
+<h2>9.1 Sending a student (the releasing school)</h2>
 <ol class="steps">
   <li>Open the student's profile → <b>Transfer out</b> (available for active students).</li>
   <li>Enter the receiving school's <b>school code</b> (e.g. SCH-000123 — obtain it from that school), the reason and effective date.</li>
@@ -571,12 +571,12 @@ learner being transferred. Only administrators and head teachers can transfer st
   <li>While it is still pending you may <b>Cancel</b> it from the Outgoing tab.</li>
 </ol>
 
-<h2>9.2 Receiving a learner</h2>
+<h2>9.2 Receiving a student</h2>
 <ol class="steps">
   <li>Open <span class="menu">Transfers</span> → <b>Incoming</b> (a red badge on the menu shows waiting requests).</li>
   <li>Click a request to preview the envelope: identity, enrolment history, guardians, SBA record.</li>
   <li>Choose <b>Accept</b>, <b>Reject</b>, or <b>Request info</b> (with a note back to the sender).</li>
-  <li>On acceptance SIMS automatically imports the learner: new student and guardian records in your school, the same Learner ID, and their history attached. The sending school's record is closed as “transferred”.</li>
+  <li>On acceptance SIMS automatically imports the student: new student and guardian records in your school, the same Learner ID, and their history attached. The sending school's record is closed as “transferred”.</li>
   <li>Open the imported student (the completed request links straight to them) and use the <b>“No class assigned”</b> banner to place them in a stream (Section 6.4).</li>
 </ol>
 
@@ -590,13 +590,13 @@ and the TRF reference, with a signature block.</p>
 <p>Open <span class="menu">Payments</span> (administrators and head teachers; the page is not
 shown in government schools, where education is free by law).</p>
 <ul>
-  <li><b>Record a payment</b> — learner, amount (Kwacha), reference/note. Payments form an append-only ledger; to correct a mistake, record an adjustment (negative amount) rather than editing history.</li>
-  <li><b>By-learner view</b> — every active learner with their total paid; click a learner to see their ledger.</li>
-  <li><b>Cleared toggle</b> — mark a learner's fees as cleared for the year (also usable for bursaries with no payment records).</li>
+  <li><b>Record a payment</b> — student, amount (Kwacha), reference/note. Payments form an append-only ledger; to correct a mistake, record an adjustment (negative amount) rather than editing history.</li>
+  <li><b>By-student view</b> — every active student with their total paid; click a student to see their ledger.</li>
+  <li><b>Cleared toggle</b> — mark a student's fees as cleared for the year (also usable for bursaries with no payment records).</li>
   <li><b>Export CSV</b> — for reconciliation in Excel.</li>
 </ul>
 <div class="callout warn">
-  <span class="t">Report-card gate (private schools):</span> a learner's report card is withheld
+  <span class="t">Report-card gate (private schools):</span> a student's report card is withheld
   until they are marked cleared. Teachers cannot open the card at all; administrators and head
   teachers see it with a “withheld” warning banner. Grant-aided schools keep the fee register
   without any report-card gating.
@@ -606,12 +606,12 @@ shown in government schools, where education is free by law).</p>
 <h1 id="s11">11 · Reports &amp; compliance</h1>
 <p><span class="menu">Reports</span> is the leadership view for the current year:</p>
 <ul>
-  <li><b>KPIs</b> — SBA classes, how many are fully approved, awaiting approval, still in marks entry, or not yet planned; Form 2/3 learner counts.</li>
+  <li><b>KPIs</b> — SBA classes, how many are fully approved, awaiting approval, still in marks entry, or not yet planned; Form 2/3 student counts.</li>
   <li><b>Compliance by subject</b> — a progress bar and stage badge per subject, sorted least-ready first, so problem subjects surface at the top.</li>
   <li><b>By-form completion</b> summary.</li>
   <li><b>Export CSV / Print</b> for meetings and record-keeping.</li>
 </ul>
-<p>The <b>Dashboard</b> gives leadership a daily cockpit: learner/teacher counts, SBA pipeline,
+<p>The <b>Dashboard</b> gives leadership a daily cockpit: student/teacher counts, SBA pipeline,
 and a “needs attention” panel that mirrors the red menu badges.</p>
 
 <!-- ============================ 12 OFFLINE ============================ -->
@@ -631,10 +631,10 @@ you were offline, your late edits will be rejected — approved marks stay froze
 <h1 id="s13">13 · Testing tools (demo data)</h1>
 <div class="callout warn"><span class="t">For the testing phase only.</span> These pages create
 <b>real records</b> in your school. Use them only in a test school, never in a school holding
-real learner data.</div>
+real student data.</div>
 <ul>
-  <li><span class="menu">SBA Demo Data</span> (<span class="route">/dev/seed</span>, administrators) — one click sets up a demo Mathematics F2 class: stream, learners, a teacher, a teaching assignment and exam numbers, ready for walking through the whole SBA flow.</li>
-  <li><span class="menu">Bulk Admit</span> (<span class="route">/dev/bulk-admit</span>, administrators) — admits a batch of test learners quickly.</li>
+  <li><span class="menu">SBA Demo Data</span> (<span class="route">/dev/seed</span>, administrators) — one click sets up a demo Mathematics F2 class: stream, students, a teacher, a teaching assignment and exam numbers, ready for walking through the whole SBA flow.</li>
+  <li><span class="menu">Bulk Admit</span> (<span class="route">/dev/bulk-admit</span>, administrators) — admits a batch of test students quickly.</li>
 </ul>
 
 <!-- ============================ 14 FAQ ============================ -->
@@ -647,10 +647,10 @@ real learner data.</div>
   <tr><td>I forgot my password.</td><td>There is no self-service reset yet — contact your School Administrator / system administrator.</td></tr>
   <tr><td>The temporary password was lost before first sign-in.</td><td>It cannot be shown again. The administrator should contact the system administrator to re-issue the account.</td></tr>
   <tr><td>I can see a score sheet but cannot edit it.</td><td>Either the sheet has been submitted/approved (locked), or the class is not assigned to you (read-only). Check its status and your teaching assignment.</td></tr>
-  <tr><td>Submit button is disabled on my score sheet.</td><td>Every learner needs a score for every task (or a “Not taking” mark), and unsaved changes must be saved first.</td></tr>
+  <tr><td>Submit button is disabled on my score sheet.</td><td>Every student needs a score for every task (or a “Not taking” mark), and unsaved changes must be saved first.</td></tr>
   <tr><td>Marks are wrong on an <b>approved</b> sheet.</td><td>Approved marks are frozen by design and cannot be edited by anyone at the school. Raise the dispute with school leadership; the sheet's history shows who approved and when.</td></tr>
-  <tr><td>A learner is missing from the ECZ export.</td><td>The export page tells you why: marks not yet approved, or examination number missing. Fix and re-export.</td></tr>
-  <tr><td>Report card won't open for a learner (private school).</td><td>The learner's fees are not marked cleared — see Payments (Section 10).</td></tr>
+  <tr><td>A student is missing from the ECZ export.</td><td>The export page tells you why: marks not yet approved, or examination number missing. Fix and re-export.</td></tr>
+  <tr><td>Report card won't open for a student (private school).</td><td>The student's fees are not marked cleared — see Payments (Section 10).</td></tr>
   <tr><td>“Permission denied” errors appear.</td><td>You tried an action your role doesn't allow, or your session is stale — sign out and in. If it persists, report it: it may be a bug worth logging during testing.</td></tr>
   <tr><td>The stream I want to admit into is greyed out.</td><td>It is full. Increase its capacity in Academic Structure or choose another stream.</td></tr>
 </table>

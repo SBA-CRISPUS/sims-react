@@ -119,7 +119,7 @@ export default function AdminDashboard() {
       {/* KPI tiles */}
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi
-          label="Active learners"
+          label="Active students"
           value={registry.isLoading ? "…" : String(learnerCount)}
           to="/students/registry"
         />
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
 
       {/* Quick actions */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <Quick to="/students/admit" label="Admit learner" icon="＋" />
+        <Quick to="/students/admit" label="Admit student" icon="＋" />
         <Quick to="/students/registry" label="Registry" icon="▤" />
         <Quick to="/assessments/review" label="SBA Review" icon="✓" />
         <Quick to="/reports" label="Reports" icon="◔" />

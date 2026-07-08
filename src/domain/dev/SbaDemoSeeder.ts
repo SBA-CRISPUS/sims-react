@@ -99,7 +99,7 @@ export class SbaDemoSeeder {
     // 4. Learners — top up to the target for this class/year
     const existing = await SbaMarkService.listRoster(schoolCode, academicYearId, sid);
     const toAdmit = Math.max(0, input.learnerCount - existing.length);
-    onLog(`• ${existing.length} learner(s) already in ${sid}; admitting ${toAdmit} more...`);
+    onLog(`• ${existing.length} student(s) already in ${sid}; admitting ${toAdmit} more...`);
 
     for (let i = 0; i < toAdmit; i++) {
       const firstName = FIRST_NAMES[(existing.length + i) % FIRST_NAMES.length];
@@ -162,9 +162,9 @@ export class SbaDemoSeeder {
           examinationNumber: `${year}/${String(idx + 1).padStart(4, "0")}`,
         }))
       );
-      onLog(`✓ Assigned examination numbers to ${missing.length} learner(s).`);
+      onLog(`✓ Assigned examination numbers to ${missing.length} student(s).`);
     } else {
-      onLog(`• All learners already have examination numbers.`);
+      onLog(`• All students already have examination numbers.`);
     }
 
     onLog(`Done. Open SBA Plans → create a Mathematics ${levelCode} plan to start the smoke test.`);

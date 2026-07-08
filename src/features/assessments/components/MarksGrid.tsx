@@ -143,7 +143,7 @@ export default function MarksGrid({
   if (roster.length === 0) {
     return (
       <p className="rounded-lg bg-white p-6 text-gray-500 shadow">
-        No learners are enrolled in this stream for the selected year.
+        No students are enrolled in this stream for the selected year.
       </p>
     );
   }
@@ -178,7 +178,7 @@ export default function MarksGrid({
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-slate-50 text-gray-500">
             <tr>
-              <th className="sticky left-0 bg-slate-50 p-3">Learner</th>
+              <th className="sticky left-0 bg-slate-50 p-3">Student</th>
               {tasks.map((t) => (
                 <th key={t.taskId} className="p-2 text-center" title={t.type}>
                   <div className="whitespace-nowrap">{t.name || t.taskId}</div>
@@ -231,7 +231,7 @@ export default function MarksGrid({
             </button>
             {incomplete > 0 && (
               <span className="text-sm text-gray-500">
-                {incomplete} learner{incomplete === 1 ? "" : "s"} with unscored
+                {incomplete} student{incomplete === 1 ? "" : "s"} with unscored
                 tasks
               </span>
             )}

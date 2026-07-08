@@ -65,8 +65,8 @@ export default function PlacementPanel({
       <p className="font-medium text-amber-900">No class assigned</p>
       <p className="mt-1 text-sm text-amber-800">
         The {current.academicLevelCode} enrollment for {current.academicYearId}{" "}
-        has no stream (transferred-in learners arrive unplaced), so this
-        learner appears in no class roster yet.
+        has no stream (transferred-in students arrive unplaced), so this
+        student appears in no class roster yet.
       </p>
 
       {streams.isLoading ? (

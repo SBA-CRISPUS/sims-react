@@ -48,7 +48,7 @@ export default function BulkAdmitPage() {
           setTail((prev) => [...prev.slice(-14), msg]);
         },
       });
-      setTail((prev) => [...prev.slice(-14), `Done. Admitted ${res.admitted} learner(s).`]);
+      setTail((prev) => [...prev.slice(-14), `Done. Admitted ${res.admitted} student(s).`]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bulk admission failed.");
     } finally {
@@ -63,12 +63,12 @@ export default function BulkAdmitPage() {
     <div className="p-8">
       <h1 className="text-3xl font-bold">Bulk Admit Students</h1>
       <p className="mt-1 text-gray-600">
-        Admit up to {MAX_BULK} learners into a class with one click, using a
+        Admit up to {MAX_BULK} students into a class with one click, using a
         curated name list.
       </p>
 
       <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-        <strong>Dev/test tool.</strong> Writes real learners (each through the
+        <strong>Dev/test tool.</strong> Writes real students (each through the
         normal audited admission) to <strong>{school?.name}</strong>'s live
         database. Admissions run one at a time, so {MAX_BULK} takes a few
         minutes and needs a stable connection. Runs as you ({profile?.role}) —

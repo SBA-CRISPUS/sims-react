@@ -143,7 +143,7 @@ export default function TranscriptPage() {
 
           {/* Learner identity */}
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <Detail label="Learner" value={fullName(student)} />
+            <Detail label="Student" value={fullName(student)} />
             <Detail label="SIMS Learner ID" value={student.learnerId ?? "—"} />
             <Detail label="Student No." value={student.studentNumber} />
             <Detail label="Examination No." value={student.examinationNumber ?? "—"} />

@@ -68,7 +68,7 @@ export default function TransferCertificatePage() {
     return (
       <div className="p-8">
         <p className="text-gray-700">
-          No completed transfer is recorded for this learner — a transfer
+          No completed transfer is recorded for this student — a transfer
           certificate can only be issued after a transfer completes.
         </p>
         <Link
@@ -133,7 +133,7 @@ export default function TransferCertificatePage() {
 
           {/* Learner identity */}
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <Detail label="Learner" value={fullName(student)} />
+            <Detail label="Student" value={fullName(student)} />
             <Detail label="SIMS Learner ID" value={student.learnerId ?? "—"} />
             <Detail label="Student No." value={student.studentNumber} />
             <Detail label="Admission No." value={student.admissionId} />
@@ -180,9 +180,9 @@ export default function TransferCertificatePage() {
           </div>
 
           <p className="mt-6 text-sm text-gray-700">
-            This certifies that the learner named above was enrolled at this
+            This certifies that the student named above was enrolled at this
             school and has been transferred to the receiving school indicated.
-            The learner's academic record is issued separately on the Academic
+            The student's academic record is issued separately on the Academic
             Transcript.
           </p>
 

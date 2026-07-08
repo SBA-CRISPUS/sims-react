@@ -145,7 +145,7 @@ export default function AdmissionWizard() {
             Student Admitted
           </h1>
           <p className="mt-4 text-gray-600">
-            The learner, guardian, and enrollment were created together in
+            The student, guardian, and enrollment were created together in
             Firestore.
           </p>
           <div className="mt-6 space-y-1">

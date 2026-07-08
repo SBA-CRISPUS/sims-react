@@ -231,7 +231,7 @@ export default function ReportCardPage() {
         <div className="mx-auto max-w-md rounded-lg border border-amber-300 bg-amber-50 p-6">
           <p className="font-medium text-amber-900">Report card withheld</p>
           <p className="mt-2 text-sm text-amber-800">
-            This learner's school fees are not marked as cleared for{" "}
+            This student's school fees are not marked as cleared for{" "}
             {enrollment?.academicYearId ?? "this year"}, so the report card
             can't be viewed. Please contact the school office.
           </p>
@@ -315,7 +315,7 @@ export default function ReportCardPage() {
           <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 print:hidden">
             <strong>Fees not cleared</strong> for{" "}
             {enrollment?.academicYearId ?? "this year"} — this report card
-            should be withheld from the learner's family until the office
+            should be withheld from the student's family until the office
             clears them on the{" "}
             <Link to="/finance/payments" className="text-blue-700 underline">
               Payments
@@ -357,7 +357,7 @@ export default function ReportCardPage() {
 
           {/* Learner identity */}
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <Detail label="Learner" value={fullName(student)} />
+            <Detail label="Student" value={fullName(student)} />
             <Detail label="SIMS Learner ID" value={student.learnerId ?? "—"} />
             <Detail label="Student No." value={student.studentNumber} />
             <Detail
@@ -375,7 +375,7 @@ export default function ReportCardPage() {
               No SBA scores recorded for this
               {termId ? " term" : " class year"}
               {enrollment && !enrollment.streamId
-                ? " — the learner has no class placement yet"
+                ? " — the student has no class placement yet"
                 : ""}
               .
             </p>

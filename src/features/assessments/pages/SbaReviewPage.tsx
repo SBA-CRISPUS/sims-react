@@ -209,7 +209,7 @@ export default function SbaReviewPage() {
           </div>
 
           <p className="mt-3 text-sm text-gray-500">
-            Approving a sheet freezes every learner's raw SBA mark and signs it
+            Approving a sheet freezes every student's raw SBA mark and signs it
             off — it can't be edited afterwards.
           </p>
         </>

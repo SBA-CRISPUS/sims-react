@@ -149,7 +149,7 @@ export default function SbaExportPage() {
     const rows = [
       [
         "Examination Number",
-        "Learner",
+        "Student",
         "Class",
         ...tasks.map((t) => `${t.name} /${t.maxMarks}`),
         `Obtained /${totalMax}`,
@@ -298,7 +298,7 @@ export default function SbaExportPage() {
                 <thead className="border-b bg-slate-50 text-gray-500">
                   <tr>
                     <th className="p-3">Exam No.</th>
-                    <th className="p-3">Learner</th>
+                    <th className="p-3">Student</th>
                     <th className="p-3">Class</th>
                     <th className="p-3 text-center">Raw Mark</th>
                     <th className="p-3">Status</th>
@@ -328,7 +328,7 @@ export default function SbaExportPage() {
               </table>
             )}
             <p className="p-3 text-xs text-gray-500">
-              Only approved (frozen) learners with an examination number are
+              Only approved (frozen) students with an examination number are
               exported. "Export for ECZ" carries the raw mark only (the
               30%/40% weighting is applied centrally); "School copy" adds
               every task score and the obtained total for the school's own

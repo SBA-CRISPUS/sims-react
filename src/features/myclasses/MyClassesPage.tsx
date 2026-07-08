@@ -193,7 +193,7 @@ export default function MyClassesPage() {
                 </span>
               </div>
               <p className="mt-4 text-sm text-gray-600">
-                {c.learners} learner{c.learners === 1 ? "" : "s"}
+                {c.learners} student{c.learners === 1 ? "" : "s"}
               </p>
             </Link>
           ))}

@@ -225,7 +225,7 @@ export default function ReportsPage() {
             />
             <Stat label="Marks entry" value={model.counts.entry} tone="blue" />
             <Stat label="Not planned" value={model.counts.planning} tone="amber" />
-            <Stat label="Learners (F2/F3)" value={model.learners} tone="slate" />
+            <Stat label="Students (F2/F3)" value={model.learners} tone="slate" />
           </div>
 
           <div className="mt-8">

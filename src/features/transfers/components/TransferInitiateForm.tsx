@@ -82,7 +82,7 @@ export default function TransferInitiateForm({
         <p className="mt-1 text-sm text-green-700">
           The receiving school will review the record and accept or reject it.
           {!learnerId &&
-            " Note: this learner has no SIMS Learner ID yet, which the receiving school needs to import them."}
+            " Note: this student has no SIMS Learner ID yet, which the receiving school needs to import them."}
         </p>
         <button
           onClick={onDone}
@@ -98,8 +98,8 @@ export default function TransferInitiateForm({
     <div className="mt-4 rounded-lg border bg-slate-50 p-4">
       <p className="font-medium">Transfer {studentName} to another school</p>
       <p className="mt-1 text-xs text-gray-500">
-        A snapshot of this learner (identity, guardians, enrollment history,
-        SBA results) is sent to the receiving school for review. The learner
+        A snapshot of this student (identity, guardians, enrollment history,
+        SBA results) is sent to the receiving school for review. The student
         isn't removed here until they accept.
       </p>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">

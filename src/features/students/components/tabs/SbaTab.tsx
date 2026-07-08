@@ -78,7 +78,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
     return <p className="text-gray-500">Loading SBA results...</p>;
   }
   if (byLevel.size === 0) {
-    return <p className="text-gray-500">No SBA marks recorded for this learner yet.</p>;
+    return <p className="text-gray-500">No SBA marks recorded for this student yet.</p>;
   }
 
   const levels = [...byLevel.keys()].sort();

@@ -86,7 +86,7 @@ export default function StreamForm({
           />
           {isEdit && (
             <p className="mt-1 text-xs text-gray-500">
-              Changing the code renames the stream — its learners move with
+              Changing the code renames the stream — its students move with
               it. Not possible once teaching assignments or SBA sheets exist.
             </p>
           )}

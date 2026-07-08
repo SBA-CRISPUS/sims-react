@@ -117,7 +117,7 @@ export default function PaymentsPage() {
     setError(null);
     const value = Number(amount);
     if (!studentId) {
-      setError("Pick a learner.");
+      setError("Pick a student.");
       return;
     }
     if (!value || Number.isNaN(value)) {
@@ -149,7 +149,7 @@ export default function PaymentsPage() {
 
   function exportLedger() {
     const rows = [
-      ["Date", "Learner", "Student No.", "Amount", "Method", "Term", "Reference", "Note"],
+      ["Date", "Student", "Student No.", "Amount", "Method", "Term", "Reference", "Note"],
       ...(payments.data ?? []).map((p) => [
         p.recordedAt ? p.recordedAt.toLocaleDateString() : "",
         nameOf(p.studentId),
@@ -196,7 +196,7 @@ export default function PaymentsPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Stat label="Collected this year" value={money(totals.collected)} />
             <Stat
-              label="Learners with payments"
+              label="Students with payments"
               value={String(totals.byStudent.size)}
             />
             <Stat label="Cleared for reports" value={String(clearedCount)} />
@@ -209,13 +209,13 @@ export default function PaymentsPage() {
             <p className="font-medium">Record a payment</p>
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               <div className="sm:col-span-2">
-                <label className="block text-sm text-gray-600">Learner</label>
+                <label className="block text-sm text-gray-600">Student</label>
                 <select
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   className="mt-1 w-full rounded border p-2"
                 >
-                  <option value="">Select a learner...</option>
+                  <option value="">Select a student...</option>
                   {students.map((s) => (
                     <option key={s.studentNumber} value={s.studentNumber}>
                       {s.firstName} {s.lastName} ({s.studentNumber})
@@ -296,7 +296,7 @@ export default function PaymentsPage() {
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
             <p className="mt-2 text-xs text-gray-500">
               Entries can't be edited or deleted — correct mistakes with a
-              negative adjustment entry. Clearing a learner below releases
+              negative adjustment entry. Clearing a student below releases
               their report card.
             </p>
           </form>
@@ -306,14 +306,14 @@ export default function PaymentsPage() {
                 listed (not just payers), so bursary/exempt learners can be
                 cleared for reports without a ledger entry. */}
             <div className="rounded-lg bg-white shadow">
-              <p className="border-b p-3 font-medium">By learner</p>
+              <p className="border-b p-3 font-medium">By student</p>
               {students.length === 0 ? (
-                <p className="p-6 text-sm text-gray-500">No active learners.</p>
+                <p className="p-6 text-sm text-gray-500">No active students.</p>
               ) : (
                 <table className="w-full text-left text-sm">
                   <thead className="border-b bg-slate-50 text-gray-500">
                     <tr>
-                      <th className="p-3">Learner</th>
+                      <th className="p-3">Student</th>
                       <th className="p-3 text-right">Paid</th>
                       <th className="p-3 text-center">Entries</th>
                       <th className="p-3">Last</th>
@@ -384,7 +384,7 @@ export default function PaymentsPage() {
                 </table>
               )}
               <p className="p-3 text-xs text-gray-500">
-                Unchecked learners' report cards are withheld (teachers can't
+                Unchecked students' report cards are withheld (teachers can't
                 open them; admins see a withhold notice). Click a row to
                 filter the ledger.
               </p>
@@ -404,7 +404,7 @@ export default function PaymentsPage() {
                   <thead className="border-b bg-slate-50 text-gray-500">
                     <tr>
                       <th className="p-3">Date</th>
-                      <th className="p-3">Learner</th>
+                      <th className="p-3">Student</th>
                       <th className="p-3 text-right">Amount</th>
                       <th className="p-3">Method</th>
                       <th className="p-3">Ref</th>
