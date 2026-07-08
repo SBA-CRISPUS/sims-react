@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SIMS User Manual</title>
+<style>
+  :root {
+    --blue: #1d4ed8;
+    --blue-dark: #1e3a8a;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --line: #d1d5db;
+    --bg-soft: #eff6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.55;
+  }
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+
+  .page-break { page-break-before: always; }
+  h1, h2, h3, h4 { page-break-after: avoid; }
+  table, .callout, .steps { page-break-inside: avoid; }
+
+  /* Cover */
+  .cover {
+    text-align: center;
+    padding-top: 70mm;
+    page-break-after: always;
+  }
+  .cover .brand {
+    font-size: 34pt;
+    font-weight: 700;
+    color: var(--blue-dark);
+    letter-spacing: 1px;
+  }
+  .cover .sub {
+    font-size: 15pt;
+    color: var(--ink);
+    margin-top: 4mm;
+  }
+  .cover .doc-type {
+    display: inline-block;
+    margin-top: 14mm;
+    padding: 3mm 10mm;
+    border: 1.5pt solid var(--blue);
+    color: var(--blue);
+    font-size: 13pt;
+    font-weight: 600;
+    border-radius: 3mm;
+  }
+  .cover .meta {
+    margin-top: 28mm;
+    color: var(--muted);
+    font-size: 10.5pt;
+    line-height: 1.9;
+  }
+  .cover .url {
+    font-size: 12pt;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 17pt;
+    color: var(--blue-dark);
+    border-bottom: 2pt solid var(--blue);
+    padding-bottom: 2mm;
+    margin: 0 0 5mm 0;
+  }
+  h2 {
+    font-size: 13pt;
+    color: var(--blue-dark);
+    margin: 7mm 0 2.5mm 0;
+  }
+  h3 {
+    font-size: 11pt;
+    color: var(--ink);
+    margin: 5mm 0 1.5mm 0;
+  }
+  p { margin: 0 0 2.5mm 0; }
+  ul, ol { margin: 0 0 3mm 0; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+
+  .route {
+    font-family: Consolas, monospace;
+    font-size: 9pt;
+    background: #f3f4f6;
+    border: 0.5pt solid var(--line);
+    border-radius: 1mm;
+    padding: 0 1.2mm;
+    white-space: nowrap;
+  }
+  .menu { font-weight: 600; color: var(--blue-dark); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2mm 0 4mm 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: var(--blue-dark);
+    color: #fff;
+    text-align: left;
+    padding: 1.6mm 2.5mm;
+    font-weight: 600;
+  }
+  td {
+    border: 0.5pt solid var(--line);
+    padding: 1.5mm 2.5mm;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  .callout {
+    background: var(--bg-soft);
+    border-left: 3pt solid var(--blue);
+    padding: 2.5mm 4mm;
+    margin: 3mm 0 4mm 0;
+    border-radius: 0 1.5mm 1.5mm 0;
+  }
+  .callout.warn {
+    background: #fffbeb;
+    border-left-color: #d97706;
+  }
+  .callout .t { font-weight: 700; }
+
+  .steps {
+    counter-reset: step;
+    margin: 2mm 0 4mm 0;
+    padding: 0;
+    list-style: none;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 9mm;
+    margin-bottom: 2mm;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.2mm;
+    width: 5.5mm; height: 5.5mm;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 5.5mm;
+    font-size: 8.5pt;
+    font-weight: 700;
+  }
+
+  /* TOC */
+  .toc { list-style: none; padding: 0; font-size: 11pt; }
+  .toc li { margin-bottom: 2.2mm; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc .n {
+    display: inline-block;
+    width: 9mm;
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .toc .sub-item { padding-left: 12mm; font-size: 9.5pt; color: var(--muted); }
+
+  .status-flow {
+    text-align: center;
+    margin: 3mm 0;
+    font-weight: 600;
+    font-size: 10pt;
+  }
+  .status-flow .st {
+    display: inline-block;
+    padding: 1.2mm 3.5mm;
+    border-radius: 6mm;
+    border: 1pt solid var(--blue);
+    color: var(--blue-dark);
+    background: var(--bg-soft);
+  }
+  .status-flow .arrow { color: var(--muted); padding: 0 1.5mm; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div class="brand">SIMS</div>
+  <div class="sub">School Information Management System</div>
+  <div class="doc-type">Instruction &amp; User Manual</div>
+  <div class="meta">
+    <div class="url">https://sims-918c4.web.app</div>
+    <div>Version 1.0 &nbsp;·&nbsp; July 2026</div>
+    <div>Multi-school platform for Zambian schools · CBC School-Based Assessment (SBA)</div>
+  </div>
+</div>
+
+<!-- ============================ TOC ============================ -->
+<h1>Contents</h1>
+<ol class="toc">
+  <li><span class="n">1</span><a href="#s1">Introduction</a></li>
+  <li><span class="n">2</span><a href="#s2">Getting started — signing in</a></li>
+  <li><span class="n">3</span><a href="#s3">Finding your way around</a></li>
+  <li><span class="n">4</span><a href="#s4">Setting up your school (School Administrator)</a></li>
+  <li class="sub-item">School profile, logo &amp; grading scale · Academic structure · Subjects · Staff accounts</li>
+  <li><span class="n">5</span><a href="#s5">Teachers &amp; teaching assignments</a></li>
+  <li><span class="n">6</span><a href="#s6">Student management</a></li>
+  <li class="sub-item">Admission · Registry · Student profile · Documents · Class placement</li>
+  <li><span class="n">7</span><a href="#s7">School-Based Assessment (SBA)</a></li>
+  <li class="sub-item">Concepts · Plans · Marks entry · Moderation &amp; approval · Readiness · ECZ export</li>
+  <li><span class="n">8</span><a href="#s8">Report cards, transcripts &amp; printing</a></li>
+  <li><span class="n">9</span><a href="#s9">Student transfers between SIMS schools</a></li>
+  <li><span class="n">10</span><a href="#s10">Fees &amp; payments (private and grant-aided schools)</a></li>
+  <li><span class="n">11</span><a href="#s11">Reports &amp; compliance</a></li>
+  <li><span class="n">12</span><a href="#s12">Working offline</a></li>
+  <li><span class="n">13</span><a href="#s13">Testing tools (demo data)</a></li>
+  <li><span class="n">14</span><a href="#s14">Troubleshooting &amp; FAQ</a></li>
+</ol>
+
+<!-- ============================ 1 INTRO ============================ -->
+<div class="page-break"></div>
+<h1 id="s1">1 · Introduction</h1>
+<p>SIMS is a web-based School Information Management System built for Zambian schools. It manages
+the full academic life of a school — student admission and records, teachers and teaching
+assignments, the CBC School-Based Assessment (SBA) workflow from marks entry through moderation,
+approval and ECZ export, report cards and transcripts, fee tracking, and student transfers
+between SIMS schools.</p>
+<p>You use SIMS in a web browser — no installation is required. It works on computers, tablets
+and phones:</p>
+<div class="callout">
+  <span class="t">Web address:</span> &nbsp;<b>https://sims-918c4.web.app</b><br/>
+  Bookmark this address. Use a modern browser (Chrome, Edge, Firefox or Safari).
+</div>
+
+<h2>1.1 Who uses SIMS — roles</h2>
+<p>Every user account has a role. Your role decides which menus you see and what you may do.</p>
+<table>
+  <tr><th style="width:32%">Role</th><th>What they do in SIMS</th></tr>
+  <tr><td><b>School Administrator</b></td><td>Sets up the school (profile, structure, subjects), registers teachers and staff, creates login accounts, admits students, manages fees, and has full access to all modules.</td></tr>
+  <tr><td><b>Head Teacher</b></td><td>Oversees the whole school: admits students, manages teachers and assignments, moderates and <b>approves</b> SBA results, initiates/decides transfers, views reports.</td></tr>
+  <tr><td><b>Deputy Head</b></td><td>Reviews and approves SBA submissions, monitors readiness, handles ECZ export, views reports.</td></tr>
+  <tr><td><b>Head of Department (HOD)</b></td><td>Builds SBA plans, enters marks where needed, <b>moderates</b> submitted class score sheets, monitors readiness and reports.</td></tr>
+  <tr><td><b>Teacher</b></td><td>Works from “My Classes”: enters SBA marks for their own classes and submits them for review. Can view student records.</td></tr>
+  <tr><td><b>System Administrator</b></td><td>Platform level only — registers new schools onto SIMS, provisions the first School Administrator account, and enables optional paid add-ons (e.g. SBA evidence attachments) on a school's request. School staff never need this role.</td></tr>
+</table>
+
+<!-- ============================ 2 GETTING STARTED ============================ -->
+<h1 id="s2" class="page-break">2 · Getting started — signing in</h1>
+
+<h2>2.1 Your account</h2>
+<p>You do not register yourself. Accounts are created for you:</p>
+<ul>
+  <li>The <b>School Administrator</b> account is created when the school is registered on SIMS.</li>
+  <li><b>Staff accounts</b> (Head Teacher, Deputy, HOD, additional administrators) are created by the School Administrator under <span class="menu">Staff Accounts</span>.</li>
+  <li><b>Teacher logins</b> are created by the School Administrator from the teacher's profile page.</li>
+</ul>
+<p>In each case you will be given your <b>email address</b> and a <b>temporary password</b>.
+The temporary password is shown to your administrator <b>only once</b>, at the moment the
+account is created — keep it safe until your first sign-in.</p>
+
+<h2>2.2 First sign-in</h2>
+<ol class="steps">
+  <li>Open <b>https://sims-918c4.web.app</b> in your browser.</li>
+  <li>Enter your email address and the temporary password, then press <b>Sign in</b>.</li>
+  <li>SIMS will immediately ask you to <b>set a new password</b>. You cannot use the system until you do. Enter the temporary password once more, choose a new private password, and confirm.</li>
+  <li>The app reloads and you land on your dashboard.</li>
+</ol>
+<div class="callout warn">
+  <span class="t">Keep your password private.</span> Marks, approvals and payments are recorded
+  against <i>your</i> account. There is currently no self-service “forgot password” — if you are
+  locked out, contact your School Administrator / system administrator.
+</div>
+
+<h2>2.3 Changing your password later</h2>
+<p>Click <span class="menu">Change password</span> in the header (top-right, near your name)
+at any time. You will be asked for your current password and a new one.</p>
+
+<h2>2.4 Signing out</h2>
+<p>Use the <span class="menu">Sign out</span> button in the header. Always sign out on shared
+computers.</p>
+
+<!-- ============================ 3 NAVIGATION ============================ -->
+<h1 id="s3" class="page-break">3 · Finding your way around</h1>
+
+<h2>3.1 The screen layout</h2>
+<ul>
+  <li><b>Header (top)</b> — your school's name and logo, the <b>academic context bar</b>, your name, <span class="menu">Change password</span> and <span class="menu">Sign out</span>.</li>
+  <li><b>Sidebar (left)</b> — the menu. It only shows the pages your role may use, grouped under <i>Academics</i> and <i>Administration</i>. Red number badges show items waiting for your action (e.g. sheets to review, transfer requests).</li>
+  <li><b>Main area</b> — the page you are working on.</li>
+</ul>
+
+<h2>3.2 The academic context bar — important</h2>
+<p>In the header you will find dropdowns for <b>Year</b>, <b>Term</b>, and where relevant
+<b>Form</b> and <b>Stream</b>. Many pages (Teaching, SBA Plans, SBA Marks, My Classes, Reports)
+show data <i>for the selected year and term</i>. If a page looks empty, first check that the
+correct year and term are selected. Your selection is remembered on that device.</p>
+
+<h2>3.3 Menu overview</h2>
+<table>
+  <tr><th style="width:26%">Menu item</th><th style="width:44%">Purpose</th><th>Who sees it</th></tr>
+  <tr><td>Dashboard</td><td>Role-based cockpit: KPIs, pending actions, SBA pipeline</td><td>Everyone</td></tr>
+  <tr><td>My Classes</td><td>A teacher's own classes and score sheets</td><td>Teacher, HOD, Head, Deputy</td></tr>
+  <tr><td>Students / Student Registry</td><td>Student dashboard, full searchable register</td><td>Admin, Head, Teacher</td></tr>
+  <tr><td>Academic Structure</td><td>Years, terms, forms (levels) and streams (classes)</td><td>Admin manages; staff view</td></tr>
+  <tr><td>Teachers</td><td>Teacher HR registry and profiles</td><td>Admin, Head</td></tr>
+  <tr><td>Transfers</td><td>Student transfers between SIMS schools</td><td>Admin, Head</td></tr>
+  <tr><td>Subjects</td><td>Subject catalogue (incl. SBA flag)</td><td>Admin manages; staff view</td></tr>
+  <tr><td>Teaching</td><td>Assign teachers to stream + subject per term</td><td>Admin, Head</td></tr>
+  <tr><td>SBA Plans / Marks / Review / Readiness / ECZ Export</td><td>The full SBA workflow (Section 7)</td><td>Per role — see Section 7</td></tr>
+  <tr><td>Reports</td><td>School-wide SBA compliance and completion</td><td>Admin, Head, Deputy, HOD</td></tr>
+  <tr><td>School Profile</td><td>School details, logo, grading scale</td><td>Admin</td></tr>
+  <tr><td>Staff Accounts</td><td>Create/deactivate staff logins</td><td>Admin</td></tr>
+  <tr><td>Payments</td><td>Fee register and clearance (non-government schools)</td><td>Admin, Head</td></tr>
+</table>
+
+<!-- ============================ 4 SCHOOL SETUP ============================ -->
+<h1 id="s4" class="page-break">4 · Setting up your school (School Administrator)</h1>
+<p>Do these once, in this order, before admitting students:</p>
+<div class="callout">
+  <span class="t">Setup checklist:</span> ① School Profile → ② Academic Structure (year, terms,
+  forms, streams) → ③ Subjects → ④ Register teachers → ⑤ Teaching assignments →
+  ⑥ Staff accounts → ⑦ Admit students → ⑧ SBA plans.
+</div>
+
+<h2>4.1 School profile, logo and grading scale</h2>
+<p>Open <span class="menu">School Profile</span>. Each section has its own <b>Edit</b> button:</p>
+<ul>
+  <li><b>General</b> — school name, type, ownership, principal, motto.</li>
+  <li><b>Contact</b> — phone, email, website.</li>
+  <li><b>Location</b> — province, district, physical and postal address.</li>
+  <li><b>Branding</b> — upload your school logo (image up to 2&nbsp;MB). The logo appears in the header and on printed report cards, transcripts and certificates.</li>
+  <li><b>Grading scale</b> — the mark bands (e.g. 0–49 Fail … 80–100 Excellent) used for the <i>Grade</i> column on report cards. Edit the band boundaries and labels to match your school's policy.</li>
+  <li><b>ECZ examinations</b> — the school's <b>examination centre number</b> (printed on the ECZ SBA export) and the <b>SBA submission deadline</b>. The deadline defaults to the ECZ norm of 31 January of the following year, but stays editable in case ECZ changes or extends it.</li>
+  <li><b>Registration &amp; subscription</b> — read-only; school code, EMIS number and subscription are managed at platform level.</li>
+</ul>
+
+<h2>4.2 Academic structure</h2>
+<p>Open <span class="menu">Academic Structure</span>. Work through the tabs:</p>
+<ol class="steps">
+  <li><b>Years</b> — confirm the current academic year.</li>
+  <li><b>Terms</b> — confirm the terms of the year.</li>
+  <li><b>Levels</b> — the forms offered (F1–F4).</li>
+  <li><b>Streams</b> — create a stream (class) for each form, e.g. F1&nbsp;A, F1&nbsp;B: choose the form, give a short <b>code</b> (A, B, GREEN…), a display name and a <b>capacity</b> (number of seats). The occupied count updates automatically as students are enrolled.</li>
+</ol>
+<div class="callout">
+  <span class="t">Renaming a stream code:</span> editing a stream's code moves all its
+  enrolments to the new code automatically. If the stream already has teaching assignments or
+  SBA score sheets, the rename is refused — deactivate the old stream and create a new one instead.
+</div>
+
+<h2>4.3 Subjects</h2>
+<p>Open <span class="menu">Subjects</span> and add each subject taught: code, name, department,
+the <b>forms where it is offered</b>, and whether it is <b>SBA-enabled</b> (counts for CBC
+School-Based Assessment). Only SBA-enabled subjects appear in SBA planning.</p>
+
+<h2>4.4 Staff accounts</h2>
+<p>Open <span class="menu">Staff Accounts</span> to create logins for the Head Teacher,
+Deputy Head, HODs, or additional administrators:</p>
+<ol class="steps">
+  <li>Click <b>Create account</b>, enter name, email and role.</li>
+  <li>The temporary password is displayed <b>once</b> — copy it and hand it to the staff member securely.</li>
+  <li>On first sign-in they will be forced to set their own password (Section 2.2).</li>
+</ol>
+<p>The same page lists all school accounts and lets you <b>Deactivate</b> / <b>Reactivate</b>
+them (you cannot deactivate yourself). Deactivated users can no longer sign in.</p>
+<div class="callout warn"><span class="t">Note:</span> Teacher logins are <i>not</i> created here —
+they are created from the teacher's profile page so the login is linked to the HR record (Section 5.2).</div>
+
+<!-- ============================ 5 TEACHERS ============================ -->
+<h1 id="s5" class="page-break">5 · Teachers &amp; teaching assignments</h1>
+
+<h2>5.1 Registering a teacher</h2>
+<p>Open <span class="menu">Teachers</span> → <b>Register teacher</b>. Fill in the personal and
+professional details (name, gender, contact, department, employment type, qualification, TSC
+number). On save the teacher receives a permanent employee number (e.g. <b>EMP-000001</b>).
+This creates the <i>HR record</i> only — it is not yet a login.</p>
+<p>The <b>Teacher Registry</b> lists all teachers; click one to open their profile, where an
+administrator can <b>Edit</b> details.</p>
+
+<h2>5.2 Giving a teacher a login account</h2>
+<ol class="steps">
+  <li>Open the teacher's profile (the teacher must have an <b>email address</b> on record and be active).</li>
+  <li>In the <b>Login account</b> section click <b>Create login account</b>.</li>
+  <li>The email + temporary password are shown <b>once</b> — copy and deliver them securely.</li>
+  <li>The teacher signs in, sets a new password, and from then on sees <span class="menu">My Classes</span> and <span class="menu">SBA Marks</span> for their own classes.</li>
+</ol>
+
+<h2>5.3 Teaching assignments (who teaches what)</h2>
+<p>Open <span class="menu">Teaching</span>. Check the year and term in the header context bar,
+then assign: <b>teacher + subject + stream + periods per week</b>. One teacher holds each
+(stream, subject) slot per term; assigning over an occupied slot warns you first. The
+<b>Teaching Load</b> view shows each teacher's periods, subjects, streams and workload
+percentage, so you can balance loads.</p>
+<div class="callout"><span class="t">Why this matters for SBA:</span> the teaching assignment is
+what links a teacher to a class score sheet — a teacher can only enter marks for classes
+assigned to them.</div>
+
+<!-- ============================ 6 STUDENTS ============================ -->
+<h1 id="s6" class="page-break">6 · Student management</h1>
+
+<h2>6.1 Admitting a student</h2>
+<p>Open <span class="menu">Students</span> → <b>Admit student</b> (administrators and head
+teachers). The wizard has five steps:</p>
+<ol class="steps">
+  <li><b>Personal</b> — names, gender, date of birth. The admission number is generated automatically; the EMIS number is inherited from the school.</li>
+  <li><b>Guardian</b> — parent/guardian details and contacts.</li>
+  <li><b>Placement</b> — choose the form and a <b>stream</b> from the list (remaining seats are shown; full streams are disabled).</li>
+  <li><b>Medical</b> — any medical notes.</li>
+  <li><b>Review</b> — check everything and press <b>Admit</b>.</li>
+</ol>
+<p>On success SIMS shows the generated numbers: student number (<b>STU-000123</b>), admission
+number (<b>ADM-2026-000045</b>) and guardian number (<b>GRD-000067</b>). Each learner is also
+minted a permanent <b>SIMS Learner ID</b> (<b>SL-2026-…</b>) that follows them for life, even
+across school transfers.</p>
+<div class="callout warn"><span class="t">Connectivity:</span> admission needs an internet
+connection — it reserves official numbers, which cannot be done offline.</div>
+
+<h2>6.2 Student registry</h2>
+<p><span class="menu">Student Registry</span> is the full register: search by name or number,
+filter by form, stream, status, gender or admission year, and <b>Export CSV</b> for use in
+Excel. Click any row to open the student's profile.</p>
+
+<h2>6.3 The student profile</h2>
+<p>Tabs on the profile page:</p>
+<ul>
+  <li><b>Profile</b> — personal details, learner ID, status.</li>
+  <li><b>Enrollment</b> — enrolment history (form, stream, year).</li>
+  <li><b>Guardians</b> — linked guardians; click through to a guardian's profile and their other children.</li>
+  <li><b>Documents</b> — upload birth certificates, results slips etc. (PDF or images up to 10&nbsp;MB), download or delete (delete is admin-only).</li>
+  <li><b>SBA</b> — the learner's SBA results per form year, plus the combined Forms 2+3 score (Section 7).</li>
+  <li><b>Timeline / Audit</b> — history of what happened to the record (audit is admin-only).</li>
+</ul>
+<p>The header of the profile links to the printable <b>Report card</b>, <b>Transcript</b> and,
+for administrators, <b>Transfer out</b> (Section 9).</p>
+
+<h2>6.4 Class placement banner</h2>
+<p>If a student has no class assigned (for example, after arriving by transfer), an amber
+<b>“No class assigned”</b> banner appears at the top of their profile. Administrators and head
+teachers choose a stream there (capacity-aware) to place the learner.</p>
+
+<!-- ============================ 7 SBA ============================ -->
+<h1 id="s7" class="page-break">7 · School-Based Assessment (SBA)</h1>
+
+<h2>7.1 The rules SIMS enforces</h2>
+<ul>
+  <li>SBA applies to <b>Forms 2 and 3</b>, in <b>SBA-enabled subjects</b>.</li>
+  <li>Each subject follows an <b>assessment plan</b>: a list of tasks, each with its own maximum marks.</li>
+  <li>Teachers record <b>raw scores per task</b>. SIMS computes the total out of 100: <i>(sum obtained ÷ sum maximum) × 100</i>, rounded.</li>
+  <li><b>Schools never apply the ECZ 30%/40% weighting</b> — ECZ weights centrally. SIMS exports raw marks only. (This is the most common ECZ submission error; SIMS makes it impossible.)</li>
+  <li>Once a class sheet is <b>approved</b> by school leadership, its marks are <b>frozen permanently</b> — nobody can alter them, which is what makes the results credible for export.</li>
+</ul>
+
+<h2>7.2 The workflow at a glance</h2>
+<p class="status-flow">
+  <span class="st">Plan</span><span class="arrow">→</span>
+  <span class="st">Enter marks</span><span class="arrow">→</span>
+  <span class="st">Submit</span><span class="arrow">→</span>
+  <span class="st">Moderate (HOD)</span><span class="arrow">→</span>
+  <span class="st">Approve (Head)</span><span class="arrow">→</span>
+  <span class="st">Frozen ✓</span>
+</p>
+<p>A reviewer can also <b>Return</b> a sheet for correction (it reopens for the teacher, who
+fixes and resubmits), and administrators can withdraw a submitted sheet back to draft.
+Every action is recorded in the sheet's <b>history</b> with who, when and any comment.</p>
+
+<h2>7.3 SBA Plans (HOD / Head / Admin)</h2>
+<ol class="steps">
+  <li>Open <span class="menu">SBA Plans</span>; check the year in the context bar.</li>
+  <li>Click <b>New plan</b>: pick the form (F2/F3) and an SBA-enabled subject offered at that form.</li>
+  <li>Add the tasks (name, type, maximum marks, optionally the term each task belongs to). The running total is shown.</li>
+  <li>Save as <b>draft</b>; when the plan is final, <b>Publish</b> it. Only published plans can be scored against, and a published plan's tasks are locked.</li>
+</ol>
+
+<h2>7.4 Entering marks (Teacher)</h2>
+<ol class="steps">
+  <li>Open <span class="menu">My Classes</span> — each card is one of your classes with its SBA progress. Click a class (or open <span class="menu">SBA Marks</span> and pick form, stream and subject).</li>
+  <li>The score sheet lists your class roster with a column per task. Enter whole-number scores up to each task's maximum.</li>
+  <li>Mark any learner who does not take the subject as <b>Not taking</b>.</li>
+  <li><b>Save</b> as you go — you can return any time while the sheet is in draft. The running total and percentage update live.</li>
+  <li>When every learner is complete, press <b>Submit for review</b>. The sheet locks for you and moves to the HOD.</li>
+</ol>
+<div class="callout"><span class="t">Returned sheet?</span> If a reviewer returns your sheet, it
+appears on your dashboard and My Classes with a <b>Returned</b> badge and the reviewer's comment.
+Correct the marks and submit again.</div>
+
+<h2>7.5 Moderation and approval (HOD / Deputy / Head)</h2>
+<p>Open <span class="menu">SBA Review</span>. Filter the class sheets by status. For each sheet
+you can <b>View</b> the marks, then:</p>
+<ul>
+  <li><b>Moderate</b> (HOD) — confirms departmental review of a submitted sheet.</li>
+  <li><b>Approve</b> (Head / Deputy) — final sign-off. The marks are recomputed server-side, <b>frozen</b>, and become read-only for everyone.</li>
+  <li><b>Return</b> — send back to the teacher with a comment explaining what to fix.</li>
+</ul>
+<p>Each action can carry a comment; the per-sheet <b>History</b> shows the full trail, and a
+resubmitted sheet shows its version number (v2, v3…).</p>
+
+<h2>7.6 Readiness — is the school on track?</h2>
+<p><span class="menu">SBA Readiness</span> shows one progress bar per form + subject, rolled up
+across its streams, from <i>Planning</i> through <i>Approved</i>. Use it to see at a glance which
+subjects are behind. Each class chip links to its printable class register.</p>
+
+<h2>7.7 Examination numbers and ECZ export</h2>
+<ol class="steps">
+  <li>Open <span class="menu">SBA Marks</span> group → <b>Exam numbers</b> page (<span class="route">/assessments/exam-numbers</span>): pick the form and stream, type each learner's ECZ examination number, and save (admin / head teacher).</li>
+  <li>Open <span class="menu">ECZ Export</span>: choose the form and subject. SIMS shows validation tiles — <b>Ready</b>, <b>Missing exam number</b>, <b>Not yet approved</b>.</li>
+  <li>Only learners whose marks are <b>approved (frozen)</b> and who have an exam number are exported. Fix the listed exceptions first.</li>
+  <li>Click <b>Export for ECZ</b> for the official CSV — it carries the ECZ header block (subject, form, school, examination centre number, year) followed by examination number, learner and raw mark — or <b>School copy (per-task)</b> for an internal file with every task column. You can also print the list.</li>
+</ol>
+<div class="callout"><span class="t">Deadline reminder:</span> if the SBA submission
+deadline is set in School Profile, the Export page shows how many days remain
+(ECZ normally requires scores by 31 January of the following year).</div>
+
+<h2>7.8 Evidence attachments (optional add-on)</h2>
+<p>ECZ requires schools to keep SBA evidence — marked student work, photos of
+practical work, rubrics — for at least 2 years for moderation. Schools with the
+<b>SBA evidence add-on</b> enabled see an <b>Evidence</b> panel below each class
+score sheet on the SBA Marks page:</p>
+<ul>
+  <li>Staff attach <b>photos of student work</b> (models, projects, practicals) and <b>marked written work as PDF</b> — up to 10&nbsp;MB per file. <b>Videos are not accepted.</b></li>
+  <li>Anyone on staff can view and download the files; only a School Administrator can delete them.</li>
+  <li>The evidence stays with the score sheet, so a moderator can open a class and see both the frozen marks and the work behind them.</li>
+</ul>
+<div class="callout warn"><span class="t">Availability:</span> this feature is
+<b>off by default</b>. It is enabled per school by the system administrator on
+request, and is billed in addition to the school's subscription. Ask your
+provider if your school needs it.</div>
+
+<!-- ============================ 8 PRINTING ============================ -->
+<h1 id="s8" class="page-break">8 · Report cards, transcripts &amp; printing</h1>
+
+<h2>8.1 Report card</h2>
+<p>From a student's profile click <b>Report card</b>. It shows each subject's score and band,
+the class average and range, the learner's overall average and <b>class position</b>, your
+school's <b>grade</b> per subject (from the grading scale in School Profile), remarks and
+signature blocks.</p>
+<ul>
+  <li>Use the <b>term selector</b> to print a term report (Midterm / End of term) — it computes over only that term's tasks — or the whole-year view, which uses final frozen marks where approved.</li>
+  <li>In private schools, report cards are <b>withheld</b> for learners whose fees are not cleared (Section 10).</li>
+</ul>
+
+<h2>8.2 Transcript</h2>
+<p>From the profile click <b>Transcript</b>: the learner's identity (including the SIMS Learner
+ID), full enrolment history, SBA results per form year, and the combined Forms 2+3 score out
+of 20, with a head-teacher signature block.</p>
+
+<h2>8.3 How to print or save as PDF</h2>
+<ol class="steps">
+  <li>Open the report card, transcript, certificate or class register.</li>
+  <li>Click the <b>Print</b> button on the page (or press Ctrl+P / Cmd+P).</li>
+  <li>In the browser dialog choose your printer, or choose <b>“Save as PDF”</b> as the destination to keep an electronic copy.</li>
+</ol>
+<p>The app's menus and header are removed automatically in print — you get a clean document
+with the school logo and details at the top.</p>
+
+<!-- ============================ 9 TRANSFERS ============================ -->
+<h1 id="s9" class="page-break">9 · Student transfers between SIMS schools</h1>
+<p>When a learner moves to another school that also uses SIMS, the transfer is handled digitally.
+The learner's permanent SIMS Learner ID follows them; their record and SBA history travel in a
+sealed “transfer envelope”. Schools never see each other's registers — only the envelope of the
+learner being transferred. Only administrators and head teachers can transfer students.</p>
+
+<h2>9.1 Sending a learner (the releasing school)</h2>
+<ol class="steps">
+  <li>Open the student's profile → <b>Transfer out</b> (available for active students).</li>
+  <li>Enter the receiving school's <b>school code</b> (e.g. SCH-000123 — obtain it from that school), the reason and effective date.</li>
+  <li>Send. The request is assigned a transfer reference (<b>TRF-2026-000012</b>) and appears in your <span class="menu">Transfers</span> → <b>Outgoing</b> tab.</li>
+  <li>While it is still pending you may <b>Cancel</b> it from the Outgoing tab.</li>
+</ol>
+
+<h2>9.2 Receiving a learner</h2>
+<ol class="steps">
+  <li>Open <span class="menu">Transfers</span> → <b>Incoming</b> (a red badge on the menu shows waiting requests).</li>
+  <li>Click a request to preview the envelope: identity, enrolment history, guardians, SBA record.</li>
+  <li>Choose <b>Accept</b>, <b>Reject</b>, or <b>Request info</b> (with a note back to the sender).</li>
+  <li>On acceptance SIMS automatically imports the learner: new student and guardian records in your school, the same Learner ID, and their history attached. The sending school's record is closed as “transferred”.</li>
+  <li>Open the imported student (the completed request links straight to them) and use the <b>“No class assigned”</b> banner to place them in a stream (Section 6.4).</li>
+</ol>
+
+<h2>9.3 Transfer certificate</h2>
+<p>After the transfer, the releasing school can print a <b>Transfer certificate</b> from the
+(now transferred) student's profile — identity, admission and leaving dates, destination school
+and the TRF reference, with a signature block.</p>
+
+<!-- ============================ 10 FEES ============================ -->
+<h1 id="s10" class="page-break">10 · Fees &amp; payments (private and grant-aided schools)</h1>
+<p>Open <span class="menu">Payments</span> (administrators and head teachers; the page is not
+shown in government schools, where education is free by law).</p>
+<ul>
+  <li><b>Record a payment</b> — learner, amount (Kwacha), reference/note. Payments form an append-only ledger; to correct a mistake, record an adjustment (negative amount) rather than editing history.</li>
+  <li><b>By-learner view</b> — every active learner with their total paid; click a learner to see their ledger.</li>
+  <li><b>Cleared toggle</b> — mark a learner's fees as cleared for the year (also usable for bursaries with no payment records).</li>
+  <li><b>Export CSV</b> — for reconciliation in Excel.</li>
+</ul>
+<div class="callout warn">
+  <span class="t">Report-card gate (private schools):</span> a learner's report card is withheld
+  until they are marked cleared. Teachers cannot open the card at all; administrators and head
+  teachers see it with a “withheld” warning banner. Grant-aided schools keep the fee register
+  without any report-card gating.
+</div>
+
+<!-- ============================ 11 REPORTS ============================ -->
+<h1 id="s11">11 · Reports &amp; compliance</h1>
+<p><span class="menu">Reports</span> is the leadership view for the current year:</p>
+<ul>
+  <li><b>KPIs</b> — SBA classes, how many are fully approved, awaiting approval, still in marks entry, or not yet planned; Form 2/3 learner counts.</li>
+  <li><b>Compliance by subject</b> — a progress bar and stage badge per subject, sorted least-ready first, so problem subjects surface at the top.</li>
+  <li><b>By-form completion</b> summary.</li>
+  <li><b>Export CSV / Print</b> for meetings and record-keeping.</li>
+</ul>
+<p>The <b>Dashboard</b> gives leadership a daily cockpit: learner/teacher counts, SBA pipeline,
+and a “needs attention” panel that mirrors the red menu badges.</p>
+
+<!-- ============================ 12 OFFLINE ============================ -->
+<h1 id="s12">12 · Working offline</h1>
+<p>SIMS caches data on your device, so brief internet drops are tolerated:</p>
+<table>
+  <tr><th style="width:55%">Works offline</th><th>Needs a connection</th></tr>
+  <tr><td>Viewing students, teachers, classes and previously loaded pages</td><td>Signing in</td></tr>
+  <tr><td>Entering and saving SBA marks for a sheet you have already opened</td><td>Admitting a student (number reservation)</td></tr>
+  <tr><td></td><td>Submitting a sheet for review; moderation/approval</td></tr>
+  <tr><td></td><td>Creating accounts, transfers, uploads, exports</td></tr>
+</table>
+<p>Offline changes sync automatically when the connection returns. If marks were approved while
+you were offline, your late edits will be rejected — approved marks stay frozen.</p>
+
+<!-- ============================ 13 TESTING TOOLS ============================ -->
+<h1 id="s13">13 · Testing tools (demo data)</h1>
+<div class="callout warn"><span class="t">For the testing phase only.</span> These pages create
+<b>real records</b> in your school. Use them only in a test school, never in a school holding
+real learner data.</div>
+<ul>
+  <li><span class="menu">SBA Demo Data</span> (<span class="route">/dev/seed</span>, administrators) — one click sets up a demo Mathematics F2 class: stream, learners, a teacher, a teaching assignment and exam numbers, ready for walking through the whole SBA flow.</li>
+  <li><span class="menu">Bulk Admit</span> (<span class="route">/dev/bulk-admit</span>, administrators) — admits a batch of test learners quickly.</li>
+</ul>
+
+<!-- ============================ 14 FAQ ============================ -->
+<h1 id="s14" class="page-break">14 · Troubleshooting &amp; FAQ</h1>
+<table>
+  <tr><th style="width:38%">Problem</th><th>What to do</th></tr>
+  <tr><td>I can't see a menu item this manual describes.</td><td>Your role does not include it (Section 1.1). Ask your School Administrator if you believe your role is wrong.</td></tr>
+  <tr><td>A page looks empty (no classes, no plans…).</td><td>Check the <b>Year / Term</b> selectors in the header context bar — you may be looking at the wrong term (Section 3.2).</td></tr>
+  <tr><td>My role was changed but nothing happened.</td><td>Sign out and sign in again to pick up the new permissions.</td></tr>
+  <tr><td>I forgot my password.</td><td>There is no self-service reset yet — contact your School Administrator / system administrator.</td></tr>
+  <tr><td>The temporary password was lost before first sign-in.</td><td>It cannot be shown again. The administrator should contact the system administrator to re-issue the account.</td></tr>
+  <tr><td>I can see a score sheet but cannot edit it.</td><td>Either the sheet has been submitted/approved (locked), or the class is not assigned to you (read-only). Check its status and your teaching assignment.</td></tr>
+  <tr><td>Submit button is disabled on my score sheet.</td><td>Every learner needs a score for every task (or a “Not taking” mark), and unsaved changes must be saved first.</td></tr>
+  <tr><td>Marks are wrong on an <b>approved</b> sheet.</td><td>Approved marks are frozen by design and cannot be edited by anyone at the school. Raise the dispute with school leadership; the sheet's history shows who approved and when.</td></tr>
+  <tr><td>A learner is missing from the ECZ export.</td><td>The export page tells you why: marks not yet approved, or examination number missing. Fix and re-export.</td></tr>
+  <tr><td>Report card won't open for a learner (private school).</td><td>The learner's fees are not marked cleared — see Payments (Section 10).</td></tr>
+  <tr><td>“Permission denied” errors appear.</td><td>You tried an action your role doesn't allow, or your session is stale — sign out and in. If it persists, report it: it may be a bug worth logging during testing.</td></tr>
+  <tr><td>The stream I want to admit into is greyed out.</td><td>It is full. Increase its capacity in Academic Structure or choose another stream.</td></tr>
+</table>
+
+<h2>Reporting problems during the testing phase</h2>
+<p>SIMS is under active testing. When something behaves unexpectedly, please note: <b>who you
+were signed in as (role), the page, what you did, what you expected, and what happened</b> —
+a screenshot helps greatly — and send it to the project team. Your feedback drives the next
+release.</p>
+
+<p style="margin-top:12mm; color:var(--muted); font-size:9pt; text-align:center;">
+SIMS · School Information Management System — User Manual v1.0 · July 2026 · https://sims-918c4.web.app
+</p>
+
+</body>
+</html>
