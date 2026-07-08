@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useStreams } from "../../academic/hooks/streamQueries";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
@@ -36,6 +37,11 @@ export default function SbaExportPage() {
   const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
   const canExport = EXPORTER_ROLES.includes(profile?.role ?? "");
+
+  // Fresh read so a centre number / deadline saved on the School Profile
+  // shows here without a re-login (the session school is cached at login).
+  const freshSchool = useSchool(schoolCode);
+  const schoolInfo = freshSchool.data ?? school;
 
   const { academicYear, academicYearId } = useAcademicContext();
   const [form, setForm] = useState("");
@@ -121,8 +127,16 @@ export default function SbaExportPage() {
 
   // Two exports: ECZ wants the raw mark only; the school's own copy
   // carries every task score plus obtained/max totals.
+  // Header block per the ECZ submission format:
+  // Subject / Form / School / Centre Number / Year, then the score rows.
   function exportEczCsv() {
     const rows = [
+      ["SUBJECT:", subjectName(subjectId)],
+      ["FORM:", form],
+      ["SCHOOL:", schoolInfo?.name ?? ""],
+      ["CENTRE NUMBER:", schoolInfo?.examCentreNumber ?? ""],
+      ["YEAR:", academicYear?.name ?? academicYearId ?? ""],
+      [],
       ["Examination Number", "Learner", "Raw Mark"],
       ...readyRows.map((r) => [r.examNo, r.name, String(r.raw ?? "")]),
     ];
@@ -168,6 +182,24 @@ export default function SbaExportPage() {
           <p className="mt-1 text-gray-600">{school?.name}</p>
         )}
       </div>
+
+      {(schoolInfo?.sbaSubmissionDeadline || !schoolInfo?.examCentreNumber) && (
+        <div className="mt-4 space-y-2">
+          {schoolInfo?.sbaSubmissionDeadline && (
+            <DeadlineBanner
+              key={schoolInfo.sbaSubmissionDeadline}
+              iso={schoolInfo.sbaSubmissionDeadline}
+            />
+          )}
+          {!schoolInfo?.examCentreNumber && (
+            <p className="rounded bg-amber-50 px-4 py-2 text-sm text-amber-800">
+              No examination centre number is set — it will be blank on the
+              ECZ export. A school administrator can set it on the School
+              Profile page (ECZ examinations).
+            </p>
+          )}
+        </div>
+      )}
 
       {!academicYearId && (
         <p className="mt-6 text-gray-600">
@@ -306,6 +338,38 @@ export default function SbaExportPage() {
         </>
       )}
     </div>
+  );
+}
+
+function DeadlineBanner({ iso }: { iso: string }) {
+  // Lazy initializer: "today" and the locale-formatted date are captured
+  // once per mount (the parent keys this component by the iso date).
+  const [info] = useState(() => {
+    const deadline = new Date(`${iso}T23:59:59`);
+    if (Number.isNaN(deadline.getTime())) return null;
+    return {
+      days: Math.ceil((deadline.getTime() - Date.now()) / 86_400_000),
+      text: deadline.toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    };
+  });
+  if (!info) return null;
+  const { days, text } = info;
+  const tone =
+    days < 0
+      ? "bg-red-50 text-red-800"
+      : days <= 30
+        ? "bg-amber-50 text-amber-800"
+        : "bg-slate-50 text-slate-700";
+  return (
+    <p className={`rounded px-4 py-2 text-sm ${tone}`}>
+      {days < 0
+        ? `The ECZ SBA submission deadline (${text}) has passed.`
+        : `SBA scores are due to ECZ by ${text} (${days} day${days === 1 ? "" : "s"} left).`}
+    </p>
   );
 }
 

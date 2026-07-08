@@ -14,8 +14,9 @@
       // A school_admin may edit their school's descriptive fields
       // (name, location, contact) but NOT the fields that represent
       // entitlement or lifecycle - subscription tier, status,
-      // provisioning state, and identity codes stay super-admin-only,
-      // or a school_admin could self-grant Enterprise / un-suspend.
+      // provisioning state, identity codes, and the paid add-on
+      // `features` map stay super-admin-only, or a school_admin could
+      // self-grant Enterprise / un-suspend / enable a billed feature.
       allow update: if isSuperAdmin()
         || (
           belongsToSchool(schoolId)
@@ -25,6 +26,7 @@
           && request.resource.data.subscription == resource.data.subscription
           && request.resource.data.status == resource.data.status
           && request.resource.data.provisioning == resource.data.provisioning
+          && request.resource.data.get('features', {}) == resource.data.get('features', {})
         );
 
       allow delete: if false;

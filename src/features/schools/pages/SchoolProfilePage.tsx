@@ -69,6 +69,12 @@ function SchoolProfileForm({
   const [district, setDistrict] = useState(school.location?.district ?? "");
   const [address, setAddress] = useState(school.location?.address ?? "");
   const [postalAddress, setPostalAddress] = useState(school.postalAddress ?? "");
+  const [examCentreNumber, setExamCentreNumber] = useState(
+    school.examCentreNumber ?? ""
+  );
+  const [sbaDeadline, setSbaDeadline] = useState(
+    school.sbaSubmissionDeadline ?? ""
+  );
   const [scale, setScale] = useState<GradingBand[]>(
     school.gradingScale?.length ? school.gradingScale : DEFAULT_GRADING_SCALE
   );
@@ -88,6 +94,8 @@ function SchoolProfileForm({
         address: address.trim(),
       },
       contact: { phone: phone.trim(), email: email.trim() },
+      examCentreNumber: examCentreNumber.trim(),
+      sbaSubmissionDeadline: sbaDeadline,
       gradingScale: [...scale]
         .filter((b) => b.label.trim())
         .map((b) => ({
@@ -244,6 +252,42 @@ function SchoolProfileForm({
         <Text label="District" value={district} onChange={setDistrict} ro={ro} />
         <Text label="Physical address" value={address} onChange={setAddress} ro={ro} />
         <Text label="Postal address" value={postalAddress} onChange={setPostalAddress} ro={ro} />
+      </Section>
+
+      <Section title="ECZ examinations">
+        <Text
+          label="Examination centre number"
+          value={examCentreNumber}
+          onChange={setExamCentreNumber}
+          ro={ro}
+        />
+        <div>
+          <label className="block text-sm text-gray-600">
+            SBA submission deadline
+          </label>
+          <input
+            type="date"
+            value={sbaDeadline}
+            onChange={(e) => setSbaDeadline(e.target.value)}
+            disabled={ro}
+            className="mt-1 w-full rounded border p-2 disabled:bg-slate-50 disabled:text-gray-500"
+          />
+          {!ro && (
+            <button
+              onClick={() =>
+                setSbaDeadline(`${new Date().getFullYear() + 1}-01-31`)
+              }
+              className="mt-1 text-xs text-blue-700 hover:underline"
+            >
+              Set to 31 Jan {new Date().getFullYear() + 1} (ECZ norm)
+            </button>
+          )}
+        </div>
+        <p className="col-span-full text-xs text-gray-500">
+          The centre number is printed on the ECZ SBA score export. ECZ
+          normally requires SBA scores by 31 January of the following year —
+          the date is kept editable here in case it is changed or extended.
+        </p>
       </Section>
 
       <Section title="Registration & subscription">

@@ -234,8 +234,9 @@ service cloud.firestore {
       // A school_admin may edit their school's descriptive fields
       // (name, location, contact) but NOT the fields that represent
       // entitlement or lifecycle - subscription tier, status,
-      // provisioning state, and identity codes stay super-admin-only,
-      // or a school_admin could self-grant Enterprise / un-suspend.
+      // provisioning state, identity codes, and the paid add-on
+      // `features` map stay super-admin-only, or a school_admin could
+      // self-grant Enterprise / un-suspend / enable a billed feature.
       allow update: if isSuperAdmin()
         || (
           belongsToSchool(schoolId)
@@ -245,6 +246,7 @@ service cloud.firestore {
           && request.resource.data.subscription == resource.data.subscription
           && request.resource.data.status == resource.data.status
           && request.resource.data.provisioning == resource.data.provisioning
+          && request.resource.data.get('features', {}) == resource.data.get('features', {})
         );
 
       allow delete: if false;
@@ -685,6 +687,30 @@ service cloud.firestore {
            );
 
       allow delete: if false;
+    }
+
+    // SBA evidence attachments: photos of learner work and marked written
+    // work (PDF) attached to a class score sheet - the ECZ moderation
+    // evidence (retained >= 2 years). Photos + written work ONLY, no
+    // video (cost control). PAID ADD-ON: school.features.sbaEvidence
+    // gates the UI; these rules stay get()-free (Sprint 6.4 decision), so
+    // the entitlement is enforced by the flag being super-admin-only
+    // writable plus the client gate - same accepted posture as the
+    // government-school payments page. Metadata only; the files live in
+    // Storage under schools/{code}/sbaEvidence/ (see storage.rules).
+    match /schools/{schoolId}/sbaSubmissions/{submissionId}/evidence/{evidenceId} {
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
+      allow create: if belongsToSchool(schoolId)
+        && isStaff()
+        && request.resource.data.uploadedByUid == request.auth.uid
+        && request.resource.data.fileName is string
+        && request.resource.data.storagePath is string
+        && request.resource.data.size is int
+        && request.resource.data.size <= 10 * 1024 * 1024
+        && (request.resource.data.contentType.matches('image/.*')
+            || request.resource.data.contentType == 'application/pdf');
+      allow update: if false;
+      allow delete: if belongsToSchool(schoolId) && isSchoolAdmin();
     }
 
     // ===== 70_reports.rules =====

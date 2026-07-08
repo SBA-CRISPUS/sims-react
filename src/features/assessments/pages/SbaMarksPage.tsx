@@ -17,6 +17,7 @@ import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
 import { sbaSubmissionId } from "../../../domain/assessments/SbaSubmission";
 import type { SbaSubmissionMeta } from "../../../domain/assessments/SbaSubmission";
 import MarksGrid from "../components/MarksGrid";
+import SbaEvidencePanel from "../components/SbaEvidencePanel";
 
 const MANAGER_ROLES = ["school_admin", "head_teacher", "hod"];
 
@@ -221,6 +222,16 @@ export default function SbaMarksPage() {
               });
             }}
           />
+
+          {/* Evidence add-on: renders only when the school's
+              features.sbaEvidence entitlement is enabled. Needs a saved
+              sheet (the metadata lives under the submission doc). */}
+          {schoolCode && submissionId && submission.data && (
+            <SbaEvidencePanel
+              schoolCode={schoolCode}
+              submissionId={submissionId}
+            />
+          )}
         </div>
       )}
     </div>

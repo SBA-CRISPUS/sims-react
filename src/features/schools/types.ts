@@ -25,6 +25,13 @@ export function gradeFor(score: number, scale: GradingBand[]): string {
   );
 }
 
+/** Optional paid add-ons, enabled per school by the system administrator. */
+export interface SchoolFeatures {
+  /** SBA evidence attachments: photos of learner work + written work (PDF)
+   * on class score sheets, for the ECZ 2-year evidence-retention rule. */
+  sbaEvidence?: boolean;
+}
+
 export type SchoolStatus =
   | "active"
   | "inactive"
@@ -83,6 +90,21 @@ export interface School {
   /** The school's own grading scale, printed on report cards so parents
    * can read the scores. Falls back to DEFAULT_GRADING_SCALE. */
   gradingScale?: GradingBand[];
+
+  /** ECZ examination centre number, printed in the header block of the
+   * SBA score submission (ECZ export). Maintained on the School Profile. */
+  examCentreNumber?: string;
+
+  /** Deadline for submitting SBA scores to ECZ (ISO yyyy-mm-dd). The norm
+   * is 31 January of the following year, but it is kept editable so the
+   * school can track changes or extensions announced by ECZ. */
+  sbaSubmissionDeadline?: string;
+
+  /** Paid add-on switches. ENTITLEMENT data: only the platform's system
+   * administrator flips these (on request, billed on top of the
+   * subscription) - the school-admin update rule freezes the whole map,
+   * like subscription/status. Absent flag = feature off. */
+  features?: SchoolFeatures;
 
   subscription: SubscriptionPlan;
 
