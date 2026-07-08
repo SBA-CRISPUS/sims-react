@@ -140,7 +140,7 @@ export default function AdminDashboard() {
         <Kpi
           label="Actions pending"
           value={String(pendingActions)}
-          to={pendingActions > 0 ? "/assessments/review" : "/reports"}
+          to="/tasks"
           accent={pendingActions > 0}
         />
       </div>
@@ -148,7 +148,12 @@ export default function AdminDashboard() {
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Needs attention */}
         <div className="rounded-2xl bg-white p-6 shadow">
-          <h2 className="font-semibold">Needs your attention</h2>
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-semibold">Needs your attention</h2>
+            <Link to="/tasks" className="text-sm text-blue-700 hover:underline">
+              All tasks →
+            </Link>
+          </div>
           <div className="mt-3 space-y-2">
             <ActionRow
               count={actions["/transfers"] ?? 0}

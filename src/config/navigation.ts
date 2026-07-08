@@ -17,6 +17,18 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    title: "My Tasks",
+    path: "/tasks",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "deputy_head",
+      "hod",
+      "teacher",
+    ],
+  },
+
+  {
     title: "Schools",
     path: "/schools",
     group: "Administration",

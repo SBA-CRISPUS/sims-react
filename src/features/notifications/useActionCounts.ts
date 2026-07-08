@@ -18,6 +18,9 @@ import { useSbaSubmissions } from "../assessments/hooks/sbaMarksQueries";
  *   or approver must move them).
  * - /assessments/marks: the teacher's OWN returned sheets (must correct
  *   and resubmit).
+ * - /tasks: the sum of the above - the My Tasks hub badge. (The hub page
+ *   itself surfaces more, e.g. missing exam numbers, but those need
+ *   heavier reads than a sidebar rendered on every page should do.)
  */
 export function useActionCounts(): Record<string, number> {
   const { profile, school } = useAuth();
@@ -62,5 +65,6 @@ export function useActionCounts(): Record<string, number> {
     "/transfers": transfers,
     "/assessments/review": review,
     "/assessments/marks": returned,
+    "/tasks": transfers + review + returned,
   };
 }

@@ -37,6 +37,7 @@ import {
 } from "../features/assessments";
 import { SbaSeedPage, BulkAdmitPage } from "../features/dev";
 import { MyClassesPage } from "../features/myclasses";
+import MyTasksPage from "../features/tasks/MyTasksPage";
 import { ReportsPage } from "../features/reports";
 import { TransfersPage } from "../features/transfers";
 import StaffAccountsPage from "../features/staff/pages/StaffAccountsPage";
@@ -73,6 +74,23 @@ export function AppRouter() {
           element={
             <AppShell roles={["super_admin"]}>
               <CreateSchoolPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/tasks"
+          element={
+            <AppShell
+              roles={[
+                "school_admin",
+                "head_teacher",
+                "deputy_head",
+                "hod",
+                "teacher",
+              ]}
+            >
+              <MyTasksPage />
             </AppShell>
           }
         />

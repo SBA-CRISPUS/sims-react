@@ -172,7 +172,12 @@ export default function TeacherDashboard() {
 
           {notifications.length > 0 && (
             <div className="mt-6 rounded-lg bg-white p-5 shadow">
-              <p className="font-medium">What needs your attention</p>
+              <div className="flex items-baseline justify-between">
+                <p className="font-medium">What needs your attention</p>
+                <Link to="/tasks" className="text-sm text-blue-700 hover:underline">
+                  All tasks →
+                </Link>
+              </div>
               <ul className="mt-2 space-y-1 text-sm text-gray-700">
                 {notifications.map((n, i) => (
                   <li key={i}>• {n}</li>
