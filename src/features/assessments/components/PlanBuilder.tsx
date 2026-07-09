@@ -208,7 +208,7 @@ export default function PlanBuilder({
         </div>
 
         {tasks.length > 0 && (
-          <table className="mt-2 w-full text-left text-sm">
+          <div className="overflow-x-auto print:overflow-visible"><table className="mt-2 w-full text-left text-sm">
             <thead className="text-gray-500">
               <tr>
                 <th className="py-1 pr-2">Name</th>
@@ -283,7 +283,7 @@ export default function PlanBuilder({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
 
         <button

@@ -97,7 +97,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
       {combinedRows.length > 0 && (
         <div>
           <h3 className="mb-2 font-semibold">Combined SBA (Forms 2 + 3)</h3>
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
             <thead className="border-b bg-slate-50 text-gray-500">
               <tr>
                 <th className="p-2">Subject</th>
@@ -118,7 +118,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
@@ -133,7 +133,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
 
 function ResultTable({ rows }: { rows: Row[] }) {
   return (
-    <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
       <thead className="border-b bg-slate-50 text-gray-500">
         <tr>
           <th className="p-2">Subject</th>
@@ -162,6 +162,6 @@ function ResultTable({ rows }: { rows: Row[] }) {
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }

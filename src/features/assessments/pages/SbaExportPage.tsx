@@ -294,7 +294,7 @@ export default function SbaExportPage() {
             {rows.length === 0 ? (
               <p className="p-6 text-gray-500">No marks for this selection.</p>
             ) : (
-              <table className="w-full text-left text-sm">
+              <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                 <thead className="border-b bg-slate-50 text-gray-500">
                   <tr>
                     <th className="p-3">Exam No.</th>
@@ -325,7 +325,7 @@ export default function SbaExportPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
             <p className="p-3 text-xs text-gray-500">
               Only approved (frozen) students with an examination number are

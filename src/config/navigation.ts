@@ -1,5 +1,9 @@
 import type { NavigationItem } from "../types/navigation";
 
+// Order matters: the sidebar renders items in this order and emits a
+// section heading whenever `group` changes. Ungrouped items sit at the
+// top (the everyday landing pages), then Academics, Assessments (the
+// SBA workflow in pipeline order), and Administration.
 export const navigation: NavigationItem[] = [
   {
     title: "Dashboard",
@@ -26,18 +30,6 @@ export const navigation: NavigationItem[] = [
       "hod",
       "teacher",
     ],
-  },
-
-  {
-    title: "Schools",
-    path: "/schools",
-    group: "Administration",
-    roles: ["super_admin"],
-  },
-  {
-  title: "Register School",
-  path: "/schools/new",
-  roles: ["super_admin"],
   },
 
   {
@@ -81,7 +73,16 @@ export const navigation: NavigationItem[] = [
       "teacher",
     ],
   },
-
+  {
+    title: "Subjects",
+    path: "/subjects",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "teacher",
+    ],
+  },
   {
     title: "Teachers",
     path: "/teachers",
@@ -91,7 +92,15 @@ export const navigation: NavigationItem[] = [
       "head_teacher",
     ],
   },
-
+  {
+    title: "Teaching",
+    path: "/teaching",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+    ],
+  },
   {
     title: "Transfers",
     path: "/transfers",
@@ -103,41 +112,19 @@ export const navigation: NavigationItem[] = [
   },
 
   {
-    title: "Subjects",
-    path: "/subjects",
-    group: "Academics",
-    roles: [
-      "school_admin",
-      "head_teacher",
-      "teacher",
-    ],
-  },
-
-  {
-    title: "Teaching",
-    path: "/teaching",
-    group: "Academics",
-    roles: [
-      "school_admin",
-      "head_teacher",
-    ],
-  },
-
-  {
     title: "SBA Plans",
     path: "/assessments/plans",
-    group: "Academics",
+    group: "Assessments",
     roles: [
       "school_admin",
       "head_teacher",
       "hod",
     ],
   },
-
   {
     title: "SBA Marks",
     path: "/assessments/marks",
-    group: "Academics",
+    group: "Assessments",
     roles: [
       "school_admin",
       "head_teacher",
@@ -145,11 +132,10 @@ export const navigation: NavigationItem[] = [
       "teacher",
     ],
   },
-
   {
     title: "SBA Review",
     path: "/assessments/review",
-    group: "Academics",
+    group: "Assessments",
     roles: [
       "school_admin",
       "head_teacher",
@@ -157,11 +143,10 @@ export const navigation: NavigationItem[] = [
       "hod",
     ],
   },
-
   {
     title: "SBA Readiness",
     path: "/assessments/readiness",
-    group: "Academics",
+    group: "Assessments",
     roles: [
       "school_admin",
       "head_teacher",
@@ -169,11 +154,10 @@ export const navigation: NavigationItem[] = [
       "hod",
     ],
   },
-
   {
     title: "ECZ Export",
     path: "/assessments/export",
-    group: "Academics",
+    group: "Assessments",
     roles: [
       "school_admin",
       "head_teacher",
@@ -184,6 +168,7 @@ export const navigation: NavigationItem[] = [
   {
     title: "Reports",
     path: "/reports",
+    group: "Administration",
     roles: [
       "school_admin",
       "head_teacher",
@@ -191,21 +176,18 @@ export const navigation: NavigationItem[] = [
       "hod",
     ],
   },
-
   {
     title: "School Profile",
     path: "/school",
     group: "Administration",
     roles: ["school_admin"],
   },
-
   {
     title: "Staff Accounts",
     path: "/staff",
     group: "Administration",
     roles: ["school_admin"],
   },
-
   {
     title: "Payments",
     path: "/finance/payments",
@@ -215,16 +197,15 @@ export const navigation: NavigationItem[] = [
   },
 
   {
-    title: "SBA Demo Data",
-    path: "/dev/seed",
+    title: "Schools",
+    path: "/schools",
     group: "Administration",
-    roles: ["school_admin"],
+    roles: ["super_admin"],
   },
-
   {
-    title: "Bulk Admit",
-    path: "/dev/bulk-admit",
+    title: "Register School",
+    path: "/schools/new",
     group: "Administration",
-    roles: ["school_admin"],
+    roles: ["super_admin"],
   },
 ];

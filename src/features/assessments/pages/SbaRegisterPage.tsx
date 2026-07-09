@@ -101,7 +101,7 @@ export default function SbaRegisterPage() {
             </p>
           )}
           {(roster.data ?? []).length > 0 && (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
               <thead className="border-b bg-slate-50 text-gray-500">
                 <tr>
                   <th className="p-3">Exam No.</th>
@@ -138,7 +138,7 @@ export default function SbaRegisterPage() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
           <p className="p-3 text-xs text-gray-500">
             Raw marks (out of the plan's {plan.totalMaxMarks}) normalised to

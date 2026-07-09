@@ -296,7 +296,7 @@ function SnapshotPreview({ request }: { request: TransferRequest }) {
         {s.sba.length === 0 ? (
           <p className="text-gray-500">No SBA marks recorded.</p>
         ) : (
-          <table className="mt-1 w-full text-left">
+          <div className="overflow-x-auto print:overflow-visible"><table className="mt-1 w-full text-left">
             <thead className="text-gray-500">
               <tr>
                 <th className="pr-4">Form</th>
@@ -315,7 +315,7 @@ function SnapshotPreview({ request }: { request: TransferRequest }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

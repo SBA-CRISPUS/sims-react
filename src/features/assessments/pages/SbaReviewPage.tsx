@@ -157,7 +157,7 @@ export default function SbaReviewPage() {
               <p className="p-6 text-gray-500">No submissions in this view.</p>
             )}
             {rows.length > 0 && (
-              <table className="w-full text-left text-sm">
+              <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                 <thead className="border-b bg-slate-50 text-gray-500">
                   <tr>
                     <th className="p-3">Subject</th>
@@ -204,7 +204,7 @@ export default function SbaReviewPage() {
                     />
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </div>
 

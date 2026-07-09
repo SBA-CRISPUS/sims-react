@@ -35,7 +35,6 @@ import {
   SbaExamNumbersPage,
   SbaExportPage,
 } from "../features/assessments";
-import { SbaSeedPage, BulkAdmitPage } from "../features/dev";
 import { MyClassesPage } from "../features/myclasses";
 import MyTasksPage from "../features/tasks/MyTasksPage";
 import { ReportsPage } from "../features/reports";
@@ -280,24 +279,6 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <TransfersPage />
-            </AppShell>
-          }
-        />
-
-        <Route
-          path="/dev/seed"
-          element={
-            <AppShell roles={["school_admin"]}>
-              <SbaSeedPage />
-            </AppShell>
-          }
-        />
-
-        <Route
-          path="/dev/bulk-admit"
-          element={
-            <AppShell roles={["school_admin"]}>
-              <BulkAdmitPage />
             </AppShell>
           }
         />

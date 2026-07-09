@@ -380,7 +380,7 @@ export default function ReportCardPage() {
               .
             </p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
               <thead className="border-b text-gray-500">
                 <tr>
                   <th className="py-1">Subject</th>
@@ -409,7 +409,7 @@ export default function ReportCardPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
 
           {/* School calculations */}

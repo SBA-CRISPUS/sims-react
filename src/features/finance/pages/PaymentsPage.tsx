@@ -310,7 +310,7 @@ export default function PaymentsPage() {
               {students.length === 0 ? (
                 <p className="p-6 text-sm text-gray-500">No active students.</p>
               ) : (
-                <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                   <thead className="border-b bg-slate-50 text-gray-500">
                     <tr>
                       <th className="p-3">Student</th>
@@ -381,7 +381,7 @@ export default function PaymentsPage() {
                         </tr>
                       ))}
                   </tbody>
-                </table>
+                </table></div>
               )}
               <p className="p-3 text-xs text-gray-500">
                 Unchecked students' report cards are withheld (teachers can't
@@ -400,7 +400,7 @@ export default function PaymentsPage() {
               ) : ledger.length === 0 ? (
                 <p className="p-6 text-sm text-gray-500">No entries.</p>
               ) : (
-                <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                   <thead className="border-b bg-slate-50 text-gray-500">
                     <tr>
                       <th className="p-3">Date</th>
@@ -433,7 +433,7 @@ export default function PaymentsPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               )}
               {ledger.length > 50 && (
                 <p className="p-3 text-xs text-gray-500">

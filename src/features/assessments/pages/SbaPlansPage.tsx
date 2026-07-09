@@ -115,7 +115,7 @@ export default function SbaPlansPage() {
             </p>
           )}
           {yearPlans.length > 0 && (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
               <thead className="border-b bg-slate-50 text-gray-500">
                 <tr>
                   <th className="p-3">Form</th>
@@ -207,7 +207,7 @@ export default function SbaPlansPage() {
                   )
                 )}
               </tbody>
-            </table>
+            </table></div>
           )}
         </div>
       )}

@@ -31,7 +31,7 @@ export default function AuditTab({ schoolCode, studentNumber }: TabProps) {
   }
 
   return (
-    <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
       <thead className="border-b bg-slate-50 text-gray-500">
         <tr>
           <th className="p-3">When</th>
@@ -48,6 +48,6 @@ export default function AuditTab({ schoolCode, studentNumber }: TabProps) {
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }

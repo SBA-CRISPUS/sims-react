@@ -58,7 +58,7 @@ export default function TeacherRegistryPage() {
           <p className="p-6 text-gray-500">No teachers found.</p>
         )}
         {rows.length > 0 && (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
             <thead className="border-b bg-slate-50 text-gray-500">
               <tr>
                 <th className="p-3">Employee No.</th>
@@ -86,7 +86,7 @@ export default function TeacherRegistryPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

@@ -122,7 +122,7 @@ export default function TeachingAssignmentsPage() {
             </p>
           )}
           {rows.length > 0 && (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
               <thead className="border-b bg-slate-50 text-gray-500">
                 <tr>
                   <th className="p-3">Teacher</th>
@@ -164,7 +164,7 @@ export default function TeachingAssignmentsPage() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </div>
       )}

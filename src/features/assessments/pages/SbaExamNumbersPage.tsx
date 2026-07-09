@@ -119,7 +119,7 @@ export default function SbaExamNumbersPage() {
           )}
           {(roster.data ?? []).length > 0 && (
             <>
-              <table className="w-full text-left text-sm">
+              <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                 <thead className="border-b bg-slate-50 text-gray-500">
                   <tr>
                     <th className="p-3">Student No.</th>
@@ -149,7 +149,7 @@ export default function SbaExamNumbersPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
               {canManage && (
                 <div className="flex items-center gap-3 border-t p-4">
                   <button

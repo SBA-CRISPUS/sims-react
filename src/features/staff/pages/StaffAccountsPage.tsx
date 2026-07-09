@@ -234,7 +234,7 @@ export default function StaffAccountsPage() {
         ) : (users.data ?? []).length === 0 ? (
           <p className="p-6 text-gray-500">No accounts yet.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
             <thead className="border-b bg-slate-50 text-gray-500">
               <tr>
                 <th className="p-3">Name</th>
@@ -294,7 +294,7 @@ export default function StaffAccountsPage() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         )}
         <p className="p-3 text-xs text-gray-500">
           Deactivating an account disables its sign-in and revokes its

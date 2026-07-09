@@ -163,7 +163,7 @@ export default function TranscriptPage() {
           {(enrollments.data ?? []).length === 0 ? (
             <p className="text-sm text-gray-500">None recorded.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
               <thead className="border-b text-gray-500">
                 <tr>
                   <th className="py-1">Year</th>
@@ -186,7 +186,7 @@ export default function TranscriptPage() {
                     </tr>
                   ))}
               </tbody>
-            </table>
+            </table></div>
           )}
 
           {/* SBA results */}
@@ -199,7 +199,7 @@ export default function TranscriptPage() {
                 <p className="text-sm font-semibold">
                   {LEVEL_LABEL[level] ?? level}
                 </p>
-                <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                   <thead className="border-b text-gray-500">
                     <tr>
                       <th className="py-1">Subject</th>
@@ -220,7 +220,7 @@ export default function TranscriptPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             ))
           )}
@@ -228,7 +228,7 @@ export default function TranscriptPage() {
           {combinedRows.length > 0 && (
             <div className="mb-4">
               <p className="text-sm font-semibold">Combined SBA (Forms 2 + 3)</p>
-              <table className="w-full text-left text-sm">
+              <div className="overflow-x-auto print:overflow-visible"><table className="w-full text-left text-sm">
                 <thead className="border-b text-gray-500">
                   <tr>
                     <th className="py-1">Subject</th>
@@ -253,7 +253,7 @@ export default function TranscriptPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
