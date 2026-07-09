@@ -20,6 +20,33 @@ export function useDepartments(schoolCode?: string) {
   });
 }
 
+export function useCreateDepartment(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) =>
+      DepartmentService.createDepartment(schoolCode, name),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["departments", schoolCode] }),
+  });
+}
+
+export function useUpdateDepartment(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      departmentId: string;
+      patch: { name?: string; active?: boolean };
+    }) =>
+      DepartmentService.updateDepartment(
+        schoolCode,
+        input.departmentId,
+        input.patch
+      ),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["departments", schoolCode] }),
+  });
+}
+
 export function useCreateSubject(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({

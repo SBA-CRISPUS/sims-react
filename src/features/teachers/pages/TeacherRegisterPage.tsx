@@ -125,11 +125,13 @@ export default function TeacherRegisterPage() {
               className="w-full border rounded p-2"
             >
               <option value="">Unassigned</option>
-              {(departments.data ?? []).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
+              {(departments.data ?? [])
+                .filter((d) => d.active !== false)
+                .map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
             </select>
           </div>
           <div>

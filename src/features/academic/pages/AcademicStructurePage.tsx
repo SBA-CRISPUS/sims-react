@@ -7,8 +7,15 @@ import {
   useLevels,
 } from "../hooks/streamQueries";
 import StreamsTab from "../components/StreamsTab";
+import DepartmentsTab from "../components/DepartmentsTab";
 
-const TABS = ["Academic Years", "Terms", "Academic Levels", "Streams"] as const;
+const TABS = [
+  "Academic Years",
+  "Terms",
+  "Academic Levels",
+  "Streams",
+  "Departments",
+] as const;
 type Tab = (typeof TABS)[number];
 
 function YearsTab({ schoolCode }: { schoolCode?: string }) {
@@ -143,6 +150,7 @@ export default function AcademicStructurePage() {
         )}
         {tab === "Academic Levels" && <LevelsTab schoolCode={schoolCode} />}
         {tab === "Streams" && <StreamsTab />}
+        {tab === "Departments" && <DepartmentsTab />}
       </div>
     </div>
   );

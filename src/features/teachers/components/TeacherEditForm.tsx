@@ -83,11 +83,13 @@ export default function TeacherEditForm({
         <Field label="Department">
           <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="w-full rounded border p-2">
             <option value="">— None —</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
+            {departments
+              .filter((d) => d.active !== false || d.id === departmentId)
+              .map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
           </select>
         </Field>
         <Field label="Employment type">

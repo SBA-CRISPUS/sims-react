@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { SubjectValidator } from "../../../domain/subjects/SubjectValidator";
+import { ECZ_SUBJECT_CATALOGUE } from "../../../domain/subjects/EczSubjectCatalogue";
 import type { Subject } from "../../../domain/subjects/Subject";
 import type { Department } from "../../../domain/academic/Department";
 import type { AcademicLevel } from "../../../domain/academic/AcademicLevel";
@@ -42,8 +43,25 @@ export default function SubjectForm({
   );
   const [sbaEnabled, setSbaEnabled] = useState(existing?.sbaEnabled ?? true);
   const [active, setActive] = useState(existing?.active ?? true);
+  const [catalogueCode, setCatalogueCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Prefill from the ECZ catalogue: fills name + a SUGGESTED code and
+  // matches the usual department by name. Everything stays editable -
+  // schools keep their own codes (ECZ publishes no official ones in the
+  // CBA blueprint).
+  function pickFromCatalogue(code: string) {
+    setCatalogueCode(code);
+    const entry = ECZ_SUBJECT_CATALOGUE.find((c) => c.code === code);
+    if (!entry) return;
+    setName(entry.name);
+    setSubjectCode(entry.code);
+    const dept = departments.find(
+      (d) => d.name.toLowerCase() === entry.department.toLowerCase()
+    );
+    setDepartmentId(dept?.id ?? "");
+  }
 
   function toggleForm(code: string) {
     setFormsOffered((prev) =>
@@ -96,6 +114,30 @@ export default function SubjectForm({
     <div className="rounded-lg border bg-slate-50 p-4">
       <p className="font-medium">{isEdit ? `Edit ${existing.name}` : "Add Subject"}</p>
 
+      {!isEdit && (
+        <div className="mt-3">
+          <label className="block text-sm text-gray-600">
+            Start from the ECZ subject list
+          </label>
+          <select
+            value={catalogueCode}
+            onChange={(e) => pickFromCatalogue(e.target.value)}
+            className="w-full rounded border p-2 sm:w-1/2"
+          >
+            <option value="">Custom subject (type it below)</option>
+            {ECZ_SUBJECT_CATALOGUE.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            Prefills the official ECZ subject name with a suggested code —
+            you can change the code and department before saving.
+          </p>
+        </div>
+      )}
+
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>
           <label className="block text-sm text-gray-600">Code</label>
@@ -126,11 +168,13 @@ export default function SubjectForm({
           className="w-full border rounded p-2 sm:w-1/2"
         >
           <option value="">Unassigned</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
+          {departments
+            .filter((d) => d.active !== false || d.id === departmentId)
+            .map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
         </select>
       </div>
 
