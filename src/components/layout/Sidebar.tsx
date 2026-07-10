@@ -34,11 +34,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       {/* Sidebar Container */}
+      {/* Height: mobile = full viewport via inset-y-0 (fixed); md+ = fill
+          the layout row (h-full), NOT min-h-screen - the row is viewport
+          minus header, so a screen-height aside gets its bottom clipped
+          behind overflow-hidden with no way to scroll to the last items. */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white min-h-screen
+          fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white
           transform transition-transform duration-300 ease-in-out
-          md:relative md:translate-x-0
+          md:relative md:translate-x-0 md:h-full
           flex flex-col
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}

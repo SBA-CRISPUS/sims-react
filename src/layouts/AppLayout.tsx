@@ -25,7 +25,7 @@ export default function AppLayout({ children }: Props) {
         </div>
 
         <div className="flex flex-1 overflow-hidden print:block print:overflow-visible">
-          <div className="print:hidden">
+          <div className="print:hidden h-full">
             <Sidebar
               isOpen={sidebarOpen}
               onClose={() => setSidebarOpen(false)}
