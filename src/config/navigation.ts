@@ -164,6 +164,18 @@ export const navigation: NavigationItem[] = [
       "deputy_head",
     ],
   },
+  {
+    title: "Continuous Assessment",
+    path: "/assessments/continuous",
+    group: "Assessments",
+    roles: [
+      "school_admin",
+      "head_teacher",
+      "deputy_head",
+      "hod",
+      "teacher",
+    ],
+  },
 
   {
     title: "Reports",

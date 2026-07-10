@@ -34,6 +34,7 @@ import {
   SbaRegisterPage,
   SbaExamNumbersPage,
   SbaExportPage,
+  ContinuousAssessmentPage,
 } from "../features/assessments";
 import { MyClassesPage } from "../features/myclasses";
 import MyTasksPage from "../features/tasks/MyTasksPage";
@@ -243,6 +244,23 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <SbaExamNumbersPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/assessments/continuous"
+          element={
+            <AppShell
+              roles={[
+                "school_admin",
+                "head_teacher",
+                "deputy_head",
+                "hod",
+                "teacher",
+              ]}
+            >
+              <ContinuousAssessmentPage />
             </AppShell>
           }
         />

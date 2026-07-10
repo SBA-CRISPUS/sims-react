@@ -14,10 +14,14 @@ export default function LoginPage() {
   const { firebaseUser } = useAuth();
 
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>();
 
@@ -33,6 +37,26 @@ export default function LoginPage() {
     } catch (error) {
       console.error(error);
       setLoginError("Invalid email or password.");
+    }
+  }
+
+  // Neutral outcome either way so the form can't be used to probe
+  // which email addresses have SIMS accounts.
+  async function sendReset() {
+    const email = getValues("email").trim();
+    if (!email) {
+      setLoginError("Enter your email address first.");
+      return;
+    }
+    setLoginError(null);
+    setResetBusy(true);
+    try {
+      await AuthService.resetPassword(email);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setResetBusy(false);
+      setResetSent(true);
     }
   }
 
@@ -109,6 +133,38 @@ export default function LoginPage() {
           </button>
 
         </form>
+
+        <div className="mt-4 text-center text-sm">
+          {!resetMode ? (
+            <button
+              type="button"
+              onClick={() => setResetMode(true)}
+              className="text-blue-700 hover:underline"
+            >
+              Forgot password?
+            </button>
+          ) : resetSent ? (
+            <p className="rounded bg-green-50 p-3 text-green-800">
+              If an account exists for that email, a password-reset link has
+              been sent. Check your inbox (and spam folder), then sign in
+              with your new password.
+            </p>
+          ) : (
+            <div className="rounded bg-slate-50 p-3">
+              <p className="text-gray-600">
+                Enter your email address above, then
+              </p>
+              <button
+                type="button"
+                onClick={sendReset}
+                disabled={resetBusy}
+                className="mt-1 font-medium text-blue-700 hover:underline disabled:opacity-50"
+              >
+                {resetBusy ? "Sending..." : "Send password-reset email"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

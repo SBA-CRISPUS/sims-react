@@ -5,6 +5,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
+  sendPasswordResetEmail,
   type User,
 } from "firebase/auth";
 
@@ -29,6 +30,13 @@ export class AuthService {
    * and asking for the current password is the proof-of-possession step
    * anyway (temp-password holders just type the temp password).
    */
+  /** Self-service reset: Firebase emails a reset link. With email
+   * enumeration protection on, this resolves whether or not the address
+   * has an account - the UI shows a neutral message either way. */
+  static resetPassword(email: string) {
+    return sendPasswordResetEmail(auth, email);
+  }
+
   static async changePassword(
     currentPassword: string,
     newPassword: string
