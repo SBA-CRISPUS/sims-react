@@ -12,6 +12,7 @@ export interface SubjectFormValues {
   departmentId: string | null;
   formsOffered: string[];
   sbaEnabled: boolean;
+  sbaWeightPercent: number;
   active: boolean;
 }
 
@@ -42,6 +43,9 @@ export default function SubjectForm({
     existing?.formsOffered ?? levels.map((l) => l.levelCode)
   );
   const [sbaEnabled, setSbaEnabled] = useState(existing?.sbaEnabled ?? true);
+  const [sbaWeightPercent, setSbaWeightPercent] = useState(
+    existing?.sbaWeightPercent ?? 30
+  );
   const [active, setActive] = useState(existing?.active ?? true);
   const [catalogueCode, setCatalogueCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +101,10 @@ export default function SubjectForm({
         departmentId: departmentId || null,
         formsOffered,
         sbaEnabled,
+        sbaWeightPercent:
+          sbaWeightPercent > 0 && sbaWeightPercent <= 100
+            ? Math.round(sbaWeightPercent)
+            : 30,
         active,
       });
     } catch (err) {
@@ -194,7 +202,7 @@ export default function SubjectForm({
         </div>
       </div>
 
-      <div className="mt-3 flex gap-6">
+      <div className="mt-3 flex flex-wrap items-center gap-6">
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -203,6 +211,20 @@ export default function SubjectForm({
           />
           SBA enabled
         </label>
+        {sbaEnabled && (
+          <label className="flex items-center gap-2 text-sm">
+            ECZ weighting
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={sbaWeightPercent}
+              onChange={(e) => setSbaWeightPercent(Number(e.target.value))}
+              className="w-16 rounded border p-1 text-center"
+            />
+            % <span className="text-xs text-gray-500">(30 norm · 40 for PE &amp; Sport — display only, ECZ exports stay raw)</span>
+          </label>
+        )}
         {isEdit && (
           <label className="flex items-center gap-2 text-sm">
             <input

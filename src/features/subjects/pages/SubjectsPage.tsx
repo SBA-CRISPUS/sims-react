@@ -37,6 +37,7 @@ export default function SubjectsPage() {
           departmentId: values.departmentId,
           formsOffered: values.formsOffered,
           sbaEnabled: values.sbaEnabled,
+          sbaWeightPercent: values.sbaWeightPercent,
           active: values.active,
         },
       });
@@ -47,6 +48,7 @@ export default function SubjectsPage() {
         departmentId: values.departmentId,
         formsOffered: values.formsOffered,
         sbaEnabled: values.sbaEnabled,
+        sbaWeightPercent: values.sbaWeightPercent,
       });
     }
     setForm(null);

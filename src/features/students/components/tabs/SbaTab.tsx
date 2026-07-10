@@ -1,11 +1,16 @@
 import { useMemo } from "react";
 
 import { useSbaPlans } from "../../../assessments/hooks/sbaQueries";
+import { useSubjects } from "../../../subjects/hooks/subjectQueries";
 import { useLearnerSbaMarks } from "../../../assessments/hooks/sbaMarksQueries";
 import {
   resultFor,
   combinedOutOf20,
 } from "../../../../domain/assessments/SbaResultsService";
+import {
+  weightedSba,
+  subjectWeightPercent,
+} from "../../../../domain/assessments/SbaWeighting";
 import type { SbaResult } from "../../../../domain/assessments/SbaResultsService";
 import type { SbaPlan } from "../../../../domain/assessments/SbaPlan";
 
@@ -18,6 +23,8 @@ interface Row {
   subjectId: string;
   subjectName: string;
   result: SbaResult;
+  /** ECZ weighting for this subject (30 norm, 40 PE) - display only. */
+  weightPercent: number;
 }
 
 const LEVEL_LABEL: Record<string, string> = { F2: "Form 2", F3: "Form 3" };
@@ -25,6 +32,7 @@ const LEVEL_LABEL: Record<string, string> = { F2: "Form 2", F3: "Form 3" };
 export default function SbaTab({ schoolCode, studentNumber }: Props) {
   const marks = useLearnerSbaMarks(schoolCode, studentNumber);
   const plans = useSbaPlans(schoolCode);
+  const subjects = useSubjects(schoolCode);
 
   const plansById = useMemo(
     () => new Map<string, SbaPlan>((plans.data ?? []).map((p) => [p.planId, p])),
@@ -32,6 +40,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
   );
 
   const byLevel = useMemo(() => {
+    const subjectList = subjects.data ?? [];
     const groups = new Map<string, Row[]>();
     for (const m of marks.data ?? []) {
       const plan = plansById.get(m.planId);
@@ -41,6 +50,9 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
         subjectId: m.subjectId,
         subjectName: plan?.subjectName ?? m.subjectId,
         result,
+        weightPercent: subjectWeightPercent(
+          subjectList.find((s) => s.subjectCode === m.subjectId)
+        ),
       };
       const list = groups.get(m.academicLevelCode) ?? [];
       list.push(row);
@@ -49,7 +61,7 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
     for (const list of groups.values())
       list.sort((a, b) => a.subjectName.localeCompare(b.subjectName));
     return groups;
-  }, [marks.data, plansById]);
+  }, [marks.data, plansById, subjects.data]);
 
   const combinedRows = useMemo(() => {
     const bySubject = new Map<
@@ -123,9 +135,12 @@ export default function SbaTab({ schoolCode, studentNumber }: Props) {
       )}
 
       <p className="text-xs text-gray-500">
-        Raw school-based marks. ECZ applies the subject weighting (30% or 40%)
-        centrally; competency bands here are provisional (the ECZ grade
-        combines SBA with the Form 4 exam).
+        The Weighted column shows the school-level view of the ECZ weighting
+        (raw × 30%, or 40% for PE &amp; Sport) — how many of the final-grade
+        points the SBA currently contributes. It is display only:{" "}
+        <b>every file exported for ECZ carries raw marks</b>, and ECZ applies
+        the weighting centrally. Bands are provisional (the ECZ grade combines
+        SBA with the Form 4 exam).
       </p>
     </div>
   );
@@ -138,6 +153,7 @@ function ResultTable({ rows }: { rows: Row[] }) {
         <tr>
           <th className="p-2">Subject</th>
           <th className="p-2 text-center">Raw %</th>
+          <th className="p-2 text-center">Weighted (ECZ)</th>
           <th className="p-2">Band</th>
           <th className="p-2">Status</th>
         </tr>
@@ -147,6 +163,10 @@ function ResultTable({ rows }: { rows: Row[] }) {
           <tr key={r.subjectId} className="border-b">
             <td className="p-2">{r.subjectName}</td>
             <td className="p-2 text-center font-medium">{r.result.raw}</td>
+            <td className="p-2 text-center text-gray-700">
+              {weightedSba(r.result.raw, r.weightPercent)}
+              <span className="text-xs text-gray-400"> /{r.weightPercent}</span>
+            </td>
             <td className="p-2">{r.result.band}</td>
             <td className="p-2">
               {r.result.frozen ? (

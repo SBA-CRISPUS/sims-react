@@ -65,7 +65,12 @@ export function useUpdateSubject(schoolCode: string) {
       patch: Partial<
         Pick<
           Subject,
-          "name" | "departmentId" | "formsOffered" | "sbaEnabled" | "active"
+          | "name"
+          | "departmentId"
+          | "formsOffered"
+          | "sbaEnabled"
+          | "sbaWeightPercent"
+          | "active"
         >
       >;
     }) => SubjectService.updateSubject(schoolCode, input.subjectCode, input.patch),

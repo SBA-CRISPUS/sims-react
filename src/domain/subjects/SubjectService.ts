@@ -64,7 +64,7 @@ export class SubjectService {
     schoolCode: string,
     subjectCode: string,
     patch: Partial<
-      Pick<Subject, "name" | "departmentId" | "formsOffered" | "sbaEnabled" | "active">
+      Pick<Subject, "name" | "departmentId" | "formsOffered" | "sbaEnabled" | "sbaWeightPercent" | "active">
     >
   ): Promise<void> {
     await updateDoc(doc(db, "schools", schoolCode, "subjects", subjectCode), {

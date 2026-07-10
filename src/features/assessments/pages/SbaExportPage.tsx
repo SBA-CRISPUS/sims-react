@@ -11,6 +11,10 @@ import { useSbaPlans } from "../hooks/sbaQueries";
 import { useSubjectMarks, useAllStudents } from "../hooks/sbaExportQueries";
 import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
 import { totalMaxMarks } from "../../../domain/assessments/SbaCalculationService";
+import {
+  weightedSba,
+  subjectWeightPercent,
+} from "../../../domain/assessments/SbaWeighting";
 import type { Student } from "../../../domain/students/Student";
 import { downloadCsv } from "../../../lib/csv";
 
@@ -63,6 +67,12 @@ export default function SbaExportPage() {
     subjects.data?.find((s) => s.subjectCode === code)?.name ?? code;
   const streamName = (id: string) =>
     streams.data?.find((s) => s.streamId === id)?.name ?? id;
+
+  // School-level view of the ECZ weighting (30 norm / 40 PE). Shown on
+  // screen and in the SCHOOL copy only - never in the ECZ file.
+  const weight = subjectWeightPercent(
+    subjects.data?.find((s) => s.subjectCode === subjectId)
+  );
 
   // Subjects that have a submission for this year + form.
   const subjectOptions = useMemo(() => {
@@ -126,9 +136,13 @@ export default function SbaExportPage() {
   const notApproved = rows.filter((r) => r.reason === "not approved").length;
 
   // Two exports: ECZ wants the raw mark only; the school's own copy
-  // carries every task score plus obtained/max totals.
-  // Header block per the ECZ submission format:
+  // carries every task score plus obtained/max totals and the weighted
+  // view. Header block per the ECZ submission format:
   // Subject / Form / School / Centre Number / Year, then the score rows.
+  //
+  // RAW ONLY below: never add the weighted column to this file - ECZ
+  // applies the 30%/40% weighting centrally, and a weighted submission
+  // is the classic rejected-submission error SIMS exists to prevent.
   function exportEczCsv() {
     const rows = [
       ["SUBJECT:", subjectName(subjectId)],
@@ -154,6 +168,7 @@ export default function SbaExportPage() {
         ...tasks.map((t) => `${t.name} /${t.maxMarks}`),
         `Obtained /${totalMax}`,
         "Raw /100",
+        `Weighted /${weight} (school view)`,
       ],
       ...readyRows.map((r) => [
         r.examNo,
@@ -162,6 +177,7 @@ export default function SbaExportPage() {
         ...tasks.map((t) => String(r.taskScores[t.taskId] ?? "")),
         String(r.obtainedTotal ?? ""),
         String(r.raw ?? ""),
+        r.raw === null ? "" : String(weightedSba(r.raw, weight)),
       ]),
     ];
     downloadCsv(`SBA_School_${subjectId}_${form}_${academicYearId}.csv`, rows);
@@ -301,6 +317,7 @@ export default function SbaExportPage() {
                     <th className="p-3">Student</th>
                     <th className="p-3">Class</th>
                     <th className="p-3 text-center">Raw Mark</th>
+                    <th className="p-3 text-center">Weighted /{weight}</th>
                     <th className="p-3">Status</th>
                   </tr>
                 </thead>
@@ -314,6 +331,9 @@ export default function SbaExportPage() {
                       <td className="p-3">{streamName(r.streamId)}</td>
                       <td className="p-3 text-center font-medium">
                         {r.raw ?? "—"}
+                      </td>
+                      <td className="p-3 text-center text-gray-600">
+                        {r.raw === null ? "—" : weightedSba(r.raw, weight)}
                       </td>
                       <td className="p-3 text-xs">
                         {r.ready ? (
@@ -329,10 +349,11 @@ export default function SbaExportPage() {
             )}
             <p className="p-3 text-xs text-gray-500">
               Only approved (frozen) students with an examination number are
-              exported. "Export for ECZ" carries the raw mark only (the
-              30%/40% weighting is applied centrally); "School copy" adds
-              every task score and the obtained total for the school's own
-              records.
+              exported. The Weighted column is the school's own view of the
+              ECZ weighting (raw × {weight}%). <b>"Export for ECZ" carries
+              the raw mark only</b> — ECZ applies the weighting centrally;
+              "School copy" adds every task score, the obtained total and
+              the weighted view for the school's own records.
             </p>
           </div>
         </>
