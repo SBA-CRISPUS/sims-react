@@ -11,6 +11,7 @@ import {
   sbaRawOutOf100,
   totalMaxMarks,
 } from "../../../domain/assessments/SbaCalculationService";
+import { weightedSba } from "../../../domain/assessments/SbaWeighting";
 
 interface Props {
   plan: SbaPlan;
@@ -20,6 +21,8 @@ interface Props {
   canScore: boolean;
   canManage: boolean;
   saving: boolean;
+  /** ECZ weighting for the subject (30 norm / 40 PE) - display only. */
+  weightPercent: number;
   onSave: (rows: MarkDraft[]) => Promise<void>;
   onSubmit: () => Promise<void>;
   onWithdraw: () => Promise<void>;
@@ -39,6 +42,7 @@ export default function MarksGrid({
   canScore,
   canManage,
   saving,
+  weightPercent,
   onSave,
   onSubmit,
   onWithdraw,
@@ -156,7 +160,8 @@ export default function MarksGrid({
             {plan.subjectName} · {plan.academicLevelCode}
           </p>
           <p className="text-sm text-gray-500">
-            {tasks.length} tasks · {planMax} marks total · raw ÷ {planMax} × 100
+            {tasks.length} tasks · {planMax} marks total · raw ÷ {planMax} ×
+            100 · SBA counts {weightPercent}% of the final grade
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -187,6 +192,9 @@ export default function MarksGrid({
               ))}
               <th className="p-2 text-center">Total</th>
               <th className="p-2 text-center">Raw %</th>
+              <th className="p-2 text-center whitespace-nowrap">
+                SBA ({weightPercent}%)
+              </th>
               <th className="p-2 text-center">Not taking</th>
             </tr>
           </thead>
@@ -197,6 +205,7 @@ export default function MarksGrid({
                 student={s}
                 tasks={tasks}
                 planMax={planMax}
+                weightPercent={weightPercent}
                 rowScores={scores[s.studentNumber]}
                 notTaking={notTaking[s.studentNumber] ?? false}
                 editable={editable}
@@ -260,6 +269,7 @@ interface RowProps {
   student: Student;
   tasks: SbaTask[];
   planMax: number;
+  weightPercent: number;
   rowScores?: ScoreMap;
   notTaking: boolean;
   editable: boolean;
@@ -276,6 +286,7 @@ const MarkRow = memo(function MarkRow({
   student,
   tasks,
   planMax,
+  weightPercent,
   rowScores,
   notTaking,
   editable,
@@ -324,6 +335,11 @@ const MarkRow = memo(function MarkRow({
         {notTaking ? "—" : `${got}/${planMax}`}
       </td>
       <td className="p-2 text-center font-medium">{notTaking ? "—" : raw}</td>
+      {/* "This student has already earned X marks toward the final
+          grade" - the weighted contribution, display only. */}
+      <td className="p-2 text-center text-blue-800">
+        {notTaking ? "—" : weightedSba(raw, weightPercent).toFixed(1)}
+      </td>
       <td className="p-2 text-center">
         <input
           type="checkbox"

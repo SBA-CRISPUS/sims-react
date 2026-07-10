@@ -1,4 +1,5 @@
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
@@ -9,7 +10,11 @@ import {
 
 import { db } from "../../../firebase";
 
-import type { School, SchoolFeatures } from "../types";
+import type {
+  School,
+  SchoolFeatures,
+  SubscriptionLedgerEntry,
+} from "../types";
 
 /** The descriptive fields a school_admin may maintain after setup. The
  * security rules freeze schoolCode/emisCode/subscription/status/provisioning
@@ -60,6 +65,51 @@ export class SchoolService {
     return snapshot.docs
       .map((d) => ({ ...(d.data() as School), id: d.id }))
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /** ENTITLEMENT writes (subscription tier / status): frozen for school
+   * admins by the rules, so only a super_admin call succeeds. Suspending
+   * a school locks its users out via the SuspensionGate. */
+  static async updateEntitlements(
+    schoolCode: string,
+    patch: Partial<Pick<School, "subscription" | "status">>
+  ): Promise<void> {
+    await updateDoc(doc(db, "schools", schoolCode), {
+      ...patch,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  /** Platform billing history for one school, newest first. */
+  static async listSubscriptionLedger(
+    schoolCode: string
+  ): Promise<SubscriptionLedgerEntry[]> {
+    const snapshot = await getDocs(
+      collection(db, "schools", schoolCode, "subscriptionLedger")
+    );
+    return snapshot.docs
+      .map(
+        (d) =>
+          ({ ...d.data(), entryId: d.id }) as SubscriptionLedgerEntry
+      )
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  /** Append a billing entry (super_admin only; ledger is append-only -
+   * corrections are new negative entries, never edits). */
+  static async addSubscriptionEntry(
+    schoolCode: string,
+    entry: Omit<SubscriptionLedgerEntry, "entryId" | "recordedByUid" | "recordedAt">,
+    actorUid: string
+  ): Promise<void> {
+    if (!entry.amount || !Number.isFinite(entry.amount))
+      throw new Error("Enter a non-zero amount.");
+    await addDoc(collection(db, "schools", schoolCode, "subscriptionLedger"), {
+      ...entry,
+      note: entry.note ?? "",
+      recordedByUid: actorUid,
+      recordedAt: serverTimestamp(),
+    });
   }
 
   /** Flip a paid add-on for a school. ENTITLEMENT write: the rules freeze

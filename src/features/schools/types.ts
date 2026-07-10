@@ -25,6 +25,23 @@ export function gradeFor(score: number, scale: GradingBand[]): string {
   );
 }
 
+/** One row of a school's PLATFORM billing history - what the school has
+ * paid the SIMS provider for its subscription (NOT student fees).
+ * Append-only; corrections are new negative entries. */
+export interface SubscriptionLedgerEntry {
+  entryId: string;
+  /** ISO yyyy-mm-dd. */
+  date: string;
+  /** Kwacha. Negative = credit/adjustment. */
+  amount: number;
+  plan: SubscriptionPlan;
+  /** What the payment covers, e.g. "Term 1 2026" or "2026 annual". */
+  period: string;
+  note?: string;
+  recordedByUid: string;
+  recordedAt?: Date;
+}
+
 /** Optional paid add-ons, enabled per school by the system administrator. */
 export interface SchoolFeatures {
   /** SBA evidence attachments: photos of learner work + written work (PDF)

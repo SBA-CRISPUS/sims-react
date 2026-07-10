@@ -373,6 +373,21 @@ service cloud.firestore {
         || (belongsToSchool(schoolId) && canManageAcademicStructure());
     }
 
+    // Platform billing: each school's subscription ledger - what the
+    // school has paid the SIMS provider (NOT student fees; those live in
+    // /payments). APPEND-ONLY: corrections are new negative entries.
+    // Written only by the platform's system administrator; the school's
+    // own administrator may read their billing history.
+    match /schools/{schoolId}/subscriptionLedger/{entryId} {
+      allow read: if isSuperAdmin()
+        || (belongsToSchool(schoolId) && isSchoolAdmin());
+      allow create: if isSuperAdmin()
+        && request.resource.data.recordedByUid == request.auth.uid
+        && request.resource.data.amount is number
+        && request.resource.data.amount != 0;
+      allow update, delete: if false;
+    }
+
     // ===== 40_students.rules =====
 
     //

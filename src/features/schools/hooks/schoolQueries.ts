@@ -3,7 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SchoolService } from "../services/SchoolService";
 import { SchoolBrandingService } from "../services/SchoolBrandingService";
 import type { SchoolProfilePatch } from "../services/SchoolService";
-import type { SchoolFeatures } from "../types";
+import type {
+  School,
+  SchoolFeatures,
+  SubscriptionLedgerEntry,
+} from "../types";
 
 export function useSchool(schoolCode?: string) {
   return useQuery({
@@ -48,6 +52,55 @@ export function useSetSchoolFeature() {
       queryClient.invalidateQueries({ queryKey: ["schools"] });
       queryClient.invalidateQueries({ queryKey: ["school", schoolCode] });
     },
+  });
+}
+
+/** Subscription tier / status (super_admin only; rules enforce). */
+export function useUpdateEntitlements() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      schoolCode,
+      patch,
+    }: {
+      schoolCode: string;
+      patch: Partial<Pick<School, "subscription" | "status">>;
+    }) => SchoolService.updateEntitlements(schoolCode, patch),
+    onSuccess: (_data, { schoolCode }) => {
+      queryClient.invalidateQueries({ queryKey: ["schools"] });
+      queryClient.invalidateQueries({ queryKey: ["school", schoolCode] });
+    },
+  });
+}
+
+/** Platform billing history for one school (loaded when expanded). */
+export function useSubscriptionLedger(schoolCode?: string) {
+  return useQuery({
+    queryKey: ["subscription-ledger", schoolCode],
+    enabled: !!schoolCode,
+    queryFn: () => SchoolService.listSubscriptionLedger(schoolCode!),
+  });
+}
+
+export function useAddSubscriptionEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      schoolCode,
+      entry,
+      actorUid,
+    }: {
+      schoolCode: string;
+      entry: Omit<
+        SubscriptionLedgerEntry,
+        "entryId" | "recordedByUid" | "recordedAt"
+      >;
+      actorUid: string;
+    }) => SchoolService.addSubscriptionEntry(schoolCode, entry, actorUid),
+    onSuccess: (_data, { schoolCode }) =>
+      queryClient.invalidateQueries({
+        queryKey: ["subscription-ledger", schoolCode],
+      }),
   });
 }
 

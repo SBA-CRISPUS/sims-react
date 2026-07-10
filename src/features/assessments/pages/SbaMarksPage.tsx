@@ -14,6 +14,8 @@ import {
   useSubmissionAction,
 } from "../hooks/sbaMarksQueries";
 import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
+import { subjectWeightPercent } from "../../../domain/assessments/SbaWeighting";
+import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { sbaSubmissionId } from "../../../domain/assessments/SbaSubmission";
 import type { SbaSubmissionMeta } from "../../../domain/assessments/SbaSubmission";
 import MarksGrid from "../components/MarksGrid";
@@ -38,7 +40,13 @@ export default function SbaMarksPage() {
   const plans = useSbaPlans(schoolCode);
   const levels = useLevels(schoolCode);
   const streams = useStreams(schoolCode);
+  const subjects = useSubjects(schoolCode);
   const assignments = useTeachingAssignments(schoolCode);
+
+  // ECZ weighting of the selected subject (30 norm / 40 PE) - display only.
+  const weightPercent = subjectWeightPercent(
+    subjects.data?.find((s) => s.subjectCode === subjectId)
+  );
 
   const sbaLevels = (levels.data ?? []).filter((l) =>
     (SBA_LEVELS as readonly string[]).includes(l.levelCode)
@@ -196,6 +204,7 @@ export default function SbaMarksPage() {
             canScore={canScore}
             canManage={canManage}
             saving={saving}
+            weightPercent={weightPercent}
             onSave={async (rows) => {
               if (!profile) return;
               await saveMarks.mutateAsync({
