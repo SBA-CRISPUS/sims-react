@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { AuthService } from "../../auth/services/AuthService";
 import {
   useSchoolUsers,
   useCreateStaffAccount,
@@ -42,6 +43,7 @@ export default function StaffAccountsPage() {
   const setActive = useSetUserActive(schoolCode ?? "");
 
   const [showForm, setShowForm] = useState(false);
+  const [resetSentTo, setResetSentTo] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -274,6 +276,21 @@ export default function StaffAccountsPage() {
                       </span>
                     </td>
                     <td className="p-3 text-right">
+                      {/* Lost/expired temp password rescue: emails a
+                          Firebase reset link to the account's address. */}
+                      {u.active && (
+                        <button
+                          onClick={() => {
+                            AuthService.resetPassword(u.email).catch(() => {});
+                            setResetSentTo(u.email);
+                          }}
+                          className="mr-2 rounded border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50"
+                        >
+                          {resetSentTo === u.email
+                            ? "Reset email sent ✓"
+                            : "Send reset email"}
+                        </button>
+                      )}
                       {!isSelf && u.role !== "super_admin" && (
                         <button
                           onClick={() =>

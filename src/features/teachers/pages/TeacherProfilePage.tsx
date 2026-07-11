@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { AuthService } from "../../auth/services/AuthService";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useStreams } from "../../academic/hooks/streamQueries";
 import { useDepartments, useSubjects } from "../../subjects/hooks/subjectQueries";
@@ -100,6 +101,7 @@ export default function TeacherProfilePage() {
   const [credentials, setCredentials] =
     useState<CreateTeacherAccountResult | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
   const [editing, setEditing] = useState(false);
   const departments = useDepartments(schoolCode);
   const subjects = useSubjects(schoolCode);
@@ -251,10 +253,29 @@ export default function TeacherProfilePage() {
                   onDone={() => setCredentials(null)}
                 />
               ) : teacher.linkedUserUid ? (
-                <p className="mt-2 text-sm text-green-700">
-                  ✓ This teacher has a login account and can sign in to see
-                  their own classes and enter SBA marks.
-                </p>
+                <div className="mt-2">
+                  <p className="text-sm text-green-700">
+                    ✓ This teacher has a login account and can sign in to see
+                    their own classes and enter SBA marks.
+                  </p>
+                  {/* Lost/expired temp password rescue - emails a Firebase
+                      reset link to the teacher's address. */}
+                  {canManage && teacher.email && (
+                    <button
+                      onClick={() => {
+                        AuthService.resetPassword(teacher.email!).catch(
+                          () => {}
+                        );
+                        setResetSent(true);
+                      }}
+                      className="mt-2 rounded border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50"
+                    >
+                      {resetSent
+                        ? "Reset email sent ✓"
+                        : "Send password-reset email"}
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div className="mt-2">
                   <p className="text-sm text-gray-600">

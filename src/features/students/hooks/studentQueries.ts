@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StudentRegistryService } from "../../../domain/students/StudentRegistryService";
 import { StudentProfileService } from "../../../domain/students/StudentProfileService";
 import { StudentPlacementService } from "../../../domain/students/StudentPlacementService";
+import { StudentEditService } from "../../../domain/students/StudentEditService";
+import type { StudentEditPatch } from "../../../domain/students/StudentEditService";
 import { GuardianService } from "../../../domain/students/GuardianService";
 
 export type { StudentRow } from "../../../domain/students/StudentRegistryService";
@@ -32,6 +34,24 @@ export function useStudentEnrollments(
     enabled: !!schoolCode && !!studentNumber,
     queryFn: () =>
       StudentProfileService.listStudentEnrollments(schoolCode!, studentNumber!),
+  });
+}
+
+/** Correct personal details (typos, DOB) - admin/head, rules enforce. */
+export function useUpdateStudentDetails(
+  schoolCode?: string,
+  studentNumber?: string
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: StudentEditPatch) =>
+      StudentEditService.updateDetails(schoolCode!, studentNumber!, patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["student", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+    },
   });
 }
 

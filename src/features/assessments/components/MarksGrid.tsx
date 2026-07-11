@@ -179,6 +179,16 @@ export default function MarksGrid({
         </p>
       )}
 
+      {/* Why can't I type? The most common reasons, spelled out. */}
+      {!canScore && !["submitted", "moderated", "approved", "locked"].includes(status) && (
+        <p className="border-b bg-amber-50 p-3 text-sm text-amber-800">
+          Read-only: marks are entered by this class's assigned teacher or a
+          manager. If this is your class, ask the office to check the
+          Teaching assignment for this stream and subject — or the
+          subscription banner above if one is showing.
+        </p>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-slate-50 text-gray-500">

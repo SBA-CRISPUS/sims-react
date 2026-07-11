@@ -20,8 +20,11 @@ const EMPTY_FILTER: RegistryFilter = {
 };
 
 export default function StudentRegistryPage() {
-  const { school } = useAuth();
+  const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
+  const canManage = ["school_admin", "head_teacher"].includes(
+    profile?.role ?? ""
+  );
 
   const { data, isLoading, isError } = useRegistry(schoolCode);
 
@@ -66,6 +69,14 @@ export default function StudentRegistryPage() {
           >
             Export CSV
           </button>
+          {canManage && (
+            <Link
+              to="/students/import"
+              className="rounded border border-blue-700 px-4 py-2 text-blue-700 hover:bg-blue-50"
+            >
+              Import CSV
+            </Link>
+          )}
           <Link
             to="/students/admit"
             className="rounded bg-blue-700 px-5 py-2 text-white hover:bg-blue-800"

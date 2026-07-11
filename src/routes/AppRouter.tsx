@@ -17,6 +17,7 @@ import {
   ReportCardPage,
   GuardianProfilePage,
   AdmissionWizard,
+  StudentImportPage,
 } from "../features/students";
 import { AcademicStructurePage } from "../features/academic";
 import { SubjectsPage } from "../features/subjects";
@@ -137,6 +138,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <AdmissionWizard />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/import"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <StudentImportPage />
             </AppShell>
           }
         />

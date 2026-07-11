@@ -15,6 +15,7 @@ import SbaTab from "../components/tabs/SbaTab";
 import PlaceholderTab from "../components/tabs/PlaceholderTab";
 import TransferInitiateForm from "../../transfers/components/TransferInitiateForm";
 import PlacementPanel from "../components/PlacementPanel";
+import StudentEditForm from "../components/StudentEditForm";
 
 const TABS = [
   "Profile",
@@ -45,6 +46,7 @@ export default function StudentProfilePage() {
 
   const [tab, setTab] = useState<Tab>("Profile");
   const [showTransfer, setShowTransfer] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   if (isLoading) {
     return <div className="p-8 text-gray-500">Loading student...</div>;
@@ -113,8 +115,24 @@ export default function StudentProfilePage() {
               Transfer out
             </button>
           )}
+          {canTransfer && (
+            <button
+              onClick={() => setEditing((v) => !v)}
+              className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+            >
+              {editing ? "Close edit" : "Edit details"}
+            </button>
+          )}
         </div>
       </div>
+
+      {editing && (
+        <StudentEditForm
+          schoolCode={schoolCode}
+          student={student}
+          onDone={() => setEditing(false)}
+        />
+      )}
 
       {showTransfer && schoolCode && profile && (
         <TransferInitiateForm

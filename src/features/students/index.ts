@@ -6,3 +6,4 @@ export { default as TransferCertificatePage } from "./pages/TransferCertificateP
 export { default as ReportCardPage } from "./pages/ReportCardPage";
 export { default as GuardianProfilePage } from "./pages/GuardianProfilePage";
 export { default as AdmissionWizard } from "./admission/AdmissionWizard";
+export { default as StudentImportPage } from "./pages/StudentImportPage";

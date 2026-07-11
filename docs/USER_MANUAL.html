@@ -443,6 +443,18 @@ across school transfers.</p>
 <div class="callout warn"><span class="t">Connectivity:</span> admission needs an internet
 connection — it reserves official numbers, which cannot be done offline.</div>
 
+<h2>6.1b Importing existing students (CSV)</h2>
+<p>Joining SIMS with hundreds of existing students? Use <b>Import CSV</b> on
+the Student Registry (administrators and head teachers):</p>
+<ol class="steps">
+  <li>Download the template, fill one row per student (names, gender, date of birth, one guardian, form and stream code), and save as CSV.</li>
+  <li>Choose the file — SIMS validates every row and shows what's ready and what has errors (unknown stream, bad date, missing guardian…).</li>
+  <li>Click <b>Import</b>. Each row is a full, real admission — student numbers, admission IDs, guardian records and SIMS Learner IDs are created exactly as in the wizard, with a per-row result log.</li>
+</ol>
+<div class="callout warn"><span class="t">Note:</span> fix failed rows and re-import
+<b>only those rows</b> — re-importing successful ones would create duplicates.
+Starter-plan schools stop at the 300-student limit.</div>
+
 <h2>6.2 Student registry</h2>
 <p><span class="menu">Student Registry</span> is the full register: search by name or number,
 filter by form, stream, status, gender or admission year, and <b>Export CSV</b> for use in
@@ -676,7 +688,8 @@ you were offline, your late edits will be rejected — approved marks stay froze
   <tr><td>A page looks empty (no classes, no plans…).</td><td>Check the <b>Year / Term</b> selectors in the header context bar — you may be looking at the wrong term (Section 3.2).</td></tr>
   <tr><td>My role was changed but nothing happened.</td><td>Sign out and sign in again to pick up the new permissions.</td></tr>
   <tr><td>I forgot my password.</td><td>On the sign-in page click <b>Forgot password?</b>, enter your email, and follow the reset link sent to your inbox (check spam). If no email arrives, confirm the address with your School Administrator.</td></tr>
-  <tr><td>The temporary password was lost before first sign-in.</td><td>It cannot be shown again. The administrator should contact the system administrator to re-issue the account.</td></tr>
+  <tr><td>The temporary password was lost before first sign-in.</td><td>It cannot be shown again, but the School Administrator can click <b>Send reset email</b> on the Staff Accounts page (or the teacher's profile) — the user sets a new password from the emailed link.</td></tr>
+  <tr><td>A student's name or date of birth is wrong.</td><td>An administrator or head teacher opens the student's profile and clicks <b>Edit details</b>. Student numbers, Learner IDs and status never change — only the personal details.</td></tr>
   <tr><td>I can see a score sheet but cannot edit it.</td><td>Either the sheet has been submitted/approved (locked), or the class is not assigned to you (read-only). Check its status and your teaching assignment.</td></tr>
   <tr><td>Submit button is disabled on my score sheet.</td><td>Every student needs a score for every task (or a “Not taking” mark), and unsaved changes must be saved first.</td></tr>
   <tr><td>Marks are wrong on an <b>approved</b> sheet.</td><td>Approved marks are frozen by design and cannot be edited by anyone at the school. Raise the dispute with school leadership; the sheet's history shows who approved and when.</td></tr>
