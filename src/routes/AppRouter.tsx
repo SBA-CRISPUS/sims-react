@@ -6,6 +6,7 @@ import {
   SchoolsPage,
   CreateSchoolPage,
   SchoolProfilePage,
+  SubscriptionPage,
 } from "../features/schools";
 import {
   StudentDashboardPage,
@@ -74,6 +75,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["super_admin"]}>
               <CreateSchoolPage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/schools/:schoolCode/subscription"
+          element={
+            <AppShell roles={["super_admin"]}>
+              <SubscriptionPage />
             </AppShell>
           }
         />

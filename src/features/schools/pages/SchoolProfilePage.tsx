@@ -294,6 +294,10 @@ function SchoolProfileForm({
         <ReadOnly label="School code" value={school.schoolCode} />
         <ReadOnly label="EMIS code (Ministry)" value={school.emisCode || "—"} />
         <ReadOnly label="Subscription" value={school.subscription} />
+        <ReadOnly
+          label="Subscription expires"
+          value={school.subscriptionExpiresAt ?? "—"}
+        />
         <ReadOnly label="Status" value={school.status} />
         <p className="col-span-full text-xs text-gray-500">
           EMIS code, subscription and status are set by your provider / the

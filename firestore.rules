@@ -244,6 +244,7 @@ service cloud.firestore {
           && request.resource.data.schoolCode == resource.data.schoolCode
           && request.resource.data.emisCode == resource.data.emisCode
           && request.resource.data.subscription == resource.data.subscription
+          && request.resource.data.get('subscriptionExpiresAt', '') == resource.data.get('subscriptionExpiresAt', '')
           && request.resource.data.status == resource.data.status
           && request.resource.data.provisioning == resource.data.provisioning
           && request.resource.data.get('features', {}) == resource.data.get('features', {})

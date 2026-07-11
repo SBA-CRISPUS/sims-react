@@ -64,7 +64,9 @@ export function useUpdateEntitlements() {
       patch,
     }: {
       schoolCode: string;
-      patch: Partial<Pick<School, "subscription" | "status">>;
+      patch: Partial<
+        Pick<School, "subscription" | "status" | "subscriptionExpiresAt">
+      >;
     }) => SchoolService.updateEntitlements(schoolCode, patch),
     onSuccess: (_data, { schoolCode }) => {
       queryClient.invalidateQueries({ queryKey: ["schools"] });

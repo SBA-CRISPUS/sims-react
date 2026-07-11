@@ -72,7 +72,9 @@ export class SchoolService {
    * a school locks its users out via the SuspensionGate. */
   static async updateEntitlements(
     schoolCode: string,
-    patch: Partial<Pick<School, "subscription" | "status">>
+    patch: Partial<
+      Pick<School, "subscription" | "status" | "subscriptionExpiresAt">
+    >
   ): Promise<void> {
     await updateDoc(doc(db, "schools", schoolCode), {
       ...patch,

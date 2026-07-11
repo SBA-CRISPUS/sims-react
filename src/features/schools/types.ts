@@ -125,6 +125,12 @@ export interface School {
 
   subscription: SubscriptionPlan;
 
+  /** When the current subscription runs out (ISO yyyy-mm-dd, normally
+   * the end of the academic year). ENTITLEMENT field - super-admin-only,
+   * frozen for school admins by the rules. Grace-period/read-only
+   * behaviour on expiry is a planned follow-up (mentor's model). */
+  subscriptionExpiresAt?: string;
+
   status: SchoolStatus;
 
   provisioning: {
