@@ -64,6 +64,15 @@ export const navigation: NavigationItem[] = [
     ],
   },
   {
+    title: "Promotion",
+    path: "/students/promotion",
+    group: "Academics",
+    roles: [
+      "school_admin",
+      "head_teacher",
+    ],
+  },
+  {
     // Teachers get their academic context (year/term/streams) from the
     // header bar and My Classes - the full structure page is for the
     // people who manage it (mentor's least-privilege refinement).
