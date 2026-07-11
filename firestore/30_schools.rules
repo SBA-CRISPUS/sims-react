@@ -17,12 +17,16 @@
       // provisioning state, identity codes, and the paid add-on
       // `features` map stay super-admin-only, or a school_admin could
       // self-grant Enterprise / un-suspend / enable a billed feature.
+      // `ownership` (Government / Grant Aided / Private) is also frozen:
+      // it drives the fee register and the report-card clearance gate,
+      // so a conversion is a verified platform action, not a self-edit.
       allow update: if isSuperAdmin()
         || (
           belongsToSchool(schoolId)
           && isSchoolAdmin()
           && request.resource.data.schoolCode == resource.data.schoolCode
           && request.resource.data.emisCode == resource.data.emisCode
+          && request.resource.data.ownership == resource.data.ownership
           && request.resource.data.subscription == resource.data.subscription
           && request.resource.data.get('subscriptionExpiresAt', '') == resource.data.get('subscriptionExpiresAt', '')
           && request.resource.data.status == resource.data.status

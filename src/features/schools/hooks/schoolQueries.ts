@@ -65,7 +65,10 @@ export function useUpdateEntitlements() {
     }: {
       schoolCode: string;
       patch: Partial<
-        Pick<School, "subscription" | "status" | "subscriptionExpiresAt">
+        Pick<
+          School,
+          "subscription" | "status" | "subscriptionExpiresAt" | "ownership"
+        >
       >;
     }) => SchoolService.updateEntitlements(schoolCode, patch),
     onSuccess: (_data, { schoolCode }) => {

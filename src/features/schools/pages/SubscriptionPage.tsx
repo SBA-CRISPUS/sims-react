@@ -117,6 +117,39 @@ function SubscriptionConsole({ school }: { school: School }) {
           </div>
 
           <div>
+            <label className="block text-sm text-gray-600">Ownership</label>
+            <select
+              value={school.ownership}
+              disabled={entitlements.isPending}
+              onChange={(e) => {
+                const next = e.target.value as School["ownership"];
+                const warning =
+                  next === "Government"
+                    ? "Government schools are fee-free: the fee register is hidden and every report card is released. Payment history is preserved."
+                    : next === "Private"
+                      ? "Private schools gate report cards on fee clearance (deny by default). After converting, use the Payments page's \"Mark all uncleared as cleared\" so existing students' report cards are not withheld."
+                      : "Grant Aided schools keep the fee register with NO report-card gate.";
+                if (
+                  window.confirm(
+                    `Change ${school.name} to ${next}?\n\n${warning}\n\nOwnership conversions should follow official re-registration.`
+                  )
+                )
+                  entitlements.mutate({
+                    schoolCode: school.schoolCode,
+                    patch: { ownership: next },
+                  });
+              }}
+              className="mt-1 rounded border p-2 disabled:opacity-50"
+            >
+              {(["Government", "Grant Aided", "Private"] as const).map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm text-gray-600">Expires</label>
             <div className="mt-1 flex items-center gap-2">
               <input
@@ -207,6 +240,15 @@ function BillingLedger({ school }: { school: School }) {
 
   const entries = ledger.data ?? [];
   const total = entries.reduce((s, e) => s + e.amount, 0);
+  // Collections per calendar year (entry dates), newest first - answers
+  // "how much has this school paid us this year?" at a glance.
+  const byYear = [
+    ...entries.reduce((m, e) => {
+      const year = e.date.slice(0, 4);
+      m.set(year, (m.get(year) ?? 0) + e.amount);
+      return m;
+    }, new Map<string, number>()),
+  ].sort((a, b) => b[0].localeCompare(a[0]));
 
   async function submit() {
     setError(null);
@@ -246,10 +288,17 @@ function BillingLedger({ school }: { school: School }) {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-semibold">Billing ledger</h2>
-        <p className="text-sm text-gray-600">
-          Total received:{" "}
-          <span className="font-semibold">K {total.toLocaleString()}</span>
-        </p>
+        <div className="flex flex-wrap items-baseline gap-3 text-sm text-gray-600">
+          {byYear.map(([year, sum]) => (
+            <span key={year} className="rounded bg-slate-100 px-2 py-0.5">
+              {year}: <b>K {sum.toLocaleString()}</b>
+            </span>
+          ))}
+          <span>
+            All time:{" "}
+            <span className="font-semibold">K {total.toLocaleString()}</span>
+          </span>
+        </div>
       </div>
       <p className="mt-1 text-xs text-gray-500">
         Append-only: corrections are new negative entries, never edits. The

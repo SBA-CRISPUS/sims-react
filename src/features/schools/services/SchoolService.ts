@@ -74,7 +74,10 @@ export class SchoolService {
   static async updateEntitlements(
     schoolCode: string,
     patch: Partial<
-      Pick<School, "subscription" | "status" | "subscriptionExpiresAt">
+      Pick<
+        School,
+        "subscription" | "status" | "subscriptionExpiresAt" | "ownership"
+      >
     >
   ): Promise<void> {
     await updateDoc(doc(db, "schools", schoolCode), {

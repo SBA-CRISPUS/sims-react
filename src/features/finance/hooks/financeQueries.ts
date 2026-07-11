@@ -45,6 +45,35 @@ export function useRecordPayment(schoolCode: string) {
   });
 }
 
+/** Clears many students in one go - the safety valve for a school that
+ * converts to fee-paying (Government -> Private/Grant Aided) mid-year:
+ * without it, the deny-by-default report-card gate would withhold every
+ * report card until each student was toggled by hand. */
+export function useBulkClear(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      academicYearId: string;
+      studentIds: string[];
+      actorUid: string;
+    }) => {
+      for (const studentId of input.studentIds) {
+        await PaymentService.setCleared(
+          schoolCode,
+          input.academicYearId,
+          studentId,
+          true,
+          input.actorUid
+        );
+      }
+    },
+    onSuccess: (_d, input) =>
+      queryClient.invalidateQueries({
+        queryKey: ["fee-status", schoolCode, input.academicYearId],
+      }),
+  });
+}
+
 export function useSetCleared(schoolCode: string) {
   const queryClient = useQueryClient();
   return useMutation({

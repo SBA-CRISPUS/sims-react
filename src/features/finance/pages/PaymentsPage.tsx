@@ -8,6 +8,7 @@ import {
   useFeeStatusMap,
   useRecordPayment,
   useSetCleared,
+  useBulkClear,
 } from "../hooks/financeQueries";
 import { PAYMENT_METHODS } from "../../../domain/finance/Payment";
 import type { PaymentMethod } from "../../../domain/finance/Payment";
@@ -36,6 +37,7 @@ export default function PaymentsPage() {
   const feeStatus = useFeeStatusMap(schoolCode, academicYearId);
   const record = useRecordPayment(schoolCode ?? "");
   const setCleared = useSetCleared(schoolCode ?? "");
+  const bulkClear = useBulkClear(schoolCode ?? "");
 
   const [studentId, setStudentId] = useState("");
   const [amount, setAmount] = useState("");
@@ -100,7 +102,8 @@ export default function PaymentsPage() {
             {school.name} is a Government school; education is free by law,
             so the fee register and report-card clearance are switched off.
             Report cards are always released. If the school's ownership is
-            wrong, correct it on the School Profile page.
+            wrong, ask the SIMS provider to correct it — ownership is
+            verified and changed at platform level.
           </p>
         </div>
       </div>
@@ -193,13 +196,43 @@ export default function PaymentsPage() {
         </p>
       ) : (
         <>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Stat label="Collected this year" value={money(totals.collected)} />
             <Stat
               label="Students with payments"
               value={String(totals.byStudent.size)}
             />
             <Stat label="Cleared for reports" value={String(clearedCount)} />
+            {students.length - clearedCount > 0 && (
+              <button
+                onClick={() => {
+                  const ids = students
+                    .map((s) => s.studentNumber)
+                    .filter((id) => !feeStatus.data?.get(id)?.cleared);
+                  if (
+                    profile &&
+                    academicYearId &&
+                    window.confirm(
+                      `Mark all ${ids.length} uncleared active students as cleared for ${
+                        academicYear?.name ?? academicYearId
+                      }? Their report cards will be released. Typical use: after converting to fee-paying mid-year, or a fully sponsored year.`
+                    )
+                  ) {
+                    bulkClear.mutate({
+                      academicYearId,
+                      studentIds: ids,
+                      actorUid: profile.uid,
+                    });
+                  }
+                }}
+                disabled={bulkClear.isPending}
+                className="text-sm text-blue-700 hover:underline disabled:opacity-50"
+              >
+                {bulkClear.isPending
+                  ? "Clearing..."
+                  : `Mark all ${students.length - clearedCount} uncleared as cleared`}
+              </button>
+            )}
           </div>
 
           <form

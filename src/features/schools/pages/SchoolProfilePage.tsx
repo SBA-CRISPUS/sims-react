@@ -59,7 +59,8 @@ function SchoolProfileForm({
 }) {
   const [name, setName] = useState(school.name);
   const [schoolType, setSchoolType] = useState(school.schoolType);
-  const [ownership, setOwnership] = useState(school.ownership);
+  // Read-only: ownership conversions happen on the platform console.
+  const ownership = school.ownership;
   const [principal, setPrincipal] = useState(school.principal ?? "");
   const [motto, setMotto] = useState(school.motto ?? "");
   const [phone, setPhone] = useState(school.contact?.phone ?? "");
@@ -141,13 +142,17 @@ function SchoolProfileForm({
           options={["Primary", "Secondary", "Combined", "Technical"]}
           ro={ro}
         />
-        <Select
-          label="Ownership"
-          value={ownership}
-          onChange={(v) => setOwnership(v as School["ownership"])}
-          options={["Government", "Grant Aided", "Private"]}
-          ro={ro}
-        />
+        {/* Ownership drives the fee register + report-card gate, so a
+            conversion is a verified platform action (frozen by rules). */}
+        <div>
+          <p className="text-sm text-gray-500">Ownership</p>
+          <p className="mt-1 rounded bg-slate-50 p-2 font-medium">
+            {ownership}
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Changed by the SIMS provider on official re-registration.
+          </p>
+        </div>
         <Text label="Principal / Head" value={principal} onChange={setPrincipal} ro={ro} />
         <Text label="Motto" value={motto} onChange={setMotto} ro={ro} />
       </Section>
