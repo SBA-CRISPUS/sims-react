@@ -10,7 +10,7 @@ import type { AdmissionResult } from "../../../domain/students/StudentAdmissionS
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 import { STARTER_STUDENT_LIMIT } from "../../schools/subscription";
-import { useRegistry } from "../hooks/studentQueries";
+import { useActiveStudentCount } from "../../dashboard/hooks/countQueries";
 
 import type { AdmissionFormValues } from "./AdmissionFormValues";
 import PersonalStep from "./PersonalStep";
@@ -55,14 +55,13 @@ export default function AdmissionWizard() {
 
   // Subscription posture: read-only blocks admission entirely; the
   // Starter edition caps the school at STARTER_STUDENT_LIMIT students.
+  // Aggregate count query (1 read), not a registry scan (READ BUDGET).
   const access = useSubscriptionAccess();
-  const registry = useRegistry(school?.schoolCode);
-  const activeStudents = (registry.data ?? []).filter(
-    (r) => r.student.status === "active"
-  ).length;
+  const studentCount = useActiveStudentCount(school?.schoolCode);
+  const activeStudents = studentCount.data ?? 0;
   const starterCapReached =
     access.plan === "Starter" &&
-    !registry.isLoading &&
+    !studentCount.isLoading &&
     activeStudents >= STARTER_STUDENT_LIMIT;
 
   const [step, setStep] = useState(0);

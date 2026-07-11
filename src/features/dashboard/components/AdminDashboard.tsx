@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
-import { useRegistry } from "../../students/hooks/studentQueries";
-import { useTeachers } from "../../teachers/hooks/teacherQueries";
+import {
+  useActiveStudentCount,
+  useActiveTeacherCount,
+} from "../hooks/countQueries";
 import { useSbaSubmissions } from "../../assessments/hooks/sbaMarksQueries";
 import { useActionCounts } from "../../notifications/useActionCounts";
 
@@ -32,20 +34,12 @@ export default function AdminDashboard() {
   const schoolCode = school?.schoolCode;
   const { academicYear, term, academicYearId } = useAcademicContext();
 
-  const registry = useRegistry(schoolCode);
-  const teachers = useTeachers(schoolCode);
+  // Aggregate count queries (1 read each), NOT full collection scans -
+  // this is the most-visited page in the app (READ BUDGET).
+  const studentCount = useActiveStudentCount(schoolCode);
+  const teacherCount = useActiveTeacherCount(schoolCode);
   const submissions = useSbaSubmissions(schoolCode);
   const actions = useActionCounts();
-
-  const learnerCount = useMemo(
-    () =>
-      (registry.data ?? []).filter((r) => r.student.status === "active").length,
-    [registry.data]
-  );
-  const teacherCount = useMemo(
-    () => (teachers.data ?? []).filter((t) => t.status === "active").length,
-    [teachers.data]
-  );
 
   const pipeline = useMemo(() => {
     const yearSubs = (submissions.data ?? []).filter(
@@ -120,12 +114,12 @@ export default function AdminDashboard() {
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi
           label="Active students"
-          value={registry.isLoading ? "…" : String(learnerCount)}
+          value={studentCount.isLoading ? "…" : String(studentCount.data ?? 0)}
           to="/students/registry"
         />
         <Kpi
           label="Active teachers"
-          value={teachers.isLoading ? "…" : String(teacherCount)}
+          value={teacherCount.isLoading ? "…" : String(teacherCount.data ?? 0)}
           to="/teachers/registry"
         />
         <Kpi
