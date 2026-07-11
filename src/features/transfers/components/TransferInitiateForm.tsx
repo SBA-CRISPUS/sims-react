@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { TransferSnapshotService } from "../../../domain/transfers/TransferSnapshotService";
 import { useCreateTransfer } from "../hooks/transferQueries";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 
 interface Props {
   schoolCode: string;
@@ -25,12 +26,26 @@ export default function TransferInitiateForm({
   onDone,
 }: Props) {
   const create = useCreateTransfer(schoolCode);
+  // Digital transfers are part of the SIMS network: a school whose
+  // subscription has lapsed into read-only cannot initiate (or, on the
+  // receiving side, decide) transfers until it renews.
+  const { readOnly } = useSubscriptionAccess();
   const [toSchoolCode, setToSchoolCode] = useState("");
   const [reason, setReason] = useState("");
   const [effectiveDate, setEffectiveDate] = useState(today);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  if (readOnly) {
+    return (
+      <p className="rounded bg-amber-50 p-4 text-sm text-amber-800">
+        Digital transfers need an active SIMS subscription. The school is
+        currently in read-only mode — renew the subscription to initiate
+        transfers again.
+      </p>
+    );
+  }
 
   async function submit() {
     setError(null);

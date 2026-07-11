@@ -7,7 +7,7 @@ import {
 } from "../hooks/schoolQueries";
 import type { School, SubscriptionPlan } from "../types";
 
-const PLANS: SubscriptionPlan[] = ["Basic", "Professional", "Enterprise"];
+const PLANS: SubscriptionPlan[] = ["Starter", "Professional", "Enterprise"];
 
 /**
  * Platform console for the system administrator: every registered

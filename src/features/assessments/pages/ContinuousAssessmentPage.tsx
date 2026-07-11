@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useLevels, useStreams } from "../../academic/hooks/streamQueries";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
@@ -46,9 +47,12 @@ export default function ContinuousAssessmentPage() {
   const save = useSaveCaScores(schoolCode ?? "", streamId);
   const remove = useDeleteCaAssessment(schoolCode ?? "", streamId);
 
-  const canDelete = ["school_admin", "head_teacher"].includes(
-    profile?.role ?? ""
-  );
+  // Read-only mode (lapsed subscription): viewing and CSV export stay;
+  // creating, scoring and deleting are blocked.
+  const { readOnly } = useSubscriptionAccess();
+  const canDelete =
+    !readOnly &&
+    ["school_admin", "head_teacher"].includes(profile?.role ?? "");
 
   const formStreams = (streams.data ?? []).filter(
     (s) => s.academicLevelCode === form && s.active
@@ -150,12 +154,14 @@ export default function ContinuousAssessmentPage() {
               {subjectName(subjectId)} ·{" "}
               {formStreams.find((s) => s.streamId === streamId)?.name ?? streamId}
             </p>
-            <button
-              onClick={() => setCreating((c) => !c)}
-              className="rounded bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800"
-            >
-              {creating ? "Close" : "+ New assessment"}
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => setCreating((c) => !c)}
+                className="rounded bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800"
+              >
+                {creating ? "Close" : "+ New assessment"}
+              </button>
+            )}
           </div>
 
           {creating && (
@@ -203,13 +209,19 @@ export default function ContinuousAssessmentPage() {
                   }
                   roster={roster.data ?? []}
                   saving={save.isPending}
-                  onSave={(scores, absent) =>
-                    save.mutateAsync({
+                  onSave={(scores, absent) => {
+                    if (readOnly)
+                      return Promise.reject(
+                        new Error(
+                          "Read-only mode — renew the subscription to record scores."
+                        )
+                      );
+                    return save.mutateAsync({
                       assessmentId: a.assessmentId,
                       scores,
                       absent,
-                    })
-                  }
+                    });
+                  }}
                   canDelete={canDelete}
                   onDelete={() => {
                     if (

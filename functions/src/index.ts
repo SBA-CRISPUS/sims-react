@@ -20,3 +20,4 @@ export { onEnrollmentWritten } from "./academic/onEnrollmentWritten";
 export { onTeacherRegistered } from "./teachers/onTeacherRegistered";
 export { onSbaSubmissionWritten } from "./assessments/onSbaSubmissionWritten";
 export { onTransferAccepted } from "./transfers/onTransferAccepted";
+export { subscriptionDailyCheck } from "./schools/subscriptionDailyCheck";

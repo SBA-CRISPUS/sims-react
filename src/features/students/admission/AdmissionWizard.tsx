@@ -8,6 +8,9 @@ import { StudentAdmissionService } from "../../../domain/students/StudentAdmissi
 import type { StudentAdmissionRequest } from "../../../domain/students/StudentAdmissionRequest";
 import type { AdmissionResult } from "../../../domain/students/StudentAdmissionService";
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
+import { STARTER_STUDENT_LIMIT } from "../../schools/subscription";
+import { useRegistry } from "../hooks/studentQueries";
 
 import type { AdmissionFormValues } from "./AdmissionFormValues";
 import PersonalStep from "./PersonalStep";
@@ -49,6 +52,18 @@ const currentYear = new Date().getFullYear();
 export default function AdmissionWizard() {
   const { school, firebaseUser } = useAuth();
   const queryClient = useQueryClient();
+
+  // Subscription posture: read-only blocks admission entirely; the
+  // Starter edition caps the school at STARTER_STUDENT_LIMIT students.
+  const access = useSubscriptionAccess();
+  const registry = useRegistry(school?.schoolCode);
+  const activeStudents = (registry.data ?? []).filter(
+    (r) => r.student.status === "active"
+  ).length;
+  const starterCapReached =
+    access.plan === "Starter" &&
+    !registry.isLoading &&
+    activeStudents >= STARTER_STUDENT_LIMIT;
 
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<AdmissionResult | null>(null);
@@ -135,6 +150,28 @@ export default function AdmissionWizard() {
         "Admission failed. This requires an internet connection - check your connection and try again."
       );
     }
+  }
+
+  if (access.readOnly) {
+    return (
+      <Notice title="Admissions are paused">
+        The school's SIMS subscription has lapsed and the system is in
+        read-only mode. Existing records can be viewed, printed and
+        exported; new students can be admitted again as soon as the
+        subscription is renewed.
+      </Notice>
+    );
+  }
+
+  if (starterCapReached) {
+    return (
+      <Notice title={`Starter plan limit reached (${STARTER_STUDENT_LIMIT} students)`}>
+        Your school has {activeStudents} active students — the Starter
+        plan's limit. Upgrade to the Professional plan (unlimited students)
+        to continue admitting; ask your School Administrator to contact the
+        SIMS provider.
+      </Notice>
+    );
   }
 
   if (result) {
@@ -257,6 +294,29 @@ export default function AdmissionWizard() {
           </div>
         </form>
       </FormProvider>
+    </div>
+  );
+}
+
+function Notice({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mx-auto max-w-xl p-8">
+      <div className="rounded-lg bg-white p-8 shadow">
+        <h1 className="text-xl font-bold text-amber-700">{title}</h1>
+        <p className="mt-3 text-gray-600">{children}</p>
+        <Link
+          to="/students/registry"
+          className="mt-6 inline-block text-sm text-blue-700 hover:underline"
+        >
+          ← Back to the student registry
+        </Link>
+      </div>
     </div>
   );
 }

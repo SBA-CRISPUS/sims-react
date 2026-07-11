@@ -9,6 +9,7 @@ import {
   useCancelTransfer,
 } from "../hooks/transferQueries";
 import type { TransferRequest } from "../../../domain/transfers/TransferRequest";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 
 const DECIDER_ROLES = ["school_admin", "head_teacher"];
 
@@ -17,7 +18,11 @@ type Tab = "incoming" | "outgoing";
 export default function TransfersPage() {
   const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
-  const canDecide = DECIDER_ROLES.includes(profile?.role ?? "");
+  // Network rule: a school in read-only (lapsed subscription) can view
+  // its transfer history but cannot decide or respond until it renews.
+  const { readOnly } = useSubscriptionAccess();
+  const canDecide =
+    !readOnly && DECIDER_ROLES.includes(profile?.role ?? "");
 
   const incoming = useIncomingTransfers(schoolCode);
   const outgoing = useOutgoingTransfers(schoolCode);

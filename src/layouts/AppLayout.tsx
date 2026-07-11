@@ -4,6 +4,7 @@ import Header from "../components/layout/Header";
 import Sidebar from "../components/layout/Sidebar";
 import { AcademicContextProvider } from "../features/academic/context/AcademicContextProvider";
 import AcademicContextBar from "../features/academic/components/AcademicContextBar";
+import SubscriptionBanner from "../features/schools/components/SubscriptionBanner";
 
 interface Props {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: Props) {
         <div className="print:hidden">
           <Header onToggleSidebar={() => setSidebarOpen((o) => !o)} />
           <AcademicContextBar />
+          <SubscriptionBanner />
         </div>
 
         <div className="flex flex-1 overflow-hidden print:block print:overflow-visible">

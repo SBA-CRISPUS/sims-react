@@ -10,7 +10,7 @@ import {
 } from "../hooks/schoolQueries";
 import type { School, SubscriptionPlan } from "../types";
 
-const PLANS: SubscriptionPlan[] = ["Basic", "Professional", "Enterprise"];
+const PLANS: SubscriptionPlan[] = ["Starter", "Professional", "Enterprise"];
 
 /**
  * Dedicated subscription console for ONE school (super_admin):

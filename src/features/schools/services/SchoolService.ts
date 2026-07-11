@@ -10,6 +10,7 @@ import {
 
 import { db } from "../../../firebase";
 
+import { normaliseSchool } from "../subscription";
 import type {
   School,
   SchoolFeatures,
@@ -46,7 +47,7 @@ export class SchoolService {
       return null;
     }
 
-    return snapshot.data() as School;
+    return normaliseSchool(snapshot.data() as School);
   }
 
   static async updateSchool(
@@ -63,7 +64,7 @@ export class SchoolService {
   static async listSchools(): Promise<School[]> {
     const snapshot = await getDocs(collection(db, "schools"));
     return snapshot.docs
-      .map((d) => ({ ...(d.data() as School), id: d.id }))
+      .map((d) => normaliseSchool({ ...(d.data() as School), id: d.id }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 

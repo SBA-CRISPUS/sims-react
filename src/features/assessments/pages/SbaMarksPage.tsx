@@ -16,6 +16,7 @@ import {
 import { SBA_LEVELS } from "../../../domain/assessments/SbaPlan";
 import { subjectWeightPercent } from "../../../domain/assessments/SbaWeighting";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 import { sbaSubmissionId } from "../../../domain/assessments/SbaSubmission";
 import type { SbaSubmissionMeta } from "../../../domain/assessments/SbaSubmission";
 import MarksGrid from "../components/MarksGrid";
@@ -93,10 +94,13 @@ export default function SbaMarksPage() {
 
   // Managers may score any class; a teacher may score only the class they
   // own (matches the assignment-scoped Firestore rules). Non-owners still
-  // see the sheet, read-only.
+  // see the sheet, read-only. A lapsed subscription (read-only mode)
+  // blocks scoring for everyone - viewing stays available.
+  const { readOnly } = useSubscriptionAccess();
   const canScore =
-    canManage ||
-    (!!profile?.employeeNumber && teacherId === profile.employeeNumber);
+    !readOnly &&
+    (canManage ||
+      (!!profile?.employeeNumber && teacherId === profile.employeeNumber));
 
   const meta: SbaSubmissionMeta | null =
     classReady && plan && academicYearId

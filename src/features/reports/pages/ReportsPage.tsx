@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { useAuth } from "../../auth/hooks/useAuth";
+import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
 import { useTeachingAssignments } from "../../teaching/hooks/teachingQueries";
@@ -43,6 +44,7 @@ const STAGE_STYLE: Record<SbaStage, string> = {
 
 export default function ReportsPage() {
   const { school } = useAuth();
+  const { hasPlan } = useSubscriptionAccess();
   const schoolCode = school?.schoolCode;
   const { academicYear, academicYearId } = useAcademicContext();
 
@@ -164,6 +166,27 @@ export default function ReportsPage() {
   const totalClasses = model?.classes.length ?? 0;
   const readyPct =
     totalClasses > 0 ? Math.round(((model?.counts.approved ?? 0) / totalClasses) * 100) : 0;
+
+  // Analytics/executive reporting is a Professional-edition feature.
+  if (!hasPlan("Professional")) {
+    return (
+      <div className="p-8">
+        <h1 className="text-3xl font-bold">SBA Reports</h1>
+        <div className="mt-6 max-w-xl rounded-lg bg-white p-8 shadow">
+          <h2 className="text-lg font-semibold text-amber-700">
+            Available on the Professional plan
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            School-wide analytics and compliance reporting are part of the
+            Professional edition. Your school is on the Starter plan — ask
+            your School Administrator to contact the SIMS provider to
+            upgrade. Day-to-day work (students, SBA scoring, exports,
+            transfers) is not affected.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">

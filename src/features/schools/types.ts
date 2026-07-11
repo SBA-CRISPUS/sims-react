@@ -1,5 +1,7 @@
+/** "Starter" was called "Basic" before 2026-07; reads are normalised
+ * (subscription.ts) so legacy docs keep working without migration. */
 export type SubscriptionPlan =
-  | "Basic"
+  | "Starter"
   | "Professional"
   | "Enterprise";
 
