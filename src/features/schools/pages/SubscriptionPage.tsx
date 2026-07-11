@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import {
   useSchool,
   useUpdateEntitlements,
+  useSetSchoolPolicy,
   useSubscriptionLedger,
   useAddSubscriptionEntry,
 } from "../hooks/schoolQueries";
@@ -41,6 +42,7 @@ export default function SubscriptionPage() {
 
 function SubscriptionConsole({ school }: { school: School }) {
   const entitlements = useUpdateEntitlements();
+  const policy = useSetSchoolPolicy();
   const [expiresAt, setExpiresAt] = useState(
     school.subscriptionExpiresAt ?? ""
   );
@@ -210,6 +212,34 @@ function SubscriptionConsole({ school }: { school: School }) {
           them but cannot change them. Suspension locks the school's users
           out at their next page load.
         </p>
+
+        {/* Governance policies (free switches, requested by the school's
+            Head Teacher - never self-service for the school admin). */}
+        <div className="mt-4 border-t pt-4">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={!!school.policies?.adminMayApproveSba}
+              disabled={entitlements.isPending || policy.isPending}
+              onChange={(e) =>
+                policy.mutate({
+                  schoolCode: school.schoolCode,
+                  policy: "adminMayApproveSba",
+                  enabled: e.target.checked,
+                })
+              }
+              className="mt-0.5"
+            />
+            <span>
+              <b>School Administrator may approve SBA sheets.</b>{" "}
+              <span className="text-gray-500">
+                Default off — approval is the Head Teacher's / Deputy's
+                academic decision. Enable only on the school's request
+                where staffing requires the administrator to sign off.
+              </span>
+            </span>
+          </label>
+        </div>
       </div>
 
       {/* Billing ledger */}

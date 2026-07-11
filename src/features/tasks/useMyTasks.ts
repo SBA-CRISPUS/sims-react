@@ -30,8 +30,10 @@ export interface TaskSection {
 }
 
 const REVIEWER_ROLES = ["school_admin", "head_teacher", "deputy_head", "hod"];
-const APPROVER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
-const TRANSFER_ROLES = ["school_admin", "head_teacher"];
+// Approval is academic governance: admins only when the school's
+// platform-set policy allows it (checked below against the fresh school).
+const APPROVER_ROLES = ["head_teacher", "deputy_head"];
+const TRANSFER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
 const EXPORTER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
 
 /**
@@ -56,7 +58,6 @@ export function useMyTasks(): {
   const [now] = useState(() => Date.now());
 
   const isReviewer = REVIEWER_ROLES.includes(role);
-  const isApprover = APPROVER_ROLES.includes(role);
   const isTransferParty = TRANSFER_ROLES.includes(role);
   const isAdminOrHead = ["school_admin", "head_teacher"].includes(role);
   const isAdmin = role === "school_admin";
@@ -70,6 +71,13 @@ export function useMyTasks(): {
   const registry = useRegistry(isAdminOrHead ? schoolCode : undefined);
   const users = useSchoolUsers(isAdmin ? schoolCode : undefined);
   const freshSchool = useSchool(canExport ? schoolCode : undefined);
+
+  // Admins approve only when the school's platform-set policy allows it
+  // (freshSchool is already fetched for every exporter role).
+  const isApprover =
+    APPROVER_ROLES.includes(role) ||
+    (role === "school_admin" &&
+      !!freshSchool.data?.policies?.adminMayApproveSba);
 
   const subjectName = (code: string) =>
     subjects.data?.find((s) => s.subjectCode === code)?.name ?? code;

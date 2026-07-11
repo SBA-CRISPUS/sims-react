@@ -27,7 +27,11 @@ export function useActionCounts(): Record<string, number> {
   const schoolCode = school?.schoolCode;
   const role = profile?.role ?? "";
 
-  const isTransferParty = ["school_admin", "head_teacher"].includes(role);
+  const isTransferParty = [
+    "school_admin",
+    "head_teacher",
+    "deputy_head",
+  ].includes(role);
   const isReviewer = [
     "school_admin",
     "head_teacher",

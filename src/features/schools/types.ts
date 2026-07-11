@@ -44,6 +44,18 @@ export interface SubscriptionLedgerEntry {
   recordedAt?: Date;
 }
 
+/** Governance policy switches, set per school by the system
+ * administrator on the school's (Head Teacher's) request. Unlike
+ * `features` these are free - they tune WHO may do things, not what
+ * the school pays for. Frozen for school admins by the rules so a
+ * School Administrator cannot self-grant academic authority. */
+export interface SchoolPolicies {
+  /** Default OFF: SBA approval is the Head Teacher's / Deputy's academic
+   * decision. Some schools' staffing needs the administrator to sign
+   * off too - this switch allows it. */
+  adminMayApproveSba?: boolean;
+}
+
 /** Optional paid add-ons, enabled per school by the system administrator. */
 export interface SchoolFeatures {
   /** SBA evidence attachments: photos of learner work + written work (PDF)
@@ -124,6 +136,10 @@ export interface School {
    * subscription) - the school-admin update rule freezes the whole map,
    * like subscription/status. Absent flag = feature off. */
   features?: SchoolFeatures;
+
+  /** Governance policy switches (see SchoolPolicies) - platform-set,
+   * frozen for school admins like the other entitlement fields. */
+  policies?: SchoolPolicies;
 
   subscription: SubscriptionPlan;
 

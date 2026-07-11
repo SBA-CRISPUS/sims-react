@@ -32,6 +32,7 @@
           && request.resource.data.status == resource.data.status
           && request.resource.data.provisioning == resource.data.provisioning
           && request.resource.data.get('features', {}) == resource.data.get('features', {})
+          && request.resource.data.get('policies', {}) == resource.data.get('policies', {})
         );
 
       allow delete: if false;

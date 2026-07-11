@@ -64,13 +64,15 @@ export const navigation: NavigationItem[] = [
     ],
   },
   {
+    // Teachers get their academic context (year/term/streams) from the
+    // header bar and My Classes - the full structure page is for the
+    // people who manage it (mentor's least-privilege refinement).
     title: "Academic Structure",
     path: "/academic/structure",
     group: "Academics",
     roles: [
       "school_admin",
       "head_teacher",
-      "teacher",
     ],
   },
   {
@@ -108,6 +110,7 @@ export const navigation: NavigationItem[] = [
     roles: [
       "school_admin",
       "head_teacher",
+      "deputy_head",
     ],
   },
 

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useAcademicContext } from "../../academic/hooks/useAcademicContext";
 import { useSubjects } from "../../subjects/hooks/subjectQueries";
+import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useStreams } from "../../academic/hooks/streamQueries";
 import { useTeachers } from "../../teachers/hooks/teacherQueries";
 import { teacherName } from "../../teachers/format";
@@ -19,7 +20,11 @@ import type {
 } from "../../../domain/assessments/SbaSubmission";
 
 const MODERATOR_ROLES = ["school_admin", "head_teacher", "hod"];
-const APPROVER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
+// Approval is an ACADEMIC decision (mentor's governance model): Head
+// Teacher and Deputy by default. The School Administrator approves only
+// when the school's platform-set policy allows it - system
+// administration and academic sign-off are different jobs.
+const APPROVER_ROLES = ["head_teacher", "deputy_head"];
 
 type StatusFilter = "review" | "approved" | "progress" | "all";
 
@@ -42,8 +47,14 @@ const COLSPAN = 6;
 export default function SbaReviewPage() {
   const { school, profile } = useAuth();
   const schoolCode = school?.schoolCode;
+  const freshSchool = useSchool(schoolCode);
+  const adminMayApprove = !!(
+    (freshSchool.data ?? school)?.policies?.adminMayApproveSba
+  );
   const canModerate = MODERATOR_ROLES.includes(profile?.role ?? "");
-  const canApprove = APPROVER_ROLES.includes(profile?.role ?? "");
+  const canApprove =
+    APPROVER_ROLES.includes(profile?.role ?? "") ||
+    (profile?.role === "school_admin" && adminMayApprove);
 
   const { academicYear, academicYearId } = useAcademicContext();
 

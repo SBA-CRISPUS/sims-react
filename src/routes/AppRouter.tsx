@@ -144,7 +144,7 @@ export function AppRouter() {
         <Route
           path="/academic/structure"
           element={
-            <AppShell roles={["school_admin", "head_teacher", "teacher"]}>
+            <AppShell roles={["school_admin", "head_teacher"]}>
               <AcademicStructurePage />
             </AppShell>
           }
@@ -305,7 +305,7 @@ export function AppRouter() {
         <Route
           path="/transfers"
           element={
-            <AppShell roles={["school_admin", "head_teacher"]}>
+            <AppShell roles={["school_admin", "head_teacher", "deputy_head"]}>
               <TransfersPage />
             </AppShell>
           }

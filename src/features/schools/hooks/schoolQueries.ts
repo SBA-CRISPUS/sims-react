@@ -6,6 +6,7 @@ import type { SchoolProfilePatch } from "../services/SchoolService";
 import type {
   School,
   SchoolFeatures,
+  SchoolPolicies,
   SubscriptionLedgerEntry,
 } from "../types";
 
@@ -48,6 +49,26 @@ export function useSetSchoolFeature() {
       feature: keyof SchoolFeatures;
       enabled: boolean;
     }) => SchoolService.setFeature(schoolCode, feature, enabled),
+    onSuccess: (_data, { schoolCode }) => {
+      queryClient.invalidateQueries({ queryKey: ["schools"] });
+      queryClient.invalidateQueries({ queryKey: ["school", schoolCode] });
+    },
+  });
+}
+
+/** Governance policy switch (super_admin only; rules enforce). */
+export function useSetSchoolPolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      schoolCode,
+      policy,
+      enabled,
+    }: {
+      schoolCode: string;
+      policy: keyof SchoolPolicies;
+      enabled: boolean;
+    }) => SchoolService.setPolicy(schoolCode, policy, enabled),
     onSuccess: (_data, { schoolCode }) => {
       queryClient.invalidateQueries({ queryKey: ["schools"] });
       queryClient.invalidateQueries({ queryKey: ["school", schoolCode] });

@@ -11,7 +11,10 @@ import {
 import type { TransferRequest } from "../../../domain/transfers/TransferRequest";
 import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
 
-const DECIDER_ROLES = ["school_admin", "head_teacher"];
+// Deputies act for the Head on governance: they DECIDE incoming
+// transfers. Releasing a student (initiate/cancel) stays admin/head.
+const DECIDER_ROLES = ["school_admin", "head_teacher", "deputy_head"];
+const SENDER_ROLES = ["school_admin", "head_teacher"];
 
 type Tab = "incoming" | "outgoing";
 
@@ -23,6 +26,8 @@ export default function TransfersPage() {
   const { readOnly } = useSubscriptionAccess();
   const canDecide =
     !readOnly && DECIDER_ROLES.includes(profile?.role ?? "");
+  const canCancel =
+    !readOnly && SENDER_ROLES.includes(profile?.role ?? "");
 
   const incoming = useIncomingTransfers(schoolCode);
   const outgoing = useOutgoingTransfers(schoolCode);
@@ -164,7 +169,7 @@ export default function TransfersPage() {
 
               {tab === "outgoing" &&
                 ["requested", "info_requested"].includes(r.status) &&
-                canDecide && (
+                canCancel && (
                   <div className="mt-3 flex items-center gap-3 border-t pt-3">
                     <button
                       onClick={() =>

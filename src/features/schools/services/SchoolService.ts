@@ -14,6 +14,7 @@ import { normaliseSchool } from "../subscription";
 import type {
   School,
   SchoolFeatures,
+  SchoolPolicies,
   SubscriptionLedgerEntry,
 } from "../types";
 
@@ -115,6 +116,21 @@ export class SchoolService {
       note: entry.note ?? "",
       recordedByUid: actorUid,
       recordedAt: serverTimestamp(),
+    });
+  }
+
+  /** Flip a governance policy switch (free, unlike features). Frozen for
+   * school admins by the rules - a School Administrator cannot grant
+   * themselves academic authority; the platform flips it on the school's
+   * (Head Teacher's) request. */
+  static async setPolicy(
+    schoolCode: string,
+    policy: keyof SchoolPolicies,
+    enabled: boolean
+  ): Promise<void> {
+    await updateDoc(doc(db, "schools", schoolCode), {
+      [`policies.${policy}`]: enabled,
+      updatedAt: serverTimestamp(),
     });
   }
 

@@ -102,7 +102,11 @@
 
     // Who may approve/sign off an SBA sheet (the Head Teacher step). This
     // freezes the marks - the approval Cloud Function computes the final
-    // raw scores.
+    // raw scores. NOTE: school_admin stays here as CAPABILITY, but the
+    // UI default hides approval from admins unless the platform-set
+    // policies.adminMayApproveSba is on (approval is academic
+    // governance, not systems administration). Rules stay get()-free by
+    // project decision, so the policy default is client-enforced.
     function canApproveSba() {
       return isSchoolAdmin() || hasRole("head_teacher") || hasRole("deputy_head");
     }
@@ -116,8 +120,11 @@
     function canInitiateTransfer() {
       return isSchoolAdmin() || hasRole("head_teacher");
     }
+    // The Deputy acts for the Head on governance decisions (mentor's
+    // model): deputies may DECIDE incoming transfers; initiating an
+    // outgoing transfer (releasing a student) stays admin/head-only.
     function canDecideTransfer() {
-      return isSchoolAdmin() || hasRole("head_teacher");
+      return isSchoolAdmin() || hasRole("head_teacher") || hasRole("deputy_head");
     }
 
     function canViewReports() {

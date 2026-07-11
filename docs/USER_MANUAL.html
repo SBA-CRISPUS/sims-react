@@ -239,9 +239,9 @@ and phones:</p>
 <p>Every user account has a role. Your role decides which menus you see and what you may do.</p>
 <table>
   <tr><th style="width:32%">Role</th><th>What they do in SIMS</th></tr>
-  <tr><td><b>School Administrator</b></td><td>Sets up the school (profile, structure, subjects), registers teachers and staff, creates login accounts, admits students, manages fees, and has full access to all modules.</td></tr>
-  <tr><td><b>Head Teacher</b></td><td>Oversees the whole school: admits students, manages teachers and assignments, moderates and <b>approves</b> SBA results, initiates/decides transfers, views reports.</td></tr>
-  <tr><td><b>Deputy Head</b></td><td>Reviews and approves SBA submissions, monitors readiness, handles ECZ export, views reports.</td></tr>
+  <tr><td><b>School Administrator</b></td><td>Runs the <i>system</i>: school setup (profile, structure, subjects), teacher and staff accounts, admissions, fees, exports and reports. Moderates SBA but does <b>not approve</b> it by default — approval is academic governance (the school can ask the SIMS provider to enable administrator approval where staffing requires it).</td></tr>
+  <tr><td><b>Head Teacher</b></td><td>Runs the <i>school</i>: admits students, manages teachers and assignments, moderates and <b>approves</b> SBA results, initiates/decides transfers, views reports.</td></tr>
+  <tr><td><b>Deputy Head</b></td><td>Acts for the Head on governance: <b>approves</b> SBA submissions, <b>decides incoming transfers</b>, monitors readiness, handles ECZ export, views reports.</td></tr>
   <tr><td><b>Head of Department (HOD)</b></td><td>Builds SBA plans, enters marks where needed, <b>moderates</b> submitted class score sheets, monitors readiness and reports.</td></tr>
   <tr><td><b>Teacher</b></td><td>Works from “My Classes”: enters SBA marks for their own classes and submits them for review. Can view student records.</td></tr>
   <tr><td><b>System Administrator</b></td><td>Platform level only — registers new schools onto SIMS, provisions the first School Administrator account, manages each school's <b>subscription tier, billing ledger and status</b> (a suspended school is locked out until reactivated), and enables optional paid add-ons (e.g. SBA evidence attachments) on request. School staff never need this role.</td></tr>
@@ -306,9 +306,9 @@ correct year and term are selected. Your selection is remembered on that device.
   <tr><td>My Tasks</td><td>One inbox of everything waiting on you, with links (Section 3.4)</td><td>All school staff</td></tr>
   <tr><td>My Classes</td><td>A teacher's own classes and score sheets</td><td>Teacher, HOD, Head, Deputy</td></tr>
   <tr><td>Students / Student Registry</td><td>Student dashboard, full searchable register</td><td>Admin, Head, Teacher</td></tr>
-  <tr><td>Academic Structure</td><td>Years, terms, forms (levels) and streams (classes)</td><td>Admin manages; staff view</td></tr>
+  <tr><td>Academic Structure</td><td>Years, terms, forms (levels) and streams (classes)</td><td>Admin manages; Head views (teachers get their context from the header bar and My Classes)</td></tr>
   <tr><td>Teachers</td><td>Teacher HR registry and profiles</td><td>Admin, Head</td></tr>
-  <tr><td>Transfers</td><td>Student transfers between SIMS schools</td><td>Admin, Head</td></tr>
+  <tr><td>Transfers</td><td>Student transfers between SIMS schools</td><td>Admin, Head; Deputy decides incoming</td></tr>
   <tr><td>Subjects</td><td>Subject catalogue (incl. SBA flag)</td><td>Admin manages; staff view</td></tr>
   <tr><td>Teaching</td><td>Assign teachers to stream + subject per term</td><td>Admin, Head</td></tr>
   <tr><td>SBA Plans / Marks / Review / Readiness / ECZ Export</td><td>The full SBA workflow (Section 7)</td><td>Per role — see Section 7</td></tr>
@@ -516,7 +516,7 @@ Correct the marks and submit again.</div>
 you can <b>View</b> the marks, then:</p>
 <ul>
   <li><b>Moderate</b> (HOD) — confirms departmental review of a submitted sheet.</li>
-  <li><b>Approve</b> (Head / Deputy) — final sign-off. The marks are recomputed server-side, <b>frozen</b>, and become read-only for everyone.</li>
+  <li><b>Approve</b> (Head Teacher / Deputy) — final sign-off. The marks are recomputed server-side, <b>frozen</b>, and become read-only for everyone. The School Administrator can approve only if the school has asked the SIMS provider to enable it — approval is an academic decision, not a systems task.</li>
   <li><b>Return</b> — send back to the teacher with a comment explaining what to fix.</li>
 </ul>
 <p>Each action can carry a comment; the per-sheet <b>History</b> shows the full trail, and a
