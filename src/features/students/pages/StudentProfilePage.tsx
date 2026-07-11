@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
-import { useStudent } from "../hooks/studentQueries";
+import { useStudent, useSetWithdrawn } from "../hooks/studentQueries";
 import { fullName } from "../format";
 
 import ProfileTab from "../components/tabs/ProfileTab";
@@ -47,6 +47,7 @@ export default function StudentProfilePage() {
   const [tab, setTab] = useState<Tab>("Profile");
   const [showTransfer, setShowTransfer] = useState(false);
   const [editing, setEditing] = useState(false);
+  const setWithdrawn = useSetWithdrawn(schoolCode, studentNumber);
 
   if (isLoading) {
     return <div className="p-8 text-gray-500">Loading student...</div>;
@@ -123,6 +124,34 @@ export default function StudentProfilePage() {
               {editing ? "Close edit" : "Edit details"}
             </button>
           )}
+          {canTransfer &&
+            ["active", "withdrawn"].includes(student.status) && (
+              <button
+                onClick={() => {
+                  const withdrawing = student.status === "active";
+                  if (
+                    window.confirm(
+                      withdrawing
+                        ? `Withdraw ${fullName(student)}? They leave rosters and score sheets, but the full record and history stay — this can be reversed.`
+                        : `Reactivate ${fullName(student)}? They rejoin their class rosters.`
+                    )
+                  )
+                    setWithdrawn.mutate(withdrawing);
+                }}
+                disabled={setWithdrawn.isPending}
+                className={`rounded border px-3 py-1 text-sm disabled:opacity-50 ${
+                  student.status === "active"
+                    ? "border-red-300 text-red-700 hover:bg-red-50"
+                    : "border-green-400 text-green-700 hover:bg-green-50"
+                }`}
+              >
+                {setWithdrawn.isPending
+                  ? "Saving..."
+                  : student.status === "active"
+                    ? "Withdraw"
+                    : "Reactivate"}
+              </button>
+            )}
         </div>
       </div>
 

@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 
+import { useState } from "react";
+
 import {
   useSchools,
   useSetSchoolFeature,
   useUpdateEntitlements,
 } from "../hooks/schoolQueries";
+import { DirectoryService } from "../../../domain/schools/DirectoryService";
 import type { School, SubscriptionPlan } from "../types";
 
 const PLANS: SubscriptionPlan[] = ["Starter", "Professional", "Enterprise"];
@@ -21,6 +24,7 @@ export default function Schools() {
   const schools = useSchools();
   const setFeature = useSetSchoolFeature();
   const entitlements = useUpdateEntitlements();
+  const [synced, setSynced] = useState<number | null>(null);
 
   return (
     <div className="p-8">
@@ -32,12 +36,28 @@ export default function Schools() {
             platform.
           </p>
         </div>
-        <Link
-          to="/schools/new"
-          className="rounded bg-blue-700 px-5 py-2 text-white hover:bg-blue-800"
-        >
-          Register school
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* One-time backfill of /directory for schools that predate the
+              onSchoolWritten mirror; the CF keeps it fresh afterwards. */}
+          <button
+            onClick={async () => {
+              const n = await DirectoryService.syncAll(schools.data ?? []);
+              setSynced(n);
+            }}
+            disabled={!schools.data?.length}
+            className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+          >
+            {synced !== null
+              ? `Directory synced (${synced}) ✓`
+              : "Sync transfer directory"}
+          </button>
+          <Link
+            to="/schools/new"
+            className="rounded bg-blue-700 px-5 py-2 text-white hover:bg-blue-800"
+          >
+            Register school
+          </Link>
+        </div>
       </div>
 
       {schools.isLoading && (

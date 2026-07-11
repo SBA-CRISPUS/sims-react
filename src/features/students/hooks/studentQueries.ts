@@ -55,6 +55,29 @@ export function useUpdateStudentDetails(
   });
 }
 
+/** Withdraw / reactivate (admin/head): flips the student and their
+ * enrollments; rosters and score sheets drop withdrawn students. */
+export function useSetWithdrawn(schoolCode?: string, studentNumber?: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (withdrawn: boolean) =>
+      StudentEditService.setWithdrawn(schoolCode!, studentNumber!, withdrawn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["student", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+      queryClient.invalidateQueries({
+        queryKey: ["student-enrollments", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["count-active-students", schoolCode],
+      });
+      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+    },
+  });
+}
+
 export function usePlaceStudent(schoolCode?: string, studentNumber?: string) {
   const queryClient = useQueryClient();
   return useMutation({

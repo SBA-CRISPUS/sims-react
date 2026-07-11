@@ -10,8 +10,9 @@ export interface Enrollment {
   streamId: string;
   admissionDate: Date;
   // "transferred" is set by onTransferAccepted when the learner moves to
-  // another SIMS school (the record stays as history).
-  status: "active" | "transferred";
+  // another SIMS school; "withdrawn" by the withdrawal action (both keep
+  // the record as history and drop the student from rosters).
+  status: "active" | "transferred" | "withdrawn";
   createdAt: Date;
   updatedAt: Date;
 }

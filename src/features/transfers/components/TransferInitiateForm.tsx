@@ -3,6 +3,8 @@ import { useState } from "react";
 import { TransferSnapshotService } from "../../../domain/transfers/TransferSnapshotService";
 import { useCreateTransfer } from "../hooks/transferQueries";
 import { useSubscriptionAccess } from "../../schools/hooks/useSubscriptionAccess";
+import { DirectoryService } from "../../../domain/schools/DirectoryService";
+import type { DirectoryEntry } from "../../../domain/schools/DirectoryService";
 
 interface Props {
   schoolCode: string;
@@ -36,6 +38,27 @@ export default function TransferInitiateForm({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Directory lookup: the code must resolve to a real, active SIMS
+  // school (and its name shown) before the envelope can be sent - no
+  // more transfers addressed to a typo.
+  const [lookup, setLookup] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "found"; entry: DirectoryEntry }
+    | { state: "notfound"; code: string }
+  >({ state: "idle" });
+
+  async function lookUp() {
+    const code = toSchoolCode.trim().toUpperCase();
+    if (!code) return;
+    setLookup({ state: "checking" });
+    try {
+      const entry = await DirectoryService.getEntry(code);
+      setLookup(entry ? { state: "found", entry } : { state: "notfound", code });
+    } catch {
+      setLookup({ state: "notfound", code });
+    }
+  }
 
   if (readOnly) {
     return (
@@ -56,6 +79,16 @@ export default function TransferInitiateForm({
     }
     if (code === schoolCode) {
       setError("The receiving school must be different from this one.");
+      return;
+    }
+    if (lookup.state !== "found" || lookup.entry.schoolCode !== code) {
+      setError("Look up the code first and confirm it shows the school you mean.");
+      return;
+    }
+    if (!lookup.entry.active) {
+      setError(
+        "That school is not active on SIMS right now — confirm with them before transferring."
+      );
       return;
     }
     if (!reason.trim()) {
@@ -120,12 +153,43 @@ export default function TransferInitiateForm({
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>
           <label className="block text-sm text-gray-600">Receiving school code</label>
-          <input
-            value={toSchoolCode}
-            onChange={(e) => setToSchoolCode(e.target.value.toUpperCase())}
-            placeholder="e.g. SCH-000003"
-            className="mt-1 w-full rounded border p-2"
-          />
+          <div className="mt-1 flex gap-2">
+            <input
+              value={toSchoolCode}
+              onChange={(e) => {
+                setToSchoolCode(e.target.value.toUpperCase());
+                setLookup({ state: "idle" });
+              }}
+              onBlur={lookUp}
+              placeholder="e.g. SCH-000003"
+              className="w-full rounded border p-2"
+            />
+            <button
+              type="button"
+              onClick={lookUp}
+              className="rounded border border-slate-300 px-3 text-sm hover:bg-slate-100"
+            >
+              Look up
+            </button>
+          </div>
+          {lookup.state === "checking" && (
+            <p className="mt-1 text-xs text-gray-500">Checking...</p>
+          )}
+          {lookup.state === "found" && (
+            <p
+              className={`mt-1 text-xs ${lookup.entry.active ? "text-green-700" : "text-amber-700"}`}
+            >
+              ✓ {lookup.entry.name}
+              {lookup.entry.district ? ` — ${lookup.entry.district}` : ""}
+              {!lookup.entry.active && " (not active on SIMS)"}
+            </p>
+          )}
+          {lookup.state === "notfound" && (
+            <p className="mt-1 text-xs text-red-600">
+              No SIMS school with code {lookup.code} — check with the
+              receiving school.
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm text-gray-600">Reason</label>

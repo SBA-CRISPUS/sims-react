@@ -171,6 +171,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Public (signed-in) directory of SIMS schools: code, name, district,
+    // active - mirrored by the onSchoolWritten Cloud Function so the
+    // transfer form can validate a receiving code and show the school's
+    // name WITHOUT cross-tenant reads. Letterhead identity only, nothing
+    // sensitive. Super admin may write (one-time backfill / corrections).
+    match /directory/{schoolCode} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+
     // ===== 20_users.rules =====
 
     //
