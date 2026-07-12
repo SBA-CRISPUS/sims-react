@@ -61,12 +61,17 @@ export class SchoolService {
     });
   }
 
-  /** All schools on the platform - super_admin only (rules deny others). */
+  /** All schools on the platform - super_admin only (rules deny others).
+   * Docs without a schoolCode are skipped: one legacy auto-ID document
+   * (from the long-removed addDoc provisioning path) still exists in
+   * production and would otherwise crash anything that builds paths
+   * from the code. */
   static async listSchools(): Promise<School[]> {
     const snapshot = await getDocs(collection(db, "schools"));
     return snapshot.docs
       .map((d) => normaliseSchool({ ...(d.data() as School), id: d.id }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((s) => !!s.schoolCode)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   }
 
   /** ENTITLEMENT writes (subscription tier / status): frozen for school

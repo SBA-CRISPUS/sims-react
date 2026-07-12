@@ -41,6 +41,9 @@ export class DirectoryService {
   ): Promise<number> {
     const batch = writeBatch(db);
     for (const s of schools) {
+      // Defensive: a document without a code cannot be mirrored (and
+      // an undefined path segment crashes Firestore's path parser).
+      if (!s.schoolCode) continue;
       batch.set(doc(db, "directory", s.schoolCode), {
         schoolCode: s.schoolCode,
         name: s.name,

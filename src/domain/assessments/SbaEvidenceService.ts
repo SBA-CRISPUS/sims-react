@@ -123,7 +123,7 @@ export class SbaEvidenceService {
     schoolCode: string,
     submissionId: string,
     item: SbaEvidenceItem
-  ): Promise<void> {
+  ): Promise<void> { 
     // Metadata first: a failed Storage delete leaves an invisible orphan,
     // never a listed row whose download 404s.
     await deleteDoc(
