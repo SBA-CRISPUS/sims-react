@@ -1,1 +1,147 @@
 @import "tailwindcss";
+
+/* Self-hosted variable fonts (no external font CDN - offline-first).
+   wght axis only: covers every weight the app actually sets. Italic
+   is used sparingly (dashboard greeting) but costs nothing extra -
+   browsers only fetch it where font-style:italic is computed. */
+@import "@fontsource-variable/fraunces/wght.css";
+@import "@fontsource-variable/fraunces/wght-italic.css";
+@import "@fontsource-variable/archivo/wght.css";
+
+/**
+ * "Copperbelt" identity - grounded in Zambia's copper-mining heritage
+ * (the accent) paired with a growth-green (the structural colour),
+ * replacing the generic blue/slate default. Palette values are shared
+ * with the approved dashboard design
+ * (https://claude.ai/code/artifact/b80ea24e-f8ff-4cbf-9178-0a2d49a73bed).
+ *
+ * These redefine Tailwind's own blue/slate/gray/green/amber/red scales,
+ * so every existing bg-blue-700, text-gray-500, bg-green-100 etc. across
+ * the app repaints automatically - no per-file class renames needed.
+ * Mapping: blue -> copper (primary/interactive), slate & gray -> stone
+ * (shared neutral, the app used them interchangeably), green -> good,
+ * amber -> warn, red -> critical. indigo/violet/cyan/purple are left
+ * as Tailwind stock - they only appear as small, deliberately-distinct
+ * pipeline-stage badges.
+ *
+ * This is a light-mode-only reskin: the app has no dark-mode support
+ * today, and adding it across 80+ existing pages is out of scope here.
+ */
+@theme {
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+
+  /* Chrome-only tokens: the dark sidebar/hero surface, the growth-green
+     structural colour, and the warm sand border - not part of the
+     blue/slate/gray/green/amber/red remap above, used directly by
+     Header/Sidebar/AppLayout/dashboards for the full mockup treatment. */
+  --color-surface-deep: #123529;
+  --color-surface-deep-2: #0e2b21;
+  --color-forest: #1b4d3c;
+  --color-forest-soft: #d8e6df;
+  --color-sand: #e2dcc8;
+  --color-paper-raised: #f8f9f6;
+  --color-warn-ink: #6b4413;
+
+  /* copper - was blue */
+  --color-blue-50: #f9f0e9;
+  --color-blue-100: #f2e2d6;
+  --color-blue-200: #ecccb0;
+  --color-blue-300: #e0b090;
+  --color-blue-400: #d69470;
+  --color-blue-500: #c9754a;
+  --color-blue-600: #c16535;
+  --color-blue-700: #b6552a;
+  --color-blue-800: #9c4620;
+  --color-blue-900: #7a3618;
+  --color-blue-950: #4d210e;
+
+  /* stone - was slate (shared neutral with gray below) */
+  --color-slate-50: #f7f8f5;
+  --color-slate-100: #eef1ec;
+  --color-slate-200: #e1e5dc;
+  --color-slate-300: #cbd1c3;
+  --color-slate-400: #a9b1a0;
+  --color-slate-500: #7c8a82;
+  --color-slate-600: #5d6b62;
+  --color-slate-700: #46524c;
+  --color-slate-800: #2c3630;
+  --color-slate-900: #1c2622;
+  --color-slate-950: #101512;
+
+  /* stone - was gray (identical to slate above; the app mixed the two
+     for the same muted-neutral role, so they now render identically) */
+  --color-gray-50: #f7f8f5;
+  --color-gray-100: #eef1ec;
+  --color-gray-200: #e1e5dc;
+  --color-gray-300: #cbd1c3;
+  --color-gray-400: #a9b1a0;
+  --color-gray-500: #7c8a82;
+  --color-gray-600: #5d6b62;
+  --color-gray-700: #46524c;
+  --color-gray-800: #2c3630;
+  --color-gray-900: #1c2622;
+  --color-gray-950: #101512;
+
+  /* good - was green (approved / success) */
+  --color-green-50: #f1f8f3;
+  --color-green-100: #e2f0e6;
+  --color-green-200: #c7e5d1;
+  --color-green-300: #9cd0ae;
+  --color-green-400: #6bb385;
+  --color-green-500: #4a9d6a;
+  --color-green-600: #3e8f5c;
+  --color-green-700: #2f7548;
+  --color-green-800: #235536;
+  --color-green-900: #163d26;
+  --color-green-950: #0e2819;
+
+  /* warn - was amber (pending / expiring) */
+  --color-amber-50: #fdf7ec;
+  --color-amber-100: #f8ecd9;
+  --color-amber-200: #f0dbb3;
+  --color-amber-300: #e6c489;
+  --color-amber-400: #d9a655;
+  --color-amber-500: #c98a2e;
+  --color-amber-600: #b17527;
+  --color-amber-700: #8f5c1d;
+  --color-amber-800: #6b4413;
+  --color-amber-900: #4a2f0d;
+  --color-amber-950: #2e1c07;
+
+  /* critical - was red (destructive / expired) */
+  --color-red-50: #fbf1f0;
+  --color-red-100: #f7e2e0;
+  --color-red-200: #eec4c1;
+  --color-red-300: #e5a5a1;
+  --color-red-400: #d97e78;
+  --color-red-500: #c8564f;
+  --color-red-600: #b23b36;
+  --color-red-700: #973028;
+  --color-red-800: #7a271f;
+  --color-red-900: #5e1f19;
+  --color-red-950: #3c130f;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-blue-700);
+    color: #fff;
+  }
+}

@@ -144,8 +144,8 @@ export default function TeacherDashboard() {
     notifications.push("You're all caught up — every SBA sheet is approved. 🎉");
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">
+    <div className="p-6 sm:p-8">
+      <h1 className="font-display text-3xl font-medium text-slate-900">
         {greeting()}
         {profile?.displayName ? `, ${profile.displayName}` : ""}
       </h1>
@@ -171,9 +171,11 @@ export default function TeacherDashboard() {
           </div>
 
           {notifications.length > 0 && (
-            <div className="mt-6 rounded-lg bg-white p-5 shadow">
+            <div className="mt-6 rounded-2xl border border-sand bg-white p-5 shadow-sm">
               <div className="flex items-baseline justify-between">
-                <p className="font-medium">What needs your attention</p>
+                <p className="font-display font-medium text-slate-900">
+                  What needs your attention
+                </p>
                 <Link to="/tasks" className="text-sm text-blue-700 hover:underline">
                   All tasks →
                 </Link>
@@ -187,7 +189,9 @@ export default function TeacherDashboard() {
           )}
 
           <div className="mt-6 flex items-center justify-between">
-            <p className="font-medium">Your classes</p>
+            <p className="font-display font-medium text-slate-900">
+              Your classes
+            </p>
             <Link to="/my-classes" className="text-sm text-blue-700 hover:underline">
               Open My Classes →
             </Link>
@@ -198,7 +202,7 @@ export default function TeacherDashboard() {
               No classes are assigned to you for this year yet.
             </p>
           ) : (
-            <div className="mt-3 divide-y rounded-lg bg-white shadow">
+            <div className="mt-3 divide-y divide-sand rounded-2xl border border-sand bg-white shadow-sm">
               {rows.map((r) => (
                 <Link
                   key={`${r.streamId}|${r.subjectId}`}
@@ -206,13 +210,13 @@ export default function TeacherDashboard() {
                   className="flex items-center justify-between p-4 hover:bg-slate-50"
                 >
                   <div>
-                    <p className="font-medium">{r.subjectName}</p>
+                    <p className="font-medium text-slate-900">{r.subjectName}</p>
                     <p className="text-sm text-gray-500">
                       {r.academicLevelCode} · {r.streamName}
                     </p>
                   </div>
                   <span
-                    className={`rounded px-2 py-0.5 text-xs ${STAGE_STYLE[r.stage]}`}
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STAGE_STYLE[r.stage]}`}
                   >
                     {STAGE_LABEL[r.stage]}
                   </span>
@@ -237,13 +241,15 @@ function Stat({
 }) {
   const tones = {
     blue: "bg-blue-50 text-blue-800",
-    amber: "bg-amber-50 text-amber-800",
+    amber: "bg-amber-50 text-warn-ink",
     indigo: "bg-indigo-50 text-indigo-800",
     green: "bg-green-50 text-green-800",
   };
   return (
-    <div className={`rounded-lg p-5 ${tones[tone]}`}>
-      <div className="text-3xl font-bold">{value}</div>
+    <div className={`rounded-2xl p-5 ${tones[tone]}`}>
+      <div className="font-display text-3xl font-medium tabular-nums">
+        {value}
+      </div>
       <div className="mt-1 text-sm">{label}</div>
     </div>
   );

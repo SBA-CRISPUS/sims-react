@@ -34,7 +34,7 @@ export default function AppLayout({ children }: Props) {
             />
           </div>
 
-          <main className="flex-1 overflow-auto bg-slate-100 print:overflow-visible print:bg-white">
+          <main className="flex-1 overflow-auto bg-slate-50 print:overflow-visible print:bg-white">
             {children}
           </main>
         </div>

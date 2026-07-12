@@ -61,10 +61,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-slate-100">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow">
+    <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="w-full max-w-md rounded-3xl border border-sand bg-white p-8 shadow-sm">
 
-        <h1 className="text-2xl font-bold text-center">
+        <h1 className="font-display text-2xl font-medium text-center text-slate-900">
           SIMS Login
         </h1>
 
@@ -78,7 +78,7 @@ export default function LoginPage() {
         >
 
           <div>
-            <label className="block font-medium">
+            <label className="block font-medium text-slate-800">
               Email
             </label>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
               {...register("email", {
                 required: "Email is required",
               })}
-              className="w-full border rounded p-2"
+              className="w-full rounded-lg border border-sand p-2 focus:border-blue-700 focus:outline-none"
             />
 
             {errors.email && (
@@ -99,7 +99,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block font-medium">
+            <label className="block font-medium text-slate-800">
               Password
             </label>
 
@@ -109,7 +109,7 @@ export default function LoginPage() {
               {...register("password", {
                 required: "Password is required",
               })}
-              className="w-full border rounded p-2"
+              className="w-full rounded-lg border border-sand p-2 focus:border-blue-700 focus:outline-none"
             />
 
             {errors.password && (
@@ -127,7 +127,7 @@ export default function LoginPage() {
 
           <button
             disabled={isSubmitting}
-            className="w-full bg-blue-700 text-white px-5 py-2 rounded hover:bg-blue-800 disabled:opacity-50"
+            className="w-full rounded-lg bg-blue-700 text-white px-5 py-2 hover:bg-blue-800 disabled:opacity-50"
           >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
@@ -144,13 +144,13 @@ export default function LoginPage() {
               Forgot password?
             </button>
           ) : resetSent ? (
-            <p className="rounded bg-green-50 p-3 text-green-800">
+            <p className="rounded-lg bg-green-50 p-3 text-green-800">
               If an account exists for that email, a password-reset link has
               been sent. Check your inbox (and spam folder), then sign in
               with your new password.
             </p>
           ) : (
-            <div className="rounded bg-slate-50 p-3">
+            <div className="rounded-lg bg-slate-50 p-3">
               <p className="text-gray-600">
                 Enter your email address above, then
               </p>

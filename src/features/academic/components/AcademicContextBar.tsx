@@ -25,7 +25,7 @@ function Selector({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="rounded border px-2 py-1 disabled:opacity-50"
+        className="rounded border border-sand bg-white px-2 py-1 text-slate-800 focus:border-blue-700 focus:outline-none disabled:opacity-50"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -61,7 +61,7 @@ export default function AcademicContextBar() {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-4 border-b bg-white px-6 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-4 border-b border-sand bg-paper-raised px-6 py-2 text-sm">
       <Selector
         label="Year"
         value={academicYearId ?? ""}
