@@ -78,6 +78,34 @@ export function useSetWithdrawn(schoolCode?: string, studentNumber?: string) {
   });
 }
 
+/** Undo a MANUAL transfer out recorded in error (admin/head). Refuses
+ * (service-enforced) unless the student was actually transferred
+ * manually - a digital transfer already imported at the receiving
+ * school cannot be reversed here. */
+export function useUndoManualTransfer(
+  schoolCode?: string,
+  studentNumber?: string
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      StudentEditService.undoManualTransfer(schoolCode!, studentNumber!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["student", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+      queryClient.invalidateQueries({
+        queryKey: ["student-enrollments", schoolCode, studentNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["count-active-students", schoolCode],
+      });
+      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+    },
+  });
+}
+
 export function usePlaceStudent(schoolCode?: string, studentNumber?: string) {
   const queryClient = useQueryClient();
   return useMutation({

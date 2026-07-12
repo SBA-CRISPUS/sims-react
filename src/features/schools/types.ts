@@ -118,6 +118,11 @@ export interface School {
    * School Profile page). Shown in the header and on printed documents. */
   logoUrl?: string;
 
+  /** Download URL of the Head Teacher's / Deputy's signature image -
+   * printed on every official document (transfer letter/certificate,
+   * transcript, report card) above the signature line. */
+  signatureUrl?: string;
+
   /** The school's own grading scale, printed on report cards so parents
    * can read the scores. Falls back to DEFAULT_GRADING_SCALE. */
   gradingScale?: GradingBand[];

@@ -6,6 +6,7 @@ import { useSchool } from "../../schools/hooks/schoolQueries";
 import { useOutgoingTransfers } from "../../transfers/hooks/transferQueries";
 import { useStudent, useStudentEnrollments } from "../hooks/studentQueries";
 import { fullName } from "../format";
+import SignatureBlock from "../components/SignatureBlock";
 
 /**
  * The official leaving document for a transferred learner - deliberately
@@ -25,8 +26,9 @@ export default function TransferCertificatePage() {
   const studentQ = useStudent(schoolCode, studentNumber);
   const enrollments = useStudentEnrollments(schoolCode, studentNumber);
   const outgoing = useOutgoingTransfers(schoolCode);
+  const student = studentQ.data;
 
-  const transfer = useMemo(
+  const digital = useMemo(
     () =>
       (outgoing.data ?? [])
         .filter(
@@ -39,6 +41,28 @@ export default function TransferCertificatePage() {
     [outgoing.data, studentNumber]
   );
 
+  // Unify both transfer paths into one shape the certificate prints
+  // from: a completed digital request (destination = another SIMS
+  // school) or a manual record (destination noted on the student, for
+  // a school not on SIMS).
+  const transfer = digital
+    ? {
+        destination: digital.toSchoolCode,
+        leavingDate: digital.completedAt
+          ? digital.completedAt.toLocaleDateString()
+          : digital.effectiveDate,
+        reason: digital.reason,
+        transferNumber: digital.transferNumber,
+      }
+    : student?.transferredTo
+      ? {
+          destination: student.transferredTo.schoolName,
+          leavingDate: student.transferredTo.effectiveDate,
+          reason: student.transferredTo.reason,
+          transferNumber: undefined,
+        }
+      : undefined;
+
   const sorted = useMemo(
     () =>
       [...(enrollments.data ?? [])].sort(
@@ -50,7 +74,6 @@ export default function TransferCertificatePage() {
   const firstEnrollment = sorted[0];
   const lastEnrollment = sorted[sorted.length - 1];
 
-  const student = studentQ.data;
   if (studentQ.isLoading || outgoing.isLoading) {
     return <div className="p-8 text-gray-500">Loading certificate...</div>;
   }
@@ -69,7 +92,8 @@ export default function TransferCertificatePage() {
       <div className="p-8">
         <p className="text-gray-700">
           No completed transfer is recorded for this student — a transfer
-          certificate can only be issued after a transfer completes.
+          certificate can only be issued after a digital transfer completes
+          or a manual transfer out is recorded.
         </p>
         <Link
           to={`/students/${studentNumber}`}
@@ -82,9 +106,6 @@ export default function TransferCertificatePage() {
   }
 
   const issued = new Date().toLocaleDateString();
-  const leavingDate = transfer.completedAt
-    ? transfer.completedAt.toLocaleDateString()
-    : transfer.effectiveDate;
 
   return (
     <div className="p-8">
@@ -174,8 +195,8 @@ export default function TransferCertificatePage() {
                   : "—"
               }
             />
-            <Detail label="Date of leaving" value={leavingDate} />
-            <Detail label="Transferred to" value={transfer.toSchoolCode} />
+            <Detail label="Date of leaving" value={transfer.leavingDate} />
+            <Detail label="Transferred to" value={transfer.destination} />
             <Detail label="Reason" value={transfer.reason || "—"} />
           </div>
 
@@ -187,13 +208,7 @@ export default function TransferCertificatePage() {
           </p>
 
           {/* Signature */}
-          <div className="mt-10 flex items-end justify-between">
-            <div>
-              <div className="h-10 w-48 border-b border-gray-400" />
-              <p className="mt-1 text-sm">Head Teacher signature &amp; stamp</p>
-            </div>
-            <p className="text-sm text-gray-600">Issued: {issued}</p>
-          </div>
+          <SignatureBlock signatureUrl={school?.signatureUrl} issued={issued} />
         </div>
       </div>
     </div>

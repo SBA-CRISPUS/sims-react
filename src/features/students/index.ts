@@ -8,3 +8,4 @@ export { default as GuardianProfilePage } from "./pages/GuardianProfilePage";
 export { default as AdmissionWizard } from "./admission/AdmissionWizard";
 export { default as StudentImportPage } from "./pages/StudentImportPage";
 export { default as PromotionPage } from "./pages/PromotionPage";
+export { default as TransferLetterPage } from "./pages/TransferLetterPage";

@@ -19,6 +19,7 @@ import {
   AdmissionWizard,
   StudentImportPage,
   PromotionPage,
+  TransferLetterPage,
 } from "../features/students";
 import { AcademicStructurePage } from "../features/academic";
 import { SubjectsPage } from "../features/subjects";
@@ -363,6 +364,15 @@ export function AppRouter() {
           element={
             <AppShell roles={["school_admin", "head_teacher"]}>
               <TransferCertificatePage />
+            </AppShell>
+          }
+        />
+
+        <Route
+          path="/students/:studentNumber/transfer-letter"
+          element={
+            <AppShell roles={["school_admin", "head_teacher"]}>
+              <TransferLetterPage />
             </AppShell>
           }
         />

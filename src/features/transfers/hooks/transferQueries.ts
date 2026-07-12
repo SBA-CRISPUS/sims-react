@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TransferService } from "../../../domain/transfers/TransferService";
 import type { CreateTransferInput } from "../../../domain/transfers/TransferService";
+import { ManualTransferService } from "../../../domain/transfers/ManualTransferService";
+import type { ManualTransferInput } from "../../../domain/transfers/ManualTransferService";
 
 export function useIncomingTransfers(schoolCode?: string) {
   return useQuery({
@@ -16,6 +18,36 @@ export function useOutgoingTransfers(schoolCode?: string) {
     queryKey: ["transfers-out", schoolCode],
     enabled: !!schoolCode,
     queryFn: () => TransferService.listOutgoing(schoolCode!),
+  });
+}
+
+/** Manual transfer out (receiving school NOT on SIMS): closes the
+ * record locally; the paperwork travels with the student. */
+export function useManualTransferOut(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      studentNumber: string;
+      details: ManualTransferInput;
+    }) =>
+      ManualTransferService.transferOut(
+        schoolCode,
+        input.studentNumber,
+        input.details
+      ),
+    onSuccess: (_d, input) => {
+      queryClient.invalidateQueries({
+        queryKey: ["student", schoolCode, input.studentNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+      queryClient.invalidateQueries({
+        queryKey: ["student-enrollments", schoolCode, input.studentNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["count-active-students", schoolCode],
+      });
+      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+    },
   });
 }
 

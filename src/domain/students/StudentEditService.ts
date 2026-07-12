@@ -1,6 +1,8 @@
 import {
   collection,
+  deleteField,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -80,6 +82,51 @@ export class StudentEditService {
           status: withdrawn ? "withdrawn" : "active",
           updatedAt: serverTimestamp(),
         });
+      }
+    }
+    await batch.commit();
+  }
+
+  /** Reverses a MANUAL transfer out recorded in error - the record has
+   * no counterpart at another school to un-notify, so this simply
+   * restores the student to "active" and reactivates the enrollments
+   * that were closed by the transfer (mirrors setWithdrawn's
+   * reactivate half).
+   *
+   * Digital transfers are NEVER reversible here: once the receiving
+   * school accepts, onTransferAccepted has already created a real
+   * student record there. Blindly reactivating a "transferred"
+   * enrollment would silently duplicate the learner across two
+   * schools, so this refuses unless student.transferredTo.manual is
+   * actually set - a self-check, not just a UI gate. */
+  static async undoManualTransfer(
+    schoolCode: string,
+    studentNumber: string
+  ): Promise<void> {
+    const studentSnap = await getDoc(
+      doc(db, "schools", schoolCode, "students", studentNumber)
+    );
+    if (!studentSnap.data()?.transferredTo?.manual) {
+      throw new Error(
+        "This student was not transferred out manually - a digital transfer cannot be undone here."
+      );
+    }
+
+    const enrollSnap = await getDocs(
+      query(
+        collection(db, "schools", schoolCode, "enrollments"),
+        where("studentId", "==", studentNumber)
+      )
+    );
+    const batch = writeBatch(db);
+    batch.update(doc(db, "schools", schoolCode, "students", studentNumber), {
+      status: "active",
+      transferredTo: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+    for (const d of enrollSnap.docs) {
+      if (d.data().status === "transferred") {
+        batch.update(d.ref, { status: "active", updatedAt: serverTimestamp() });
       }
     }
     await batch.commit();

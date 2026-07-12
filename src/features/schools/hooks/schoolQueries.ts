@@ -139,3 +139,13 @@ export function useUploadLogo(schoolCode: string) {
       queryClient.invalidateQueries({ queryKey: ["school", schoolCode] }),
   });
 }
+
+export function useUploadSignature(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) =>
+      SchoolBrandingService.uploadSignature(schoolCode, file),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["school", schoolCode] }),
+  });
+}

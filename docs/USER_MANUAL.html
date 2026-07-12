@@ -213,7 +213,7 @@
   <li><span class="n">7</span><a href="#s7">School-Based Assessment (SBA)</a></li>
   <li class="sub-item">Concepts · Plans · Marks entry · Moderation &amp; approval · Readiness · ECZ export</li>
   <li><span class="n">8</span><a href="#s8">Report cards, transcripts &amp; printing</a></li>
-  <li><span class="n">9</span><a href="#s9">Student transfers between SIMS schools</a></li>
+  <li><span class="n">9</span><a href="#s9">Student transfers — digital &amp; manual</a></li>
   <li><span class="n">10</span><a href="#s10">Fees &amp; payments (private and grant-aided schools)</a></li>
   <li><span class="n">11</span><a href="#s11">Reports &amp; compliance</a></li>
   <li><span class="n">12</span><a href="#s12">Working offline</a></li>
@@ -347,7 +347,7 @@ you're up to date.</p>
   <li><b>General</b> — school name, type, principal, motto. <i>Ownership</i> (Government / Grant Aided / Private) is shown but changed only by the SIMS provider on official re-registration, because it controls the fee register and report-card clearance.</li>
   <li><b>Contact</b> — phone, email, website.</li>
   <li><b>Location</b> — province, district, physical and postal address.</li>
-  <li><b>Branding</b> — upload your school logo (image up to 2&nbsp;MB). The logo appears in the header and on printed report cards, transcripts and certificates.</li>
+  <li><b>Branding &amp; signature</b> — upload your school logo and the Head Teacher's (or Deputy's) <b>signature</b> (each an image up to 2&nbsp;MB; a scan on white paper works best for the signature). The logo appears in the header and on every printed document; the signature is printed above the signature line on report cards, transcripts, transfer letters and transfer certificates, so they no longer need a wet-ink signature to look official.</li>
   <li><b>Grading scale</b> — the mark bands (e.g. 0–49 Fail … 80–100 Excellent) used for the <i>Grade</i> column on report cards. Edit the band boundaries and labels to match your school's policy.</li>
   <li><b>ECZ examinations</b> — the school's <b>examination centre number</b> (printed on the ECZ SBA export) and the <b>SBA submission deadline</b>. The deadline defaults to the ECZ norm of 31 January of the following year, but stays editable in case ECZ changes or extends it.</li>
   <li><b>Registration &amp; subscription</b> — read-only; school code, EMIS number and subscription are managed at platform level.</li>
@@ -624,21 +624,40 @@ of 20, with a head-teacher signature block.</p>
 with the school logo and details at the top.</p>
 
 <!-- ============================ 9 TRANSFERS ============================ -->
-<h1 id="s9" class="page-break">9 · Student transfers between SIMS schools</h1>
-<p>When a student moves to another school that also uses SIMS, the transfer is handled digitally.
-The student's permanent SIMS Learner ID follows them; their record and SBA history travel in a
-sealed “transfer envelope”. Schools never see each other's registers — only the envelope of the
-student being transferred. Only administrators and head teachers can transfer students.</p>
+<h1 id="s9" class="page-break">9 · Student transfers</h1>
+<p>A student can move to another school in two ways. If the receiving school also uses SIMS, the
+transfer is handled <b>digitally</b>: the student's permanent SIMS Learner ID follows them, and
+their record and SBA history travel in a sealed “transfer envelope” that only the two schools
+involved can see. If the receiving school does <b>not</b> use SIMS, choose the <b>manual</b>
+option: SIMS closes the record on your side and prepares printed paperwork — a transfer letter,
+certificate and transcript — for the student to carry. Only administrators and head teachers can
+transfer students.</p>
 
 <h2>9.1 Sending a student (the releasing school)</h2>
 <ol class="steps">
   <li>Open the student's profile → <b>Transfer out</b> (available for active students).</li>
-  <li>Enter the receiving school's <b>school code</b> (e.g. SCH-000123 — obtain it from that school) and click <b>Look up</b>: SIMS shows the school's name and district so you can confirm it's the right one before anything is sent. Then give the reason and effective date.</li>
-  <li>Send. The request is assigned a transfer reference (<b>TRF-2026-000012</b>) and appears in your <span class="menu">Transfers</span> → <b>Outgoing</b> tab.</li>
-  <li>While it is still pending you may <b>Cancel</b> it from the Outgoing tab.</li>
+  <li>Choose <b>Receiving school is on SIMS (digital)</b> or <b>Not on SIMS (manual, printed paperwork)</b>.</li>
+  <li>
+    <b>Digital:</b> enter the receiving school's <b>school code</b> (e.g. SCH-000123 — obtain it from that school) and click <b>Look up</b>: SIMS shows the school's name and district so you can confirm it's the right one before anything is sent. Give the reason and effective date, then <b>Send transfer request</b> — it is assigned a transfer reference (<b>TRF-2026-000012</b>) and appears in your <span class="menu">Transfers</span> → <b>Outgoing</b> tab. While still pending you may <b>Cancel</b> it from that tab.
+  </li>
+  <li>
+    <b>Manual:</b> type the receiving school's name, the reason and effective date, then <b>Record manual transfer</b>. The student's record and enrolments are immediately closed as “transferred” on your side — there is no envelope and no other school to accept it. If recorded in error, an administrator or head teacher can click <b>Undo transfer</b> on the student's profile to restore them to active.
+  </li>
+  <li>Either way, SIMS immediately offers <b>Print transfer letter</b> and <b>Transcript</b> (Section 9.2); the manual path also offers the <b>Transfer certificate</b> right away, since the transfer is already complete.</li>
 </ol>
 
-<h2>9.2 Receiving a student</h2>
+<h2>9.2 The transfer letter — printed paperwork for the student</h2>
+<p>The <b>transfer letter</b> is a formal, school-letterheaded request addressed to the receiving
+school, introducing the student and summarising their enrolment history and SBA record so far —
+available for <b>both</b> digital and manual transfers, and usable even while a digital request is
+still awaiting the other school's decision (a physical backup the family can carry). Open it from
+the confirmation screen right after sending/recording a transfer, or later from the student's
+profile once the transfer shows as complete.</p>
+<div class="callout"><span class="t">Soft copy:</span> use <b>Print / Save as PDF</b> and choose
+“Save as PDF” in the print dialog to keep a digital copy alongside the printed hard copy — the
+same approach as every other printable document in SIMS (Section 8.3).</div>
+
+<h2>9.3 Receiving a student (digital transfers only)</h2>
 <ol class="steps">
   <li>Open <span class="menu">Transfers</span> → <b>Incoming</b> (a red badge on the menu shows waiting requests).</li>
   <li>Click a request to preview the envelope: identity, enrolment history, guardians, SBA record.</li>
@@ -646,11 +665,17 @@ student being transferred. Only administrators and head teachers can transfer st
   <li>On acceptance SIMS automatically imports the student: new student and guardian records in your school, the same Learner ID, and their history attached. The sending school's record is closed as “transferred”.</li>
   <li>Open the imported student (the completed request links straight to them) and use the <b>“No class assigned”</b> banner to place them in a stream (Section 6.4).</li>
 </ol>
+<p>A student moving from a school that does <b>not</b> use SIMS arrives the ordinary way — admit
+them (Section 6.1) using the paperwork they bring, including a transfer letter/certificate issued
+by their previous school if it was also a SIMS school that used the manual path.</p>
 
-<h2>9.3 Transfer certificate</h2>
-<p>After the transfer, the releasing school can print a <b>Transfer certificate</b> from the
-(now transferred) student's profile — identity, admission and leaving dates, destination school
-and the TRF reference, with a signature block.</p>
+<h2>9.4 Transfer certificate</h2>
+<p>Once a transfer is complete — immediately for a manual transfer, or once accepted for a
+digital one — the releasing school can print a <b>Transfer certificate</b> from the transferred
+student's profile: identity, admission and leaving dates, destination school, the TRF reference
+(digital) or destination name (manual), with a signature block. This is deliberately separate
+from the transfer letter (Section 9.2): the letter is a <i>request</i>, sent before or during the
+move; the certificate is a <i>statement that the transfer has happened</i>.</p>
 
 <!-- ============================ 10 FEES ============================ -->
 <h1 id="s10" class="page-break">10 · Fees &amp; payments (private and grant-aided schools)</h1>
@@ -716,6 +741,8 @@ you were offline, your late edits will be rejected — approved marks stay froze
   <tr><td>A banner says <b>read-only mode</b>.</td><td>The school's subscription lapsed more than 30 days ago (after expiry there is a 30-day grace period with full access). Everything can still be viewed, printed and exported, but new records — admissions, marks, transfers — are paused until the subscription is renewed. Your data is safe.</td></tr>
   <tr><td>Admission says the <b>Starter plan limit</b> is reached.</td><td>The Starter edition covers up to 300 active students. Upgrade to Professional (unlimited students) via the SIMS provider to continue admitting.</td></tr>
   <tr><td>The app says the school is <b>suspended</b>.</td><td>Access has been paused at platform level. Your data is safe. The School Administrator should contact the SIMS provider to restore access.</td></tr>
+  <tr><td>The receiving school for a transfer isn't on SIMS.</td><td>Choose <b>Not on SIMS (manual)</b> when transferring the student out (Section 9.1) — SIMS closes the record and gives you a printable transfer letter, certificate and transcript to send with them.</td></tr>
+  <tr><td>Printed documents have a blank signature line.</td><td>No signature image has been uploaded yet. A School Administrator can upload one under School Profile → Branding &amp; signature (Section 4.1); it then appears automatically on every printed document.</td></tr>
 </table>
 
 <h2>Reporting problems during the testing phase</h2>

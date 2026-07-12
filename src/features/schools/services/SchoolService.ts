@@ -34,6 +34,7 @@ export type SchoolProfilePatch = Partial<
     | "website"
     | "postalAddress"
     | "logoUrl"
+    | "signatureUrl"
     | "gradingScale"
     | "examCentreNumber"
     | "sbaSubmissionDeadline"

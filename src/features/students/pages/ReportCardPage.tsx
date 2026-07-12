@@ -10,6 +10,7 @@ import { useTerms } from "../../academic/hooks/streamQueries";
 import { useFeeStatus } from "../../finance/hooks/financeQueries";
 import { useStudent, useStudentEnrollments } from "../hooks/studentQueries";
 import { fullName } from "../format";
+import SignatureBlock from "../components/SignatureBlock";
 import { resultFor } from "../../../domain/assessments/SbaResultsService";
 import { sbaRawOutOf100 } from "../../../domain/assessments/SbaCalculationService";
 import {
@@ -456,13 +457,7 @@ export default function ReportCardPage() {
               <div className="mt-4 border-b border-gray-300" />
             </div>
           </div>
-          <div className="mt-10 flex items-end justify-between">
-            <div>
-              <div className="h-10 w-48 border-b border-gray-400" />
-              <p className="mt-1 text-sm">Head Teacher signature &amp; stamp</p>
-            </div>
-            <p className="text-sm text-gray-600">Issued: {issued}</p>
-          </div>
+          <SignatureBlock signatureUrl={school?.signatureUrl} issued={issued} />
         </div>
       </div>
     </div>

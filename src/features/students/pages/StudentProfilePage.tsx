@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../../auth/hooks/useAuth";
-import { useStudent, useSetWithdrawn } from "../hooks/studentQueries";
+import {
+  useStudent,
+  useSetWithdrawn,
+  useUndoManualTransfer,
+} from "../hooks/studentQueries";
 import { fullName } from "../format";
 
 import ProfileTab from "../components/tabs/ProfileTab";
@@ -48,6 +52,7 @@ export default function StudentProfilePage() {
   const [showTransfer, setShowTransfer] = useState(false);
   const [editing, setEditing] = useState(false);
   const setWithdrawn = useSetWithdrawn(schoolCode, studentNumber);
+  const undoManualTransfer = useUndoManualTransfer(schoolCode, studentNumber);
 
   if (isLoading) {
     return <div className="p-8 text-gray-500">Loading student...</div>;
@@ -101,12 +106,36 @@ export default function StudentProfilePage() {
             Transcript
           </Link>
           {student.status === "transferred" && canTransfer && (
-            <Link
-              to={`/students/${studentNumber}/transfer-certificate`}
-              className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
-            >
-              Transfer certificate
-            </Link>
+            <>
+              <Link
+                to={`/students/${studentNumber}/transfer-letter`}
+                className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+              >
+                Transfer letter
+              </Link>
+              <Link
+                to={`/students/${studentNumber}/transfer-certificate`}
+                className="rounded border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50"
+              >
+                Transfer certificate
+              </Link>
+              {student.transferredTo?.manual && (
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Undo this manual transfer for ${fullName(student)}? They return to "active" and rejoin their class rosters. Only do this if the transfer was recorded in error.`
+                      )
+                    )
+                      undoManualTransfer.mutate();
+                  }}
+                  disabled={undoManualTransfer.isPending}
+                  className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {undoManualTransfer.isPending ? "Undoing..." : "Undo transfer"}
+                </button>
+              )}
+            </>
           )}
           {canTransfer && student.status === "active" && (
             <button

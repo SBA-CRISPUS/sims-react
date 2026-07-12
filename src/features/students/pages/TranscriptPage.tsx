@@ -8,6 +8,7 @@ import { useSbaPlans } from "../../assessments/hooks/sbaQueries";
 import { useLearnerSbaMarks } from "../../assessments/hooks/sbaMarksQueries";
 import { useStudent, useStudentEnrollments } from "../hooks/studentQueries";
 import { fullName } from "../format";
+import SignatureBlock from "../components/SignatureBlock";
 import {
   resultFor,
   combinedOutOf20,
@@ -264,13 +265,7 @@ export default function TranscriptPage() {
           </p>
 
           {/* Signature */}
-          <div className="mt-10 flex items-end justify-between">
-            <div>
-              <div className="h-10 w-48 border-b border-gray-400" />
-              <p className="mt-1 text-sm">Head Teacher signature &amp; stamp</p>
-            </div>
-            <p className="text-sm text-gray-600">Issued: {issued}</p>
-          </div>
+          <SignatureBlock signatureUrl={school?.signatureUrl} issued={issued} />
         </div>
       </div>
     </div>

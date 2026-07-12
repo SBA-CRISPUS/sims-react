@@ -5,6 +5,7 @@ import {
   useSchool,
   useUpdateSchool,
   useUploadLogo,
+  useUploadSignature,
 } from "../hooks/schoolQueries";
 import { DEFAULT_GRADING_SCALE } from "../types";
 import type { GradingBand, School } from "../types";
@@ -314,7 +315,62 @@ function SchoolProfileForm({
 }
 
 function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) {
-  const upload = useUploadLogo(school.schoolCode);
+  const uploadLogo = useUploadLogo(school.schoolCode);
+  const uploadSignature = useUploadSignature(school.schoolCode);
+
+  return (
+    <div className="mt-6 rounded-lg bg-white p-6 shadow">
+      <h2 className="mb-1 text-lg font-semibold">Branding &amp; signature</h2>
+      <p className="mb-4 text-sm text-gray-500">
+        The logo appears in the app header and on printed documents. The
+        Head Teacher's (or Deputy's) signature is printed on every official
+        document — transfer letters and certificates, transcripts and
+        report cards.
+      </p>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <ImageSlot
+          label="School logo"
+          hint="PNG or JPG, up to 2MB. Square works best."
+          url={school.logoUrl}
+          alt={`${school.name} logo`}
+          canEdit={canEdit}
+          uploading={uploadLogo.isPending}
+          onUpload={(f) => uploadLogo.mutateAsync(f)}
+        />
+        <ImageSlot
+          label="Head Teacher signature"
+          hint="Scan the signature on white paper (PNG or JPG, up to 2MB). It appears above the signature line on printed documents."
+          url={school.signatureUrl}
+          alt="Head Teacher signature"
+          canEdit={canEdit}
+          uploading={uploadSignature.isPending}
+          onUpload={(f) => uploadSignature.mutateAsync(f)}
+          wide
+        />
+      </div>
+    </div>
+  );
+}
+
+function ImageSlot({
+  label,
+  hint,
+  url,
+  alt,
+  canEdit,
+  uploading,
+  onUpload,
+  wide,
+}: {
+  label: string;
+  hint: string;
+  url?: string;
+  alt: string;
+  canEdit: boolean;
+  uploading: boolean;
+  onUpload: (file: File) => Promise<unknown>;
+  wide?: boolean;
+}) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -324,33 +380,31 @@ function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) 
     if (!file) return;
     setError(null);
     try {
-      await upload.mutateAsync(file);
+      await onUpload(file);
     } catch (err) {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : "Could not upload the logo."
+          : "Could not upload the image."
       );
     }
   }
 
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow">
-      <h2 className="mb-1 text-lg font-semibold">Branding</h2>
-      <p className="mb-4 text-sm text-gray-500">
-        The logo appears in the app header and on printed documents (report
-        cards, transcripts, certificates).
-      </p>
+    <div>
+      <p className="mb-2 text-sm font-medium text-gray-700">{label}</p>
       <div className="flex items-center gap-5">
-        {school.logoUrl ? (
+        {url ? (
           <img
-            src={school.logoUrl}
-            alt={`${school.name} logo`}
-            className="h-20 w-20 rounded border bg-white object-contain p-1"
+            src={url}
+            alt={alt}
+            className={`${wide ? "h-16 w-40" : "h-20 w-20"} rounded border bg-white object-contain p-1`}
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded border border-dashed text-xs text-gray-400">
-            No logo
+          <div
+            className={`flex ${wide ? "h-16 w-40" : "h-20 w-20"} items-center justify-center rounded border border-dashed text-center text-xs text-gray-400`}
+          >
+            None yet
           </div>
         )}
         {canEdit && (
@@ -364,18 +418,12 @@ function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) 
             />
             <button
               onClick={() => fileInput.current?.click()}
-              disabled={upload.isPending}
+              disabled={uploading}
               className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
             >
-              {upload.isPending
-                ? "Uploading..."
-                : school.logoUrl
-                  ? "Replace logo"
-                  : "Upload logo"}
+              {uploading ? "Uploading..." : url ? "Replace" : "Upload"}
             </button>
-            <p className="mt-1 text-xs text-gray-500">
-              PNG or JPG, up to 2MB. Square works best.
-            </p>
+            <p className="mt-1 max-w-52 text-xs text-gray-500">{hint}</p>
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
         )}

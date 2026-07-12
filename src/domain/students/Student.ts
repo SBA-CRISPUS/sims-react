@@ -18,6 +18,17 @@ export interface StudentCbc {
  */
 export interface Student {
   studentNumber: string;
+  /** Set by a MANUAL transfer out (destination school not on SIMS):
+   * where the student went, so the certificate and transfer letter can
+   * be issued without a digital transfer request. Digital SIMS-to-SIMS
+   * transfers use transferRequests instead. */
+  transferredTo?: {
+    schoolName: string;
+    effectiveDate: string;
+    reason?: string;
+    manual: boolean;
+  };
+
   /** Permanent SIMS learner id (SL-YYYY-NNNNNNNNN), assigned by the
    * onStudentAdmitted Cloud Function and unchanged for life - it follows
    * the learner across schools (Phase 8). */

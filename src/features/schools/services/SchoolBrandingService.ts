@@ -22,4 +22,23 @@ export class SchoolBrandingService {
     await SchoolService.updateSchool(schoolCode, { logoUrl });
     return logoUrl;
   }
+
+  /** The Head Teacher's / Deputy's signature image, printed on official
+   * documents. Same fixed-path pattern as the logo (re-upload replaces);
+   * the branding Storage rule already covers this path (admin-only
+   * write, image <= 2MB). A scan of the signature on white paper works
+   * best - PNG with transparency looks cleanest. */
+  static async uploadSignature(schoolCode: string, file: File): Promise<string> {
+    if (!file.type.startsWith("image/")) {
+      throw new Error("The signature must be an image (PNG or JPG).");
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error("The signature image must be smaller than 2MB.");
+    }
+    const path = `schools/${schoolCode}/branding/signature`;
+    await uploadBytes(ref(storage, path), file, { contentType: file.type });
+    const signatureUrl = await getDownloadURL(ref(storage, path));
+    await SchoolService.updateSchool(schoolCode, { signatureUrl });
+    return signatureUrl;
+  }
 }
