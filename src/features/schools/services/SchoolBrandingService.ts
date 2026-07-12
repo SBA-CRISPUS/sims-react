@@ -1,6 +1,7 @@
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteField, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 
-import { storage } from "../../../firebase";
+import { db, storage } from "../../../firebase";
 import { SchoolService } from "./SchoolService";
 
 /**
@@ -40,5 +41,31 @@ export class SchoolBrandingService {
     const signatureUrl = await getDownloadURL(ref(storage, path));
     await SchoolService.updateSchool(schoolCode, { signatureUrl });
     return signatureUrl;
+  }
+
+  /** Removes the logo: clears the field first (source of truth for the
+   * UI - the header and every print page fall back to "no logo"
+   * immediately), then best-effort deletes the Storage file. A failed
+   * Storage delete just leaves an unreferenced orphan file, never a
+   * broken image link. */
+  static async removeLogo(schoolCode: string): Promise<void> {
+    await updateDoc(doc(db, "schools", schoolCode), {
+      logoUrl: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+    await deleteObject(ref(storage, `schools/${schoolCode}/branding/logo`)).catch(
+      () => undefined
+    );
+  }
+
+  /** Removes the signature - see removeLogo for the ordering rationale. */
+  static async removeSignature(schoolCode: string): Promise<void> {
+    await updateDoc(doc(db, "schools", schoolCode), {
+      signatureUrl: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+    await deleteObject(
+      ref(storage, `schools/${schoolCode}/branding/signature`)
+    ).catch(() => undefined);
   }
 }

@@ -149,3 +149,21 @@ export function useUploadSignature(schoolCode: string) {
       queryClient.invalidateQueries({ queryKey: ["school", schoolCode] }),
   });
 }
+
+export function useRemoveLogo(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => SchoolBrandingService.removeLogo(schoolCode),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["school", schoolCode] }),
+  });
+}
+
+export function useRemoveSignature(schoolCode: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => SchoolBrandingService.removeSignature(schoolCode),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["school", schoolCode] }),
+  });
+}

@@ -6,6 +6,8 @@ import {
   useUpdateSchool,
   useUploadLogo,
   useUploadSignature,
+  useRemoveLogo,
+  useRemoveSignature,
 } from "../hooks/schoolQueries";
 import { DEFAULT_GRADING_SCALE } from "../types";
 import type { GradingBand, School } from "../types";
@@ -317,6 +319,8 @@ function SchoolProfileForm({
 function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) {
   const uploadLogo = useUploadLogo(school.schoolCode);
   const uploadSignature = useUploadSignature(school.schoolCode);
+  const removeLogo = useRemoveLogo(school.schoolCode);
+  const removeSignature = useRemoveSignature(school.schoolCode);
 
   return (
     <div className="mt-6 rounded-lg bg-white p-6 shadow">
@@ -335,7 +339,9 @@ function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) 
           alt={`${school.name} logo`}
           canEdit={canEdit}
           uploading={uploadLogo.isPending}
+          removing={removeLogo.isPending}
           onUpload={(f) => uploadLogo.mutateAsync(f)}
+          onRemove={() => removeLogo.mutateAsync()}
         />
         <ImageSlot
           label="Head Teacher signature"
@@ -344,7 +350,9 @@ function LogoSection({ school, canEdit }: { school: School; canEdit: boolean }) 
           alt="Head Teacher signature"
           canEdit={canEdit}
           uploading={uploadSignature.isPending}
+          removing={removeSignature.isPending}
           onUpload={(f) => uploadSignature.mutateAsync(f)}
+          onRemove={() => removeSignature.mutateAsync()}
           wide
         />
       </div>
@@ -359,7 +367,9 @@ function ImageSlot({
   alt,
   canEdit,
   uploading,
+  removing,
   onUpload,
+  onRemove,
   wide,
 }: {
   label: string;
@@ -368,11 +378,14 @@ function ImageSlot({
   alt: string;
   canEdit: boolean;
   uploading: boolean;
+  removing: boolean;
   onUpload: (file: File) => Promise<unknown>;
+  onRemove: () => Promise<unknown>;
   wide?: boolean;
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const busy = uploading || removing;
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -386,6 +399,20 @@ function ImageSlot({
         err instanceof Error && err.message
           ? err.message
           : "Could not upload the image."
+      );
+    }
+  }
+
+  async function onClickRemove() {
+    if (!window.confirm(`Remove the ${label.toLowerCase()}?`)) return;
+    setError(null);
+    try {
+      await onRemove();
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not remove the image."
       );
     }
   }
@@ -416,13 +443,24 @@ function ImageSlot({
               onChange={onPick}
               className="hidden"
             />
-            <button
-              onClick={() => fileInput.current?.click()}
-              disabled={uploading}
-              className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
-            >
-              {uploading ? "Uploading..." : url ? "Replace" : "Upload"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => fileInput.current?.click()}
+                disabled={busy}
+                className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : url ? "Replace" : "Upload"}
+              </button>
+              {url && (
+                <button
+                  onClick={onClickRemove}
+                  disabled={busy}
+                  className="rounded border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {removing ? "Removing..." : "Remove"}
+                </button>
+              )}
+            </div>
             <p className="mt-1 max-w-52 text-xs text-gray-500">{hint}</p>
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
