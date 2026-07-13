@@ -65,6 +65,14 @@ export default function AdmissionWizard() {
     activeStudents >= STARTER_STUDENT_LIMIT;
 
   const [step, setStep] = useState(0);
+  // Furthest step the user has validated through - the stepper lets them
+  // jump freely to any step up to here (and back), so they can revisit and
+  // correct earlier entries without losing what they typed.
+  const [maxReached, setMaxReached] = useState(0);
+  // The Review step's explicit commit gate - nothing is written until the
+  // user ticks this, so admission is a deliberate confirmation, never an
+  // accidental Enter-keypress.
+  const [confirmed, setConfirmed] = useState(false);
   const [result, setResult] = useState<AdmissionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,17 +107,56 @@ export default function AdmissionWizard() {
 
   const isLastStep = step === STEPS.length - 1;
 
+  function goTo(target: number) {
+    setStep(target);
+    setMaxReached((m) => Math.max(m, target));
+    // Leaving Review invalidates a prior confirmation - if they edit and
+    // come back, they must tick the box again.
+    if (target !== STEPS.length - 1) setConfirmed(false);
+  }
+
   async function next() {
     const valid = await methods.trigger(STEP_FIELDS[step]);
-    if (valid) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (valid) goTo(Math.min(step + 1, STEPS.length - 1));
   }
 
   function back() {
-    setStep((s) => Math.max(s - 1, 0));
+    goTo(Math.max(step - 1, 0));
+  }
+
+  /**
+   * Jump straight to a step from the progress bar. Going back is always
+   * allowed (data is preserved); going forward validates each step in
+   * between, so you can't skip past incomplete entries.
+   */
+  async function jumpTo(target: number) {
+    if (target === step) return;
+    if (target < step) {
+      goTo(target);
+      return;
+    }
+    for (let s = step; s < target; s++) {
+      const ok = await methods.trigger(STEP_FIELDS[s]);
+      if (!ok) {
+        setStep(s);
+        return;
+      }
+    }
+    goTo(target);
   }
 
   async function onSubmit(values: AdmissionFormValues) {
     setError(null);
+
+    // The wizard is a single <form>, so pressing Enter on an early step
+    // fires submit while only that step's fields are registered - which
+    // used to admit immediately, skipping Review. Enter now just advances;
+    // the actual write only happens from Review, after explicit confirm.
+    if (!isLastStep) {
+      await next();
+      return;
+    }
+    if (!confirmed) return;
 
     if (!school || !firebaseUser) {
       setError("No active school session. Please sign in again.");
@@ -181,8 +228,7 @@ export default function AdmissionWizard() {
             Student Admitted
           </h1>
           <p className="mt-4 text-gray-600">
-            The student, guardian, and enrollment were created together in
-            Firestore.
+            The student, guardian, and enrollment were created successfully.
           </p>
           <div className="mt-6 space-y-1">
             <p>
@@ -203,6 +249,8 @@ export default function AdmissionWizard() {
               onClick={() => {
                 methods.reset();
                 setStep(0);
+                setMaxReached(0);
+                setConfirmed(false);
                 setResult(null);
               }}
               className="rounded bg-blue-700 px-5 py-2 text-white hover:bg-blue-800"
@@ -226,31 +274,44 @@ export default function AdmissionWizard() {
       <h1 className="text-3xl font-bold mb-6">Admit Student</h1>
 
       <ol className="mb-8 flex items-center gap-2">
-        {STEPS.map((s, i) => (
-          <li key={s.title} className="flex items-center gap-2">
-            <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
-                i === step
-                  ? "bg-blue-700 text-white"
-                  : i < step
-                    ? "bg-blue-200 text-blue-800"
-                    : "bg-slate-200 text-slate-500"
-              }`}
-            >
-              {i + 1}
-            </span>
-            <span
-              className={
-                i === step ? "font-medium" : "text-slate-500 hidden sm:inline"
-              }
-            >
-              {s.title}
-            </span>
-            {i < STEPS.length - 1 && (
-              <span className="mx-1 text-slate-300">—</span>
-            )}
-          </li>
-        ))}
+        {STEPS.map((s, i) => {
+          const reachable = i <= maxReached;
+          return (
+            <li key={s.title} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => jumpTo(i)}
+                disabled={!reachable}
+                aria-current={i === step ? "step" : undefined}
+                className={`flex items-center gap-2 rounded ${
+                  reachable ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
+              >
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
+                    i === step
+                      ? "bg-blue-700 text-white"
+                      : i < step
+                        ? "bg-blue-200 text-blue-800"
+                        : "bg-slate-200 text-slate-500"
+                  }`}
+                >
+                  {i + 1}
+                </span>
+                <span
+                  className={
+                    i === step ? "font-medium" : "text-slate-500 hidden sm:inline"
+                  }
+                >
+                  {s.title}
+                </span>
+              </button>
+              {i < STEPS.length - 1 && (
+                <span className="mx-1 text-slate-300">—</span>
+              )}
+            </li>
+          );
+        })}
       </ol>
 
       <FormProvider {...methods}>
@@ -258,6 +319,22 @@ export default function AdmissionWizard() {
           <div className="rounded-lg bg-white p-6 shadow">
             {STEPS[step].element}
           </div>
+
+          {isLastStep && (
+            <label className="mt-4 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="text-blue-900">
+                I have reviewed the details above and confirm they are correct.
+                Admission numbers are generated on submit and the record is
+                created immediately.
+              </span>
+            </label>
+          )}
 
           {error && (
             <p className="mt-4 text-sm text-red-600">{error}</p>
@@ -276,7 +353,7 @@ export default function AdmissionWizard() {
             {isLastStep ? (
               <button
                 type="submit"
-                disabled={methods.formState.isSubmitting}
+                disabled={methods.formState.isSubmitting || !confirmed}
                 className="rounded bg-green-700 px-5 py-2 text-white hover:bg-green-800 disabled:opacity-50"
               >
                 {methods.formState.isSubmitting ? "Submitting..." : "Submit Admission"}
