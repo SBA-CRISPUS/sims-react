@@ -2,19 +2,22 @@
     // Students and their guardians. Deletion is disabled - students
     // are deactivated, preserving academic history.
     //
-    // Note: school-wide read is Phase 1. When the Students module
-    // lands, narrow student/parent roles to their own records.
+    // Read is staff-only (isStaff() excludes student/parent). UserRole
+    // already defines "student"/"parent" for the future portal phase;
+    // when those accounts exist, they must NOT inherit this school-wide
+    // roster read - give them their own narrower rule scoped to their
+    // own record rather than widening this one.
     //
 
     match /schools/{schoolId}/students/{studentId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
     }
 
     match /schools/{schoolId}/guardians/{guardianId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
@@ -24,7 +27,7 @@
     // deleted. Top-level under the school (not nested under a student)
     // so "all learners in Form 2 / Stream B / this year" is one query.
     match /schools/{schoolId}/enrollments/{enrollmentId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;

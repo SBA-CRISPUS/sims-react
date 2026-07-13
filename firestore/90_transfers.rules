@@ -23,6 +23,7 @@
         && request.resource.data.requestedByUid == request.auth.uid
         && request.resource.data.toSchoolCode is string
         && request.resource.data.toSchoolCode != request.resource.data.fromSchoolCode
+        && isValidTransferSnapshot(request.resource.data.studentSnapshot)
         // CF-owned fields can't be forged at creation (the transfer number
         // is minted server-side from the global counter).
         && !request.resource.data.keys().hasAny(

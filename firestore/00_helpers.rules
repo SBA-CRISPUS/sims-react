@@ -132,3 +132,27 @@
         || hasRole("head_teacher")
         || hasRole("teacher");
     }
+
+    // Bounds a transfer's embedded student snapshot so a forged or
+    // oversized envelope can't corrupt the receiving school's import.
+    // onTransferAccepted (Admin SDK) trusts this shape completely and
+    // writes it verbatim into a new student record, and folds `guardians`
+    // into a single write batch - Firestore batches hard-limit at 500
+    // operations, so an uncapped array is a way to crash that import
+    // partway through. Caps here are generous versus any real family/
+    // history size; per-field type checks stop obviously malformed data
+    // (e.g. a non-string dateOfBirth) from reaching the CF's `new Date()`.
+    function isValidTransferSnapshot(snap) {
+      return snap is map
+        && snap.identity is map
+        && snap.identity.studentNumber is string && snap.identity.studentNumber.size() <= 40
+        && snap.identity.firstName is string && snap.identity.firstName.size() <= 100
+        && snap.identity.lastName is string && snap.identity.lastName.size() <= 100
+        && snap.identity.gender is string && snap.identity.gender.size() <= 20
+        && snap.identity.nationality is string && snap.identity.nationality.size() <= 60
+        && (snap.identity.get('dateOfBirth', null) == null
+            || (snap.identity.dateOfBirth is string && snap.identity.dateOfBirth.size() <= 20))
+        && snap.get('enrollments', []) is list && snap.get('enrollments', []).size() <= 50
+        && snap.get('sba', []) is list && snap.get('sba', []).size() <= 300
+        && snap.get('guardians', []) is list && snap.get('guardians', []).size() <= 10;
+    }

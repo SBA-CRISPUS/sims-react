@@ -143,6 +143,30 @@ service cloud.firestore {
         || hasRole("teacher");
     }
 
+    // Bounds a transfer's embedded student snapshot so a forged or
+    // oversized envelope can't corrupt the receiving school's import.
+    // onTransferAccepted (Admin SDK) trusts this shape completely and
+    // writes it verbatim into a new student record, and folds `guardians`
+    // into a single write batch - Firestore batches hard-limit at 500
+    // operations, so an uncapped array is a way to crash that import
+    // partway through. Caps here are generous versus any real family/
+    // history size; per-field type checks stop obviously malformed data
+    // (e.g. a non-string dateOfBirth) from reaching the CF's `new Date()`.
+    function isValidTransferSnapshot(snap) {
+      return snap is map
+        && snap.identity is map
+        && snap.identity.studentNumber is string && snap.identity.studentNumber.size() <= 40
+        && snap.identity.firstName is string && snap.identity.firstName.size() <= 100
+        && snap.identity.lastName is string && snap.identity.lastName.size() <= 100
+        && snap.identity.gender is string && snap.identity.gender.size() <= 20
+        && snap.identity.nationality is string && snap.identity.nationality.size() <= 60
+        && (snap.identity.get('dateOfBirth', null) == null
+            || (snap.identity.dateOfBirth is string && snap.identity.dateOfBirth.size() <= 20))
+        && snap.get('enrollments', []) is list && snap.get('enrollments', []).size() <= 50
+        && snap.get('sba', []) is list && snap.get('sba', []).size() <= 300
+        && snap.get('guardians', []) is list && snap.get('guardians', []).size() <= 10;
+    }
+
     // ===== 10_system.rules =====
 
     //
@@ -212,14 +236,21 @@ service cloud.firestore {
       // a school always keeps a live admin; onUserProfileWritten then
       // disables the Auth account and revokes tokens). Role changes stay
       // super-admin/CF-only.
+      // Self-service is narrow ON PURPOSE: the only thing the app ever
+      // lets a user change on their own profile is clearing
+      // mustChangePassword after a successful password change (see
+      // ChangePasswordForm). hasOnly (not per-field equality checks)
+      // means every other field - including role/schoolCode/active/
+      // employeeNumber - is structurally impossible to touch here, and
+      // the flag can only be turned off, never back on, so a user can't
+      // fake "I changed my password" without actually doing it.
       allow update: if isSuperAdmin()
         || (
           signedIn()
           && request.auth.uid == uid
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.schoolCode == resource.data.schoolCode
-          && request.resource.data.active == resource.data.active
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['employeeNumber'])
+          && request.resource.data.mustChangePassword == false
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['mustChangePassword', 'updatedAt'])
         )
         || (
           isSchoolAdmin()
@@ -417,19 +448,22 @@ service cloud.firestore {
     // Students and their guardians. Deletion is disabled - students
     // are deactivated, preserving academic history.
     //
-    // Note: school-wide read is Phase 1. When the Students module
-    // lands, narrow student/parent roles to their own records.
+    // Read is staff-only (isStaff() excludes student/parent). UserRole
+    // already defines "student"/"parent" for the future portal phase;
+    // when those accounts exist, they must NOT inherit this school-wide
+    // roster read - give them their own narrower rule scoped to their
+    // own record rather than widening this one.
     //
 
     match /schools/{schoolId}/students/{studentId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
     }
 
     match /schools/{schoolId}/guardians/{guardianId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
@@ -439,7 +473,7 @@ service cloud.firestore {
     // deleted. Top-level under the school (not nested under a student)
     // so "all learners in Form 2 / Stream B / this year" is one query.
     match /schools/{schoolId}/enrollments/{enrollmentId} {
-      allow read: if isSuperAdmin() || belongsToSchool(schoolId);
+      allow read: if isSuperAdmin() || (belongsToSchool(schoolId) && isStaff());
       allow create: if belongsToSchool(schoolId) && canManageStudents();
       allow update: if belongsToSchool(schoolId) && canManageStudents();
       allow delete: if false;
@@ -823,6 +857,7 @@ service cloud.firestore {
         && request.resource.data.requestedByUid == request.auth.uid
         && request.resource.data.toSchoolCode is string
         && request.resource.data.toSchoolCode != request.resource.data.fromSchoolCode
+        && isValidTransferSnapshot(request.resource.data.studentSnapshot)
         // CF-owned fields can't be forged at creation (the transfer number
         // is minted server-side from the global counter).
         && !request.resource.data.keys().hasAny(

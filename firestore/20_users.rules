@@ -27,14 +27,21 @@
       // a school always keeps a live admin; onUserProfileWritten then
       // disables the Auth account and revokes tokens). Role changes stay
       // super-admin/CF-only.
+      // Self-service is narrow ON PURPOSE: the only thing the app ever
+      // lets a user change on their own profile is clearing
+      // mustChangePassword after a successful password change (see
+      // ChangePasswordForm). hasOnly (not per-field equality checks)
+      // means every other field - including role/schoolCode/active/
+      // employeeNumber - is structurally impossible to touch here, and
+      // the flag can only be turned off, never back on, so a user can't
+      // fake "I changed my password" without actually doing it.
       allow update: if isSuperAdmin()
         || (
           signedIn()
           && request.auth.uid == uid
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.schoolCode == resource.data.schoolCode
-          && request.resource.data.active == resource.data.active
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['employeeNumber'])
+          && request.resource.data.mustChangePassword == false
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['mustChangePassword', 'updatedAt'])
         )
         || (
           isSchoolAdmin()

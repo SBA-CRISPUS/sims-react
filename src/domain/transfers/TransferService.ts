@@ -28,6 +28,7 @@ function mapRequest(data: Record<string, unknown>): TransferRequest {
     ...data,
     requestedAt: toDate(data.requestedAt),
     decidedAt: toDate(data.decidedAt),
+    importErrorAt: toDate(data.importErrorAt),
     completedAt: toDate(data.completedAt),
   } as unknown as TransferRequest;
 }

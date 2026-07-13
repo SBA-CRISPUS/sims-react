@@ -196,7 +196,14 @@ export default function TransfersPage() {
                   Note: “{r.decisionNote}”
                 </p>
               )}
-              {r.status === "accepted" && (
+              {r.status === "accepted" && r.importError && (
+                <p className="mt-2 rounded-lg bg-red-50 p-3 text-xs text-red-800">
+                  <strong>Import failed:</strong> {r.importError} — the
+                  student was not imported. Contact support with this
+                  transfer's reference before retrying.
+                </p>
+              )}
+              {r.status === "accepted" && !r.importError && (
                 <p className="mt-2 text-xs text-gray-500">
                   Accepted — importing the student... (refresh in a moment).
                 </p>

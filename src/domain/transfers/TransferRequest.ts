@@ -87,7 +87,12 @@ export interface TransferRequest {
   cancelledByUid?: string;
   /** Written by onTransferAccepted: the learner's number AT THE RECEIVER. */
   importedStudentNumber?: string;
+  /** Written by onTransferAccepted if the import throws after acceptance
+   * (status stays "accepted" - never silently "completed"). No automatic
+   * retry; someone needs to look at it. */
+  importError?: string;
   requestedAt?: Date;
   decidedAt?: Date;
+  importErrorAt?: Date;
   completedAt?: Date;
 }

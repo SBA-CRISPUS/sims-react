@@ -87,6 +87,21 @@ function audit(schoolCode: string, entry: TransferAuditEntry) {
   });
 }
 
+/** Parses an envelope date defensively - the snapshot is attacker-
+ * reachable input (a signed-in staff member controls its contents), so a
+ * malformed string must degrade to null rather than write an Invalid
+ * Date into Firestore. */
+function safeDate(iso: string | null | undefined): Date | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// Firestore batches hard-limit at 500 operations. The create rule already
+// bounds studentSnapshot.guardians to 10, but chunking here costs nothing
+// and keeps this function correct even if that bound ever changes.
+const BATCH_CHUNK = 400;
+
 // Client-driven transitions the sender's audit trail records (the CF's own
 // 'completed' write is covered by student.transferred_out/_in instead).
 const TRANSITION_ACTIONS: Record<string, string> = {
@@ -184,6 +199,24 @@ export const onTransferAccepted = onDocumentWritten(
     const identity = snapshot.identity;
     const fromStudentNumber = identity.studentNumber;
 
+    try {
+      await runImport();
+    } catch (error) {
+      // No transaction spans steps 1-4 (they touch two tenants' worth of
+      // collections), so a failure here can leave the import partially
+      // written. Surface it rather than leaving the request silently
+      // stuck at "accepted" forever with no signal to either school -
+      // TransfersPage shows this as an explicit failure instead of a
+      // perpetual "importing...".
+      console.error(`Transfer import failed for ${requestRef.id}`, error);
+      await requestRef.update({
+        importError:
+          error instanceof Error ? error.message : "Import failed.",
+        importErrorAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    async function runImport(): Promise<void> {
     // 1. Import into the receiving school (idempotent by learnerId).
     let toStudentNumber: string | null = null;
     if (learnerId) {
@@ -224,12 +257,13 @@ export const onTransferAccepted = onDocumentWritten(
           return cur + 1;
         });
         guardianIds = guardians.map((_, i) => `GRD-${pad(first + i)}`);
-        const guardianBatch = adminDb.batch();
-        guardians.forEach((g, i) => {
-          guardianBatch.set(
-            adminDb.doc(`schools/${toSchoolCode}/guardians/${guardianIds[i]}`),
-            {
-              guardianId: guardianIds[i],
+        for (let start = 0; start < guardians.length; start += BATCH_CHUNK) {
+          const chunk = guardians.slice(start, start + BATCH_CHUNK);
+          const guardianBatch = adminDb.batch();
+          chunk.forEach((g, i) => {
+            const id = guardianIds[start + i];
+            guardianBatch.set(adminDb.doc(`schools/${toSchoolCode}/guardians/${id}`), {
+              guardianId: id,
               firstName: g.firstName,
               lastName: g.lastName,
               relationship: g.relationship,
@@ -240,10 +274,10 @@ export const onTransferAccepted = onDocumentWritten(
               transferredFrom: fromSchoolCode,
               createdAt: FieldValue.serverTimestamp(),
               updatedAt: FieldValue.serverTimestamp(),
-            }
-          );
-        });
-        await guardianBatch.commit();
+            });
+          });
+          await guardianBatch.commit();
+        }
       }
 
       await adminDb.doc(`schools/${toSchoolCode}/students/${toStudentNumber}`).set({
@@ -256,7 +290,7 @@ export const onTransferAccepted = onDocumentWritten(
         lastName: identity.lastName,
         otherNames: identity.otherNames ?? null,
         gender: identity.gender,
-        dateOfBirth: identity.dateOfBirth ? new Date(identity.dateOfBirth) : null,
+        dateOfBirth: safeDate(identity.dateOfBirth),
         nationality: identity.nationality ?? "Zambian",
         cbc: snapshot.cbc ?? null,
         guardianIds,
@@ -339,5 +373,6 @@ export const onTransferAccepted = onDocumentWritten(
       importedStudentNumber: toStudentNumber,
       completedAt: FieldValue.serverTimestamp(),
     });
+    }
   }
 );
