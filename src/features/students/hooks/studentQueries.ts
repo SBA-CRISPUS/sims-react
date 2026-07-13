@@ -106,6 +106,23 @@ export function useUndoManualTransfer(
   });
 }
 
+function invalidatePlacement(
+  queryClient: ReturnType<typeof useQueryClient>,
+  schoolCode?: string,
+  studentNumber?: string
+) {
+  queryClient.invalidateQueries({
+    queryKey: ["student-enrollments", schoolCode, studentNumber],
+  });
+  queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
+  queryClient.invalidateQueries({
+    queryKey: ["enrollments-year", schoolCode],
+  });
+  // Rosters now include the learner; occupancy follows via the CF.
+  queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
+  queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] });
+}
+
 export function usePlaceStudent(schoolCode?: string, studentNumber?: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -115,18 +132,28 @@ export function usePlaceStudent(schoolCode?: string, studentNumber?: string) {
         studentNumber!,
         streamCode
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["student-enrollments", schoolCode, studentNumber],
-      });
-      queryClient.invalidateQueries({ queryKey: ["registry", schoolCode] });
-      queryClient.invalidateQueries({
-        queryKey: ["enrollments-year", schoolCode],
-      });
-      // Rosters now include the learner; occupancy follows via the CF.
-      queryClient.invalidateQueries({ queryKey: ["sba-roster"] });
-      queryClient.invalidateQueries({ queryKey: ["streams", schoolCode] });
-    },
+    onSuccess: () => invalidatePlacement(queryClient, schoolCode, studentNumber),
+  });
+}
+
+/** Reassign the current enrollment's level and/or stream (fix a misplacement). */
+export function useChangePlacement(schoolCode?: string, studentNumber?: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      levelCode,
+      streamCode,
+    }: {
+      levelCode: string;
+      streamCode: string;
+    }) =>
+      StudentPlacementService.changePlacement(
+        schoolCode!,
+        studentNumber!,
+        levelCode,
+        streamCode
+      ),
+    onSuccess: () => invalidatePlacement(queryClient, schoolCode, studentNumber),
   });
 }
 

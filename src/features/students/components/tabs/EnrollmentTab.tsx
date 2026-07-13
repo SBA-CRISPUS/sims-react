@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import type { TabProps } from "./TabProps";
 import { useAuth } from "../../../auth/hooks/useAuth";
 import { useSubscriptionAccess } from "../../../schools/hooks/useSubscriptionAccess";
-import { useStreams } from "../../../academic/hooks/streamQueries";
+import { useLevels, useStreams } from "../../../academic/hooks/streamQueries";
 import { StreamCapacityService } from "../../../../domain/academic/StreamCapacityService";
 import {
-  usePlaceStudent,
+  useChangePlacement,
   useStudentEnrollments,
 } from "../../hooks/studentQueries";
 import { formatDate } from "../../format";
@@ -46,10 +47,10 @@ export default function EnrollmentTab({ schoolCode, studentNumber }: TabProps) {
   return (
     <div className="space-y-4">
       {current && current.streamId && (
-        <ChangeStreamControl
+        <ChangePlacementControl
           schoolCode={schoolCode}
           studentNumber={studentNumber}
-          academicLevelCode={current.academicLevelCode}
+          currentLevelCode={current.academicLevelCode}
           currentStreamCode={current.streamId}
         />
       )}
@@ -82,51 +83,86 @@ export default function EnrollmentTab({ schoolCode, studentNumber }: TabProps) {
   );
 }
 
+// Fallback if academic levels haven't loaded (they are provisioned per school).
+const FALLBACK_LEVELS = [
+  { levelCode: "F1", name: "Form 1" },
+  { levelCode: "F2", name: "Form 2" },
+  { levelCode: "F3", name: "Form 3" },
+  { levelCode: "F4", name: "Form 4" },
+];
+
 /**
- * Reassign the current class when a learner was placed in the wrong stream.
- * Writes the new stream CODE onto the active enrollment via the same
- * placement path admissions use; onEnrollmentWritten then recounts both the
- * old and new stream's occupancy server-side. Admin/head only, and never in
- * read-only mode.
+ * Reassign the current class when a learner was placed in the wrong form or
+ * stream. Writes the new level + stream CODE onto the active enrollment via
+ * the same placement path admissions use; onEnrollmentWritten then recounts
+ * both the old and new stream's occupancy server-side (the recount key
+ * embeds the level, so a form change reconciles too). Admin/head only, and
+ * never in read-only mode.
  */
-function ChangeStreamControl({
+function ChangePlacementControl({
   schoolCode,
   studentNumber,
-  academicLevelCode,
+  currentLevelCode,
   currentStreamCode,
 }: {
   schoolCode: string;
   studentNumber: string;
-  academicLevelCode: string;
+  currentLevelCode: string;
   currentStreamCode: string;
 }) {
   const { profile } = useAuth();
   const { readOnly } = useSubscriptionAccess();
   const canChange = PLACER_ROLES.includes(profile?.role ?? "") && !readOnly;
 
+  const levels = useLevels(schoolCode);
   const streams = useStreams(schoolCode);
-  const place = usePlaceStudent(schoolCode, studentNumber);
+  const change = useChangePlacement(schoolCode, studentNumber);
 
   const [editing, setEditing] = useState(false);
+  const [levelCode, setLevelCode] = useState(currentLevelCode);
   const [streamCode, setStreamCode] = useState(currentStreamCode);
   const [error, setError] = useState<string | null>(null);
 
+  const levelOptions =
+    levels.data && levels.data.length > 0 ? levels.data : FALLBACK_LEVELS;
+
   const levelStreams = (streams.data ?? []).filter(
-    (s) => s.academicLevelCode === academicLevelCode && s.active
+    (s) => s.academicLevelCode === levelCode && s.active
   );
 
   const currentName =
-    levelStreams.find((s) => s.streamCode === currentStreamCode)?.name ??
-    currentStreamCode;
+    (streams.data ?? []).find(
+      (s) =>
+        s.academicLevelCode === currentLevelCode &&
+        s.streamCode === currentStreamCode
+    )?.name ?? currentStreamCode;
+
+  function beginEdit() {
+    setLevelCode(currentLevelCode);
+    setStreamCode(currentStreamCode);
+    setError(null);
+    setEditing(true);
+  }
+
+  function pickLevel(next: string) {
+    setLevelCode(next);
+    // Streams differ per level: keep the current stream only when staying on
+    // the current level, otherwise force a fresh choice.
+    setStreamCode(next === currentLevelCode ? currentStreamCode : "");
+  }
 
   async function save() {
     setError(null);
-    if (streamCode === currentStreamCode) {
+    if (!streamCode) {
+      setError("Pick a stream.");
+      return;
+    }
+    if (levelCode === currentLevelCode && streamCode === currentStreamCode) {
       setEditing(false);
       return;
     }
     try {
-      await place.mutateAsync(streamCode);
+      await change.mutateAsync({ levelCode, streamCode });
       setEditing(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to change the class.");
@@ -139,69 +175,93 @@ function ChangeStreamControl({
         <p className="text-sm">
           <span className="text-gray-500">Current class:</span>{" "}
           <span className="font-medium">
-            {academicLevelCode} · {currentName}
+            {currentLevelCode} · {currentName}
           </span>
         </p>
         {canChange && !editing && (
           <button
-            onClick={() => {
-              setStreamCode(currentStreamCode);
-              setError(null);
-              setEditing(true);
-            }}
+            onClick={beginEdit}
             className="rounded border border-slate-300 bg-white px-3 py-1 text-sm hover:bg-slate-100"
           >
-            Change stream
+            Change class
           </button>
         )}
       </div>
 
       {editing && (
-        <div className="mt-3">
-          {levelStreams.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-gray-500">Form</span>
+            <select
+              value={levelCode}
+              onChange={(e) => pickLevel(e.target.value)}
+              className="rounded border border-sand p-2 text-sm"
+            >
+              {levelOptions.map((l) => (
+                <option key={l.levelCode} value={l.levelCode}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-gray-500">Stream</span>
+            {levelStreams.length > 0 ? (
               <select
                 value={streamCode}
                 onChange={(e) => setStreamCode(e.target.value)}
                 className="rounded border border-sand p-2 text-sm"
               >
+                <option value="">Select a stream...</option>
                 {levelStreams.map((s) => {
                   const remaining = StreamCapacityService.remaining(s);
                   const full = StreamCapacityService.isFull(s);
-                  // A full stream stays selectable if it's the current one.
-                  const disabled = full && s.streamCode !== currentStreamCode;
+                  const isCurrent =
+                    levelCode === currentLevelCode &&
+                    s.streamCode === currentStreamCode;
+                  // A full stream stays selectable only if it's the current one.
+                  const disabled = full && !isCurrent;
                   return (
                     <option key={s.streamId} value={s.streamCode} disabled={disabled}>
                       {s.name} ({s.occupiedCount}/{s.capacity}
                       {full ? " — full" : ` — ${remaining} left`}
-                      {s.streamCode === currentStreamCode ? " — current" : ""})
+                      {isCurrent ? " — current" : ""})
                     </option>
                   );
                 })}
               </select>
-              <button
-                onClick={save}
-                disabled={place.isPending}
-                className="rounded bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800 disabled:opacity-50"
-              >
-                {place.isPending ? "Saving..." : "Save"}
-              </button>
-              <button
-                onClick={() => {
-                  setEditing(false);
-                  setError(null);
-                }}
-                className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-600">
-              No active streams exist for {academicLevelCode} yet.
-            </p>
+            ) : (
+              <p className="rounded border border-sand bg-white p-2 text-sm text-gray-600">
+                No active streams for {levelCode} —{" "}
+                <Link to="/academic/structure" className="text-blue-700 underline">
+                  create one
+                </Link>
+                .
+              </p>
+            )}
+          </label>
+
+          <button
+            onClick={save}
+            disabled={change.isPending || levelStreams.length === 0}
+            className="rounded bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800 disabled:opacity-50"
+          >
+            {change.isPending ? "Saving..." : "Save"}
+          </button>
+          <button
+            onClick={() => {
+              setEditing(false);
+              setError(null);
+            }}
+            className="rounded border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100"
+          >
+            Cancel
+          </button>
+
+          {error && (
+            <p className="w-full text-sm text-red-600">{error}</p>
           )}
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
       )}
     </div>

@@ -28,6 +28,22 @@ const HEADERS = [
   "stream",
 ] as const;
 
+// One filled example row, shared by the CSV and Excel templates.
+const SAMPLE_ROW = [
+  "Mary",
+  "Banda",
+  "",
+  "Female",
+  "2012-03-14",
+  "Zambian",
+  "Joseph",
+  "Banda",
+  "Father",
+  "0977123456",
+  "F1",
+  "A",
+] as const;
+
 interface ParsedRow {
   line: number;
   values: Record<(typeof HEADERS)[number], string>;
@@ -67,31 +83,82 @@ export default function StudentImportPage() {
 
   const validRows = useMemo(() => rows.filter((r) => r.errors.length === 0), [rows]);
 
-  function template() {
-    downloadCsv("students_import_template.csv", [
-      [...HEADERS],
-      [
-        "Mary",
-        "Banda",
-        "",
-        "Female",
-        "2012-03-14",
-        "Zambian",
-        "Joseph",
-        "Banda",
-        "Father",
-        "0977123456",
-        "F1",
-        "A",
-      ],
-    ]);
+  async function downloadCsvTemplate() {
+    downloadCsv("students_import_template.csv", [[...HEADERS], [...SAMPLE_ROW]]);
   }
 
-  function parse(text: string) {
+  async function downloadExcelTemplate() {
+    // Lazy-loaded so the xlsx writer never enters the main bundle - this is
+    // an occasional admin action, not the hot path.
+    const { default: writeXlsxFile } = await import("write-excel-file/browser");
+    const data = [
+      HEADERS.map((h) => ({ value: h, fontWeight: "bold" as const, type: String })),
+      SAMPLE_ROW.map((v) => ({ value: v, type: String })),
+    ];
+    await writeXlsxFile(data).toFile("students_import_template.xlsx");
+  }
+
+  // Shared validation for both CSV and Excel: header check + per-row rules.
+  function ingest(headerCells: string[], dataRows: string[][]) {
     setParseError(null);
     setLog([]);
     setFinished(false);
 
+    const header = headerCells.map((h) => h.trim());
+    const missing = HEADERS.filter(
+      (h) => !header.some((c) => c.toLowerCase() === h.toLowerCase())
+    );
+    if (missing.length > 0) {
+      setParseError(
+        `Missing columns: ${missing.join(", ")}. Download a template to get the exact header row.`
+      );
+      setRows([]);
+      return;
+    }
+    const index = new Map(header.map((c, i) => [c.toLowerCase(), i] as const));
+
+    const streamList = streams.data ?? [];
+    const levelCodes = new Set((levels.data ?? []).map((l) => l.levelCode));
+
+    const parsed: ParsedRow[] = dataRows
+      .map((cells, i) => ({ cells, line: i + 2 }))
+      .filter(({ cells }) => cells.some((c) => (c ?? "").trim() !== ""))
+      .map(({ cells, line }) => {
+        const get = (h: (typeof HEADERS)[number]) =>
+          (cells[index.get(h.toLowerCase()) ?? -1] ?? "").trim();
+        const values = Object.fromEntries(
+          HEADERS.map((h) => [h, get(h)])
+        ) as ParsedRow["values"];
+
+        const errors: string[] = [];
+        if (!values.firstName || !values.lastName)
+          errors.push("first and last name required");
+        if (!["Male", "Female"].includes(values.gender))
+          errors.push("gender must be Male or Female");
+        if (Number.isNaN(new Date(values.dateOfBirth).getTime()))
+          errors.push("dateOfBirth must be YYYY-MM-DD");
+        if (!values.guardianFirstName || !values.guardianLastName)
+          errors.push("guardian names required");
+        if (!values.guardianPhone) errors.push("guardian phone required");
+        if (!levelCodes.has(values.form))
+          errors.push(`unknown form "${values.form}"`);
+        else if (
+          !streamList.some(
+            (s) =>
+              s.academicLevelCode === values.form &&
+              s.streamCode === values.stream &&
+              s.active
+          )
+        )
+          errors.push(`no active stream "${values.stream}" in ${values.form}`);
+
+        return { line, values, errors };
+      });
+
+    setRows(parsed);
+  }
+
+  function parseCsv(text: string) {
     const lines = text
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -101,66 +168,58 @@ export default function StudentImportPage() {
       setRows([]);
       return;
     }
-
-    const header = lines[0].split(",").map((h) => h.trim());
-    const missing = HEADERS.filter(
-      (h) => !header.some((c) => c.toLowerCase() === h.toLowerCase())
+    ingest(
+      lines[0].split(","),
+      lines.slice(1).map((l) => l.split(","))
     );
-    if (missing.length > 0) {
-      setParseError(
-        `Missing columns: ${missing.join(", ")}. Download the template to get the exact header row.`
-      );
+  }
+
+  async function parseExcel(file: File) {
+    const { default: readXlsxFile } = await import("read-excel-file/browser");
+    // read-excel-file returns the first sheet's rows; its published default
+    // return type mislabels this (see its README), so assert the real shape.
+    const rows = (await readXlsxFile(file)) as unknown as (
+      | string
+      | number
+      | boolean
+      | Date
+      | null
+    )[][];
+    if (rows.length < 2) {
+      setParseError("The file needs a header row and at least one student row.");
       setRows([]);
       return;
     }
-    const index = new Map(
-      header.map((c, i) => [c.toLowerCase(), i] as const)
+    // Excel gives typed cells; flatten to trimmed strings. A date cell
+    // becomes YYYY-MM-DD so the same validation applies as for CSV.
+    const cell = (v: unknown) =>
+      v == null
+        ? ""
+        : v instanceof Date
+          ? v.toISOString().slice(0, 10)
+          : String(v);
+    ingest(
+      rows[0].map(cell),
+      rows.slice(1).map((r) => r.map(cell))
     );
-
-    const streamList = streams.data ?? [];
-    const levelCodes = new Set((levels.data ?? []).map((l) => l.levelCode));
-
-    const parsed: ParsedRow[] = lines.slice(1).map((line, i) => {
-      const cells = line.split(",").map((c) => c.trim());
-      const get = (h: (typeof HEADERS)[number]) =>
-        cells[index.get(h.toLowerCase()) ?? -1] ?? "";
-      const values = Object.fromEntries(
-        HEADERS.map((h) => [h, get(h)])
-      ) as ParsedRow["values"];
-
-      const errors: string[] = [];
-      if (!values.firstName || !values.lastName)
-        errors.push("first and last name required");
-      if (!["Male", "Female"].includes(values.gender))
-        errors.push("gender must be Male or Female");
-      if (Number.isNaN(new Date(values.dateOfBirth).getTime()))
-        errors.push("dateOfBirth must be YYYY-MM-DD");
-      if (!values.guardianFirstName || !values.guardianLastName)
-        errors.push("guardian names required");
-      if (!values.guardianPhone) errors.push("guardian phone required");
-      if (!levelCodes.has(values.form))
-        errors.push(`unknown form "${values.form}"`);
-      else if (
-        !streamList.some(
-          (s) =>
-            s.academicLevelCode === values.form &&
-            s.streamCode === values.stream &&
-            s.active
-        )
-      )
-        errors.push(`no active stream "${values.stream}" in ${values.form}`);
-
-      return { line: i + 2, values, errors };
-    });
-
-    setRows(parsed);
   }
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    parse(await file.text());
+    if (file.name.toLowerCase().endsWith(".xlsx")) {
+      try {
+        await parseExcel(file);
+      } catch {
+        setParseError(
+          "Could not read that Excel file. Make sure it's an .xlsx from the template, or use the CSV template instead."
+        );
+        setRows([]);
+      }
+    } else {
+      parseCsv(await file.text());
+    }
   }
 
   async function runImport() {
@@ -269,7 +328,7 @@ export default function StudentImportPage() {
       <Link to="/students/registry" className="text-sm text-blue-700 hover:underline">
         ← Student Registry
       </Link>
-      <h1 className="mt-1 text-3xl font-bold">Import Students (CSV)</h1>
+      <h1 className="mt-1 text-3xl font-bold">Import Students</h1>
       <p className="mt-1 text-gray-600">
         {academicYear
           ? `Admitting into ${academicYear.name} — one real admission per row (numbers and Learner IDs are minted normally).`
@@ -277,26 +336,42 @@ export default function StudentImportPage() {
       </p>
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow">
-        <div className="flex flex-wrap items-center gap-3">
+        <p className="text-sm font-medium text-slate-800">
+          1. Download a template, fill in one student per row
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
           <button
-            onClick={template}
+            onClick={downloadExcelTemplate}
+            className="rounded bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-800"
+          >
+            Download Excel template
+          </button>
+          <button
+            onClick={downloadCsvTemplate}
             className="rounded border border-blue-700 px-4 py-2 text-sm text-blue-700 hover:bg-blue-50"
           >
-            Download template CSV
+            Download CSV template
           </button>
+        </div>
+
+        <p className="mt-5 text-sm font-medium text-slate-800">
+          2. Upload the completed file
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
           <label className="rounded bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800">
-            Choose CSV file...
+            Choose Excel or CSV file...
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".xlsx,.csv,text/csv"
               onChange={onFile}
               disabled={!academicYearId || importing}
               className="hidden"
             />
           </label>
           <span className="text-xs text-gray-500">
-            Columns: {HEADERS.join(", ")} · dates YYYY-MM-DD · no commas
-            inside fields · stream is the code (e.g. A)
+            Columns: {HEADERS.join(", ")} · dates YYYY-MM-DD · stream is the
+            code (e.g. A) · keep the phone column as text so leading zeros
+            aren't dropped
           </span>
         </div>
         {parseError && <p className="mt-3 text-sm text-red-600">{parseError}</p>}
